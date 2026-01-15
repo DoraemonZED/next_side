@@ -105,14 +105,10 @@ export const blogService = {
       let content = await fs.readFile(path.join(postDir, 'index.md'), 'utf-8');
       const catJson = JSON.parse(await fs.readFile(path.join(BLOG_ROOT, category, 'category.json'), 'utf-8'));
 
-      // 处理 Markdown 中的本地图片路径，将其转换为 API 路由路径
-      // 匹配 ![alt](./filename.ext) 或 ![alt](filename.ext)
-      content = content.replace(/(!\[.*?\]\()(\.\/)?([^/)]+\.(?:png|jpg|jpeg|gif|svg|webp))(\))/gi, 
-        (match, prefix, dotSlash, filename, suffix) => {
-          return `${prefix}/api/blog/assets/${category}/${id}/${filename}${suffix}`;
-        }
-      );
-
+      // 处理 Markdown 中的图片路径
+      // 注意：这里不再进行硬编码替换，而是保持原始路径（如 ./test.svg）
+      // 这样在编辑时就能看到原始内容，而在渲染时由前端 MarkdownRenderer 根据当前文章上下文动态转换
+      
       return {
         ...meta,
         id,

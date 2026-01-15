@@ -27,7 +27,11 @@ export function BlogEditor({ initialValue, onChange }: BlogEditorProps) {
           minHeight: 300,
           value: currentValue,
           mode: 'ir',
+          cdn: '/libs/vditor',
           theme: resolvedTheme === 'dark' ? 'dark' : 'classic',
+          toolbarConfig: {
+            pin: true
+          },
           preview: {
             theme: {
               current: resolvedTheme === 'dark' ? 'dark' : 'light'

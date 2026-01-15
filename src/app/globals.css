@@ -155,6 +155,15 @@
   padding: 0 8px !important;
 }
 
+/* 吸顶时吸附到 header 下 (header 高度为 64px) */
+.vditor-toolbar--pin {
+  top: 64px !important;
+  z-index: 40 !important; /* 低于 header 的 z-50 */
+  background-color: color-mix(in srgb, var(--background), transparent 5%) !important;
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border) !important;
+}
+
 .vditor-toolbar__item:hover {
   background-color: var(--accent) !important;
 }
@@ -203,7 +212,7 @@
 
 /* Markdown 内容渲染样式覆盖 (.vditor-reset) */
 .vditor-reset {
-  color: var(--foreground) !important;
+  color: var(--foreground); /* 移除 !important，允许代码高亮生效 */
   font-family: inherit !important;
 }
 
@@ -244,6 +253,11 @@
   font-family: var(--font-mono) !important;
   border: 1px solid var(--border) !important;
   border-radius: 8px !important;
+  background-color: var(--card) !important; /* 恢复一个基础背景色 */
+}
+
+.dark .vditor-reset pre {
+  background-color: #0d1117 !important; /* 强制使用符合 github-dark 的背景色 */
 }
 
 .vditor-reset h1, .vditor-reset h2, .vditor-reset h3, 
@@ -271,13 +285,15 @@
 
 /* 表格样式设计 */
 .vditor-reset table {
-  width: 100% !important;
+  display: block !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
   border-collapse: separate !important;
   border-spacing: 0 !important;
   margin: 1.5em 0 !important;
   border: 1px solid var(--border) !important;
   border-radius: 8px !important;
-  overflow: hidden !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
 }
 
