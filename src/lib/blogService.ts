@@ -43,7 +43,13 @@ export const blogService = {
           
           // 计算文章数量
           const postDirs = await fs.readdir(catDir);
-          const postCount = postDirs.filter(d => !d.endsWith('.json')).length;
+          let postCount = 0;
+          for (const d of postDirs) {
+            if (d.endsWith('.json')) continue;
+            const fullPath = path.join(catDir, d);
+            const s = await fs.stat(fullPath);
+            if (s.isDirectory()) postCount++;
+          }
 
           categories.push({
             ...catJson,
@@ -56,6 +62,56 @@ export const blogService = {
     } catch (error) {
       console.error('Error fetching categories:', error);
       return [];
+    }
+  },
+
+  // 创建分类
+  async createCategory(slug: string, name: string, description: string = ''): Promise<boolean> {
+    try {
+      const catDir = path.join(BLOG_ROOT, slug);
+      await fs.mkdir(catDir, { recursive: true });
+      const catJson = { name, description };
+      await fs.writeFile(path.join(catDir, 'category.json'), JSON.stringify(catJson, null, 2));
+      return true;
+    } catch (error) {
+      console.error('Error creating category:', error);
+      return false;
+    }
+  },
+
+  // 创建或更新文章
+  async savePost(category: string, id: string, meta: Partial<PostMeta>, content: string): Promise<boolean> {
+    try {
+      const postDir = path.join(BLOG_ROOT, category, id);
+      await fs.mkdir(postDir, { recursive: true });
+
+      // 如果是新文章，需要完整的 meta
+      let existingMeta = {};
+      try {
+        existingMeta = JSON.parse(await fs.readFile(path.join(postDir, '_index.json'), 'utf-8'));
+      } catch (e) {
+        // 新文章
+        existingMeta = {
+          title: meta.title || 'Untitled',
+          date: meta.date || new Date().toISOString().split('T')[0],
+          views: 0,
+          likes: 0,
+          readTime: meta.readTime || '5 min read',
+          author: meta.author || 'Admin'
+        };
+      }
+
+      const finalMeta = { ...existingMeta, ...meta };
+      delete (finalMeta as any).id;
+      delete (finalMeta as any).category;
+      delete (finalMeta as any).categoryName;
+
+      await fs.writeFile(path.join(postDir, '_index.json'), JSON.stringify(finalMeta, null, 2));
+      await fs.writeFile(path.join(postDir, 'index.md'), content);
+      return true;
+    } catch (error) {
+      console.error('Error saving post:', error);
+      return false;
     }
   },
 

@@ -12,7 +12,7 @@ interface BlogEditorProps {
 
 export function BlogEditor({ initialValue, onChange }: BlogEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null)
-  const vditorRef = useRef<Vditor>()
+  const vditorRef = useRef<Vditor | null>(null)
   const { resolvedTheme } = useTheme()
 
   useEffect(() => {
@@ -53,13 +53,14 @@ export function BlogEditor({ initialValue, onChange }: BlogEditorProps) {
         } catch (e) {
           console.warn('Vditor destroy cleanup:', e);
         }
-        vditorRef.current = undefined;
+        vditorRef.current = null;
       }
     }
   }, []) // 只在挂载时初始化
 
   useEffect(() => {
-    if (vditorRef.current) {
+    // 确保 vditor 实例及其内部对象已初始化
+    if (vditorRef.current && (vditorRef.current as any).vditor) {
       vditorRef.current.setTheme(
         resolvedTheme === 'dark' ? 'dark' : 'classic',
         resolvedTheme === 'dark' ? 'dark' : 'light',

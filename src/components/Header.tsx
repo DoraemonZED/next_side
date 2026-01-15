@@ -32,6 +32,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/store/useAuthStore'
+import { LoginDialog } from '@/components/LoginDialog'
 
 const navItems = [
   { name: '首页', href: '/' },
@@ -44,6 +46,11 @@ export function Header() {
   const pathname = usePathname()
   const { setTheme } = useTheme()
   const [isOpen, setIsOpen] = React.useState(false)
+  const { user, isAuthenticated, logout, checkAuth } = useAuthStore()
+
+  React.useEffect(() => {
+    checkAuth()
+  }, [checkAuth])
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -129,44 +136,32 @@ export function Header() {
           </DropdownMenu>
 
           {/* User Avatar & Login Dialog */}
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src="" alt="@user" />
-                  <AvatarFallback className="bg-primary/10">
-                    <User className="h-6 w-6 text-primary" />
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>登录</DialogTitle>
-                <DialogDescription>
-                  请输入您的凭据登录到您的帐户。
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">邮箱</Label>
-                  <Input id="email" type="email" placeholder="name@example.com" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="password">密码</Label>
-                  <Input id="password" type="password" />
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Button type="submit" className="w-full">
-                  登录
+          {isAuthenticated ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full border-2 border-primary/20 hover:border-primary/50 transition-all">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                      {user?.username?.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
                 </Button>
-                <Button variant="outline" className="w-full">
-                  取消
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="flex items-center justify-start gap-2 p-2">
+                  <div className="flex flex-col space-y-1 leading-none">
+                    <p className="font-medium">{user?.username}</p>
+                    <p className="text-sm text-muted-foreground">管理员</p>
+                  </div>
+                </div>
+                <DropdownMenuItem onClick={() => logout()} className="text-red-500 focus:text-red-500">
+                  退出登录
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <LoginDialog />
+          )}
         </div>
       </div>
     </header>
