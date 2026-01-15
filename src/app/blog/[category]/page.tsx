@@ -9,32 +9,16 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-
-const categories = [
-  { name: "全部文章", slug: "all", count: 12 },
-  { name: "技术分享", slug: "tech", count: 5 },
-  { name: "开发日志", slug: "devlog", count: 3 },
-  { name: "生活随笔", slug: "life", count: 2 },
-  { name: "游戏评论", slug: "game", count: 2 },
-]
-
-const mockArticles = [
-  { id: 1, category: "tech", categoryName: "技术分享", title: "如何使用 Next.js 16 构建现代化应用 #1", date: "2026年1月15日" },
-  { id: 2, category: "tech", categoryName: "技术分享", title: "Tailwind CSS v4 深度解析 #2", date: "2026年1月16日" },
-  { id: 3, category: "devlog", categoryName: "开发日志", title: "我的个人网站重构之路 #3", date: "2026年1月17日" },
-  { id: 4, category: "life", categoryName: "生活随笔", title: "冬日里的第一杯咖啡 #4", date: "2026年1月18日" },
-  { id: 5, category: "game", categoryName: "游戏评论", title: "《黑神话：悟空》通关心得 #5", date: "2026年1月19日" },
-  { id: 6, category: "tech", categoryName: "技术分享", title: "Zustand 状态管理最佳实践 #6", date: "2026年1月20日" },
-]
+import { blogService } from "@/lib/blogService"
 
 export default async function BlogCategoryPage(props: { 
   params: Promise<{ category: string }> 
 }) {
   const { category } = await props.params
-
-  const filteredArticles = category === "all" 
-    ? mockArticles 
-    : mockArticles.filter(article => article.category === category)
+  
+  // 从后端(文件系统)获取数据
+  const categories = await blogService.getCategories()
+  const filteredArticles = await blogService.getPostsByCategory(category)
 
   return (
     <div className="container mx-auto px-4 py-10 md:py-16">
@@ -44,6 +28,7 @@ export default async function BlogCategoryPage(props: {
       </div>
 
       <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
+        {/* 左侧分类列表 - 侧边栏 */}
         <aside className="w-full md:w-64 shrink-0">
           <div className="sticky top-24 space-y-6">
             <div>
@@ -83,6 +68,7 @@ export default async function BlogCategoryPage(props: {
           </div>
         </aside>
 
+        {/* 右侧文章列表 - 主内容 */}
         <main className="flex-1 min-w-0">
           <div className="grid gap-6">
             {filteredArticles.length > 0 ? (
@@ -97,20 +83,20 @@ export default async function BlogCategoryPage(props: {
                     </div>
                     
                     <h2 className="text-xl md:text-2xl font-bold group-hover:text-primary transition-colors leading-tight">
-                      <Link href={`/blog/${category}/${article.id}`}>{article.title}</Link>
+                      <Link href={`/blog/${article.category}/${article.id}`}>{article.title}</Link>
                     </h2>
                     
                     <p className="text-sm md:text-base text-muted-foreground leading-relaxed line-clamp-3">
-                      这是关于 {article.categoryName} 的一篇文章。本文将深入探讨相关的技术细节或生活感悟。
+                      来自 {article.categoryName} 分类下的精彩内容。
                     </p>
                     
                     <div className="flex items-center justify-between mt-2">
                       <Button variant="link" className="w-fit p-0 h-auto text-primary" asChild>
-                        <Link href={`/blog/${category}/${article.id}`}>阅读全文 →</Link>
+                        <Link href={`/blog/${article.category}/${article.id}`}>阅读全文 →</Link>
                       </Button>
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span>5 min read</span>
-                        <span>1.2k views</span>
+                        <span>{article.readTime}</span>
+                        <span>{article.views} views</span>
                       </div>
                     </div>
                   </div>
@@ -123,6 +109,7 @@ export default async function BlogCategoryPage(props: {
             )}
           </div>
 
+          {/* 分页按钮 */}
           {filteredArticles.length > 0 && (
             <div className="mt-12">
               <Pagination>
