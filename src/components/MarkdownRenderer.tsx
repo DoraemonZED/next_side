@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from 'react'
 import Vditor from 'vditor'
 import 'vditor/dist/index.css'
+import { useTheme } from 'next-themes'
 
 interface MarkdownRendererProps {
   content: string
@@ -10,21 +11,22 @@ interface MarkdownRendererProps {
 
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   const previewRef = useRef<HTMLDivElement>(null)
+  const { resolvedTheme } = useTheme()
 
   useEffect(() => {
     if (previewRef.current) {
       Vditor.preview(previewRef.current, content, {
-        mode: 'dark', 
-        anchor: 1,
+        mode: resolvedTheme === 'dark' ? 'dark' : 'light',
+        anchor: 0,
         theme: {
-          current: 'ant-design'
+          current: resolvedTheme === 'dark' ? 'dark' : 'light'
         },
         hljs: {
-          style: 'dracula'
+          style: resolvedTheme === 'dark' ? 'github-dark' : 'github'
         }
       })
     }
-  }, [content])
+  }, [content, resolvedTheme])
 
   return (
     <div 

@@ -135,6 +135,195 @@
   --content3: #64748b;
 }
 
+/* Vditor 自定义主题样式 - 适配项目主题色 */
+:root {
+  --vditor-primary-color: var(--primary); /* 使用项目主色 #AFB42B */
+}
+
+/* 编辑器外层容器 */
+.vditor {
+  border-color: var(--border) !important;
+  background-color: transparent !important; /* 修改为透明 */
+  border-radius: var(--radius) !important;
+  height: auto !important; /* 使编辑器高度随内容自适应 */
+}
+
+/* 工具栏 */
+.vditor-toolbar {
+  background-color: transparent !important;
+  border-bottom: 1px solid var(--border) !important;
+  padding: 0 8px !important;
+}
+
+.vditor-toolbar__item:hover {
+  background-color: var(--accent) !important;
+}
+
+.vditor-toolbar__item--active {
+  color: var(--primary) !important;
+  background-color: var(--accent) !important;
+}
+
+.vditor-toolbar__icon svg {
+  color: var(--muted-foreground);
+}
+
+.vditor-toolbar__item--active .vditor-toolbar__icon svg,
+.vditor-toolbar__item:hover .vditor-toolbar__icon svg {
+  color: var(--primary) !important;
+}
+
+/* 编辑区域 */
+.vditor-content {
+  background-color: transparent !important; /* 去掉背景色 */
+  color: var(--foreground) !important;
+  height: auto !important;
+}
+
+/* 确保 IR 模式容器不产生内部滚动 */
+.vditor-ir {
+  background-color: transparent !important;
+  height: auto !important;
+}
+
+/* 移除 IR 模式下代码块容器的背景色 */
+.vditor-ir pre.vditor-reset {
+  background-color: transparent !important;
+}
+
+/* 所见即所得 (IR) 模式下的激活节点 - 去掉背景色 */
+.vditor-ir__node--active {
+  background-color: transparent !important;
+  color: var(--foreground) !important;
+}
+
+.dark .vditor-ir__node--active {
+  background-color: transparent !important;
+}
+
+/* Markdown 内容渲染样式覆盖 (.vditor-reset) */
+.vditor-reset {
+  color: var(--foreground) !important;
+  font-family: inherit !important;
+}
+
+.vditor-reset a {
+  color: var(--primary) !important;
+  text-decoration: none !important;
+  border-bottom: 1px dashed var(--primary);
+  transition: all 0.2s;
+}
+
+.vditor-reset a:hover {
+  opacity: 0.8;
+  border-bottom-style: solid;
+}
+
+.vditor-reset blockquote {
+  border-left: 4px solid var(--primary) !important;
+  background-color: var(--accent) !important;
+  color: var(--muted-foreground) !important;
+  padding: 12px 16px !important;
+  border-radius: 4px;
+}
+
+.vditor-reset code:not(.hljs) {
+  font-family: var(--font-mono) !important;
+  background-color: var(--primary-50) !important;
+  color: var(--primary) !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  font-size: 0.9em !important;
+}
+
+.dark .vditor-reset code:not(.hljs) {
+  background-color: rgba(175, 180, 43, 0.15) !important;
+}
+
+.vditor-reset pre {
+  font-family: var(--font-mono) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+}
+
+.vditor-reset h1, .vditor-reset h2, .vditor-reset h3, 
+.vditor-reset h4, .vditor-reset h5, .vditor-reset h6 {
+  color: var(--foreground) !important;
+  border-bottom: 1px solid var(--border) !important;
+  padding-bottom: 0.3em !important;
+  margin-top: 1.5em !important;
+}
+
+.vditor-reset strong {
+  color: var(--primary) !important;
+}
+
+/* 列表样式 */
+.vditor-reset ul li::marker, .vditor-reset ol li::marker {
+  color: var(--primary) !important;
+  font-weight: bold;
+}
+
+/* 隐藏标题前的锚点链接 */
+.vditor-anchor {
+  display: none !important;
+}
+
+/* 表格样式设计 */
+.vditor-reset table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  margin: 1.5em 0 !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+}
+
+.vditor-reset table th {
+  background-color: var(--primary) !important;
+  color: white !important;
+  font-weight: 600 !important;
+  text-align: left !important;
+  padding: 12px 16px !important;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.vditor-reset table td {
+  padding: 12px 16px !important;
+  border-bottom: 1px solid var(--border) !important;
+  color: var(--foreground) !important;
+  background-color: var(--background) !important;
+}
+
+/* 隔行变色 */
+.vditor-reset table tr:nth-child(even) td {
+  background-color: var(--primary-50) !important;
+}
+
+.dark .vditor-reset table tr:nth-child(even) td {
+  background-color: color-mix(in srgb, var(--background), var(--primary) 2%) !important;
+}
+
+/* 最后一行移除底边框 */
+.vditor-reset table tr:last-child td {
+  border-bottom: none !important;
+}
+
+/* 悬停效果 */
+.vditor-reset table tr:hover td {
+  background-color: var(--accent) !important;
+  transition: background-color 0.2s ease !important;
+}
+
+/* 状态栏 */
+.vditor-status {
+  background-color: transparent !important;
+  border-top: 1px solid var(--border) !important;
+  color: var(--muted-foreground) !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
