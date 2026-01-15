@@ -16,6 +16,12 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   useEffect(() => {
     const initVditor = async () => {
       if (previewRef.current) {
+        // 记录当前高度，防止内容重新加载时页面高度塌陷导致滚动条重置
+        const currentHeight = previewRef.current.offsetHeight;
+        if (currentHeight > 0) {
+          previewRef.current.style.minHeight = `${currentHeight}px`;
+        }
+
         await Vditor.preview(previewRef.current, content, {
           mode: resolvedTheme === 'dark' ? 'dark' : 'light',
           cdn: '/libs/vditor',
@@ -37,6 +43,9 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
                 lineNumber: true
               }, previewRef.current, '/libs/vditor')
               Vditor.codeRender(previewRef.current)
+              
+              // 渲染完成后移除 minHeight
+              previewRef.current.style.minHeight = '';
             }
           }
         })

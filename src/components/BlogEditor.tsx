@@ -16,57 +16,57 @@ export function BlogEditor({ initialValue, onChange }: BlogEditorProps) {
   const { resolvedTheme } = useTheme()
 
   useEffect(() => {
-    let vditorInstance: Vditor | undefined;
-    
-    const initVditor = () => {
-      if (editorRef.current) {
-        // 如果已经有实例，获取当前内容
-        const currentValue = vditorRef.current ? vditorRef.current.getValue() : initialValue;
-
-        vditorInstance = new Vditor(editorRef.current, {
-          minHeight: 300,
-          value: currentValue,
-          mode: 'ir',
-          cdn: '/libs/vditor',
-          theme: resolvedTheme === 'dark' ? 'dark' : 'classic',
-          toolbarConfig: {
-            pin: true
+    if (editorRef.current && !vditorRef.current) {
+      const vditorInstance = new Vditor(editorRef.current, {
+        minHeight: 300,
+        value: initialValue,
+        mode: 'ir',
+        cdn: '/libs/vditor',
+        theme: resolvedTheme === 'dark' ? 'dark' : 'classic',
+        toolbarConfig: {
+          pin: true
+        },
+        preview: {
+          theme: {
+            current: resolvedTheme === 'dark' ? 'dark' : 'light'
           },
-          preview: {
-            theme: {
-              current: resolvedTheme === 'dark' ? 'dark' : 'light'
-            },
-            hljs: {
-              style: resolvedTheme === 'dark' ? 'github-dark' : 'github'
-            }
-          },
-          cache: {
-            enable: false
-          },
-          input: (value) => {
-            onChange?.(value)
+          hljs: {
+            style: resolvedTheme === 'dark' ? 'github-dark' : 'github'
           }
-        });
-        vditorRef.current = vditorInstance;
-      }
-    };
-
-    initVditor();
+        },
+        cache: {
+          enable: false
+        },
+        input: (value) => {
+          onChange?.(value)
+        }
+      });
+      vditorRef.current = vditorInstance;
+    }
 
     return () => {
-      if (vditorInstance) {
+      if (vditorRef.current) {
         try {
-          if (vditorInstance && vditorInstance.vditor && vditorInstance.vditor.element) {
-            vditorInstance.destroy();
+          if (vditorRef.current.vditor && vditorRef.current.vditor.element) {
+            vditorRef.current.destroy();
           }
         } catch (e) {
           console.warn('Vditor destroy cleanup:', e);
         }
-        vditorInstance = undefined;
         vditorRef.current = undefined;
       }
     }
-  }, [resolvedTheme]) // 当主题变化时重新初始化以应用新的代码高亮主题
+  }, []) // 只在挂载时初始化
+
+  useEffect(() => {
+    if (vditorRef.current) {
+      vditorRef.current.setTheme(
+        resolvedTheme === 'dark' ? 'dark' : 'classic',
+        resolvedTheme === 'dark' ? 'dark' : 'light',
+        resolvedTheme === 'dark' ? 'github-dark' : 'github'
+      );
+    }
+  }, [resolvedTheme]) // 当主题变化时仅更新主题，不重新创建实例
 
   return <div ref={editorRef} className="mt-4" />
 }
