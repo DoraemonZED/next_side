@@ -4,6 +4,7 @@ import { ArrowLeft, Calendar, Clock, User, Share2, Bookmark } from "lucide-react
 import { blogService } from "@/lib/blogService"
 import { notFound } from "next/navigation"
 import { PostClientWrapper } from "@/components/PostClientWrapper"
+import { BackToTop } from "@/components/BackToTop"
 
 export default async function BlogPostDetail(props: { 
   params: Promise<{ category: string; id: string }> 
@@ -57,6 +58,7 @@ export default async function BlogPostDetail(props: {
           </span>
         </div>
       </div>
+      <BackToTop />
     </article>
   )
 }

@@ -1,5 +1,6 @@
 {
   "name": "JavaScript",
   "slug": "tech",
-  "description": "探讨前端、后端及架构设计的相关技术。"
+  "description": "探讨前端、后端及架构设计的相关技术。",
+  "order": 2
 }

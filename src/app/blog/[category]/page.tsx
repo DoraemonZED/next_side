@@ -12,15 +12,39 @@ import {
 import { blogService } from "@/lib/blogService"
 import { NewPostButton } from "@/components/NewPostButton"
 import { NewCategoryButton } from "@/components/NewCategoryButton"
+import { CategoryList } from "@/components/CategoryList"
+import { PostCard } from "@/components/PostCard"
+import { PostFilters } from "@/components/PostFilters"
 
 export default async function BlogCategoryPage(props: { 
-  params: Promise<{ category: string }> 
+  params: Promise<{ category: string }>,
+  searchParams: Promise<{ 
+    page?: string, 
+    q?: string, 
+    sortBy?: string, 
+    sortOrder?: string 
+  }>
 }) {
   const { category } = await props.params
+  const { 
+    page: pageStr, 
+    q: searchQuery = '', 
+    sortBy = 'date', 
+    sortOrder = 'desc' 
+  } = await props.searchParams
+  
+  const currentPage = parseInt(pageStr || '1', 10)
   
   // 从后端(文件系统)获取数据
   const categories = await blogService.getCategories()
-  const filteredArticles = await blogService.getPostsByCategory(category)
+  const { posts, totalPages, total } = await blogService.getPostsByCategory(
+    category, 
+    currentPage, 
+    10,
+    searchQuery,
+    sortBy as any,
+    sortOrder as any
+  )
 
   return (
     <div className="container mx-auto px-4 py-10 md:py-16">
@@ -36,35 +60,8 @@ export default async function BlogCategoryPage(props: {
         {/* 左侧分类列表 - 侧边栏 */}
         <aside className="w-full md:w-64 shrink-0">
           <div className="sticky top-24 space-y-6">
-            <div>
-              <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
-                <Hash className="h-4 w-4 text-primary" />
-                文章分类
-              </h3>
-              <nav className="flex flex-col gap-1">
-                {categories.map((cat) => {
-                  const isActive = category === cat.slug
-                  return (
-                    <Button
-                      key={cat.slug}
-                      variant={isActive ? "secondary" : "ghost"}
-                      className="justify-between h-10 px-4 font-normal transition-all"
-                      asChild
-                    >
-                      <Link href={`/blog/${cat.slug}`}>
-                        <span>{cat.name}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full border ${
-                          isActive ? 'bg-primary/20 text-primary border-primary/20' : 'text-muted-foreground bg-background border-border/40'
-                        }`}>
-                          {cat.count}
-                        </span>
-                      </Link>
-                    </Button>
-                  )
-                })}
-              </nav>
-              <NewCategoryButton />
-            </div>
+            <CategoryList categories={categories} currentCategory={category} />
+            <NewCategoryButton />
 
             <div className="p-6 border rounded-xl bg-card/50 hidden md:block">
               <h4 className="text-sm font-bold mb-3">订阅邮件</h4>
@@ -76,58 +73,50 @@ export default async function BlogCategoryPage(props: {
 
         {/* 右侧文章列表 - 主内容 */}
         <main className="flex-1 min-w-0">
+          <PostFilters />
+          
           <div className="grid gap-6">
-            {filteredArticles.length > 0 ? (
-              filteredArticles.map((article) => (
-                <article key={article.id} className="group flex flex-col gap-4 p-5 md:p-6 border rounded-2xl bg-card hover:shadow-md transition-all border-border/40 overflow-hidden relative">
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
-                        {article.categoryName}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{article.date}</span>
-                    </div>
-                    
-                    <h2 className="text-xl md:text-2xl font-bold group-hover:text-primary transition-colors leading-tight">
-                      <Link href={`/blog/${article.category}/${article.id}`}>{article.title}</Link>
-                    </h2>
-                    
-                    <p className="text-sm md:text-base text-muted-foreground leading-relaxed line-clamp-3">
-                      来自 {article.categoryName} 分类下的精彩内容。
-                    </p>
-                    
-                    <div className="flex items-center justify-between mt-2">
-                      <Button variant="link" className="w-fit p-0 h-auto text-primary" asChild>
-                        <Link href={`/blog/${article.category}/${article.id}`}>阅读全文 →</Link>
-                      </Button>
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span>{article.readTime}</span>
-                        <span>{article.views} views</span>
-                      </div>
-                    </div>
-                  </div>
-                </article>
+            {posts.length > 0 ? (
+              posts.map((article) => (
+                <PostCard key={article.id} article={article} />
               ))
             ) : (
               <div className="py-20 text-center border rounded-2xl border-dashed">
-                <p className="text-muted-foreground">该分类下暂无文章</p>
+                <p className="text-muted-foreground">
+                  {searchQuery ? `未找到与 "${searchQuery}" 相关的文章` : "该分类下暂无文章"}
+                </p>
               </div>
             )}
           </div>
 
           {/* 分页按钮 */}
-          {filteredArticles.length > 0 && (
+          {totalPages > 1 && (
             <div className="mt-12">
               <Pagination>
                 <PaginationContent>
                   <PaginationItem>
-                    <PaginationPrevious href="#" />
+                    <PaginationPrevious 
+                      href={currentPage > 1 ? `?page=${currentPage - 1}${searchQuery ? `&q=${searchQuery}` : ""}${sortBy !== 'date' ? `&sortBy=${sortBy}` : ""}${sortOrder !== 'desc' ? `&sortOrder=${sortOrder}` : ""}` : "#"} 
+                      className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
+                    />
                   </PaginationItem>
-                  <PaginationItem className="hidden sm:inline-block">
-                    <PaginationLink href="#" isActive>1</PaginationLink>
-                  </PaginationItem>
+                  
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                    <PaginationItem key={pageNum} className="hidden sm:inline-block">
+                      <PaginationLink 
+                        href={`?page=${pageNum}${searchQuery ? `&q=${searchQuery}` : ""}${sortBy !== 'date' ? `&sortBy=${sortBy}` : ""}${sortOrder !== 'desc' ? `&sortOrder=${sortOrder}` : ""}`} 
+                        isActive={currentPage === pageNum}
+                      >
+                        {pageNum}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+
                   <PaginationItem>
-                    <PaginationNext href="#" />
+                    <PaginationNext 
+                      href={currentPage < totalPages ? `?page=${currentPage + 1}${searchQuery ? `&q=${searchQuery}` : ""}${sortBy !== 'date' ? `&sortBy=${sortBy}` : ""}${sortOrder !== 'desc' ? `&sortOrder=${sortOrder}` : ""}` : "#"} 
+                      className={currentPage >= totalPages ? "pointer-events-none opacity-50" : ""}
+                    />
                   </PaginationItem>
                 </PaginationContent>
               </Pagination>

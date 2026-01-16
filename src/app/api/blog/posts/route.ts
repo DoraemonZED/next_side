@@ -28,3 +28,29 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   return POST(request);
 }
+
+export async function DELETE(request: NextRequest) {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ message: '未登录' }, { status: 401 });
+  }
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get('category');
+    const id = searchParams.get('id');
+
+    if (!category || !id) {
+      return NextResponse.json({ message: '参数缺失' }, { status: 400 });
+    }
+
+    const success = await blogService.deletePost(category, id);
+    if (success) {
+      return NextResponse.json({ message: '文章删除成功' });
+    } else {
+      return NextResponse.json({ message: '文章删除失败' }, { status: 500 });
+    }
+  } catch (error) {
+    return NextResponse.json({ message: '服务器错误' }, { status: 500 });
+  }
+}
