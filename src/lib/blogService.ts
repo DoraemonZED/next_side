@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import db from '@/lib/db';
 
 const BLOG_ROOT = path.join(process.cwd(), 'content/blog');
 
@@ -21,6 +22,8 @@ export interface PostMeta {
   likes: number;
   readTime: string;
   author: string;
+  summary: string;
+  tags: string;
 }
 
 export interface PostDetail extends PostMeta {
@@ -39,55 +42,27 @@ export const blogService = {
   // 获取所有分类
   async getCategories(): Promise<Category[]> {
     try {
-      if (!(await fs.access(BLOG_ROOT).then(() => true).catch(() => false))) {
-        await fs.mkdir(BLOG_ROOT, { recursive: true });
+      const rows = db.prepare(`
+        SELECT c.*, COUNT(p.id) as count 
+        FROM categories c 
+        LEFT JOIN posts p ON c.slug = p.category_slug 
+        GROUP BY c.id 
+        ORDER BY c.sort_order ASC
+      `).all() as any[];
+
+      if (rows.length === 0) {
+        // 如果数据库没数据，尝试从目录结构同步一次
+        await this.syncBlogData();
+        return this.getCategories();
       }
 
-      const categories: Category[] = [];
-      const dirs = await fs.readdir(BLOG_ROOT);
-
-      for (const slug of dirs) {
-        const catDir = path.join(BLOG_ROOT, slug);
-        const stat = await fs.stat(catDir);
-        
-        if (stat.isDirectory()) {
-          const catJsonPath = path.join(catDir, 'category.json');
-          if (!(await fs.access(catJsonPath).then(() => true).catch(() => false))) continue;
-          
-          const catJson = JSON.parse(await fs.readFile(catJsonPath, 'utf-8'));
-          
-          // 计算文章数量
-          const postDirs = await fs.readdir(catDir);
-          let postCount = 0;
-          for (const d of postDirs) {
-            if (d === 'category.json' || d.startsWith('.')) continue;
-            const fullPath = path.join(catDir, d);
-            const s = await fs.stat(fullPath);
-            if (s.isDirectory()) postCount++;
-          }
-
-          categories.push({
-            ...catJson,
-            slug,
-            count: postCount,
-            order: catJson.order || 0
-          });
-        }
-      }
-
-      // 如果没有任何分类，默认创建一个
-      if (categories.length === 0) {
-        await this.createCategory('default', '未分类', '默认分类');
-        return [{
-          name: '未分类',
-          slug: 'default',
-          description: '默认分类',
-          count: 0,
-          order: 0
-        }];
-      }
-
-      return categories.sort((a, b) => a.order - b.order);
+      return rows.map(row => ({
+        name: row.name,
+        slug: row.slug,
+        description: row.description,
+        count: row.count,
+        order: row.sort_order
+      }));
     } catch (error) {
       console.error('Error fetching categories:', error);
       return [];
@@ -98,9 +73,12 @@ export const blogService = {
   async createCategory(slug: string, name: string, description: string = ''): Promise<boolean> {
     try {
       const catDir = path.join(BLOG_ROOT, slug);
-      await fs.mkdir(catDir, { recursive: true });
-      const catJson = { name, description };
-      await fs.writeFile(path.join(catDir, 'category.json'), JSON.stringify(catJson, null, 2));
+      if (!(await fs.access(catDir).then(() => true).catch(() => false))) {
+        await fs.mkdir(catDir, { recursive: true });
+      }
+
+      db.prepare('INSERT INTO categories (slug, name, description, sort_order) VALUES (?, ?, ?, ?)')
+        .run(slug, name, description, 0);
       return true;
     } catch (error) {
       console.error('Error creating category:', error);
@@ -112,26 +90,32 @@ export const blogService = {
   async updateCategory(slug: string, data: Partial<Category>): Promise<boolean> {
     try {
       const oldDir = path.join(BLOG_ROOT, slug);
-      let currentDir = oldDir;
-
-      // 如果修改了 slug (路径)，需要重命名文件夹
+      
+      // 如果修改了 slug (路径)，需要同步重命名文件夹和数据库
       if (data.slug && data.slug !== slug) {
         const newDir = path.join(BLOG_ROOT, data.slug);
         if (await fs.access(newDir).then(() => true).catch(() => false)) {
           throw new Error('新的路径已存在');
         }
-        await fs.rename(oldDir, newDir);
-        currentDir = newDir;
+        if (await fs.access(oldDir).then(() => true).catch(() => false)) {
+          await fs.rename(oldDir, newDir);
+        }
+        
+        db.prepare('UPDATE categories SET slug = ? WHERE slug = ?').run(data.slug, slug);
+        slug = data.slug; // 更新当前的 slug 供后续更新使用
       }
 
-      const catJsonPath = path.join(currentDir, 'category.json');
-      const existingJson = JSON.parse(await fs.readFile(catJsonPath, 'utf-8'));
+      if (data.name !== undefined || data.description !== undefined || data.order !== undefined) {
+        const sets = [];
+        const params = [];
+        if (data.name !== undefined) { sets.push('name = ?'); params.push(data.name); }
+        if (data.description !== undefined) { sets.push('description = ?'); params.push(data.description); }
+        if (data.order !== undefined) { sets.push('sort_order = ?'); params.push(data.order); }
+        params.push(slug);
+
+        db.prepare(`UPDATE categories SET ${sets.join(', ')} WHERE slug = ?`).run(...params);
+      }
       
-      // 合并数据，排除 count 和 slug (slug 已经通过文件夹重命名处理)
-      const { count, slug: _, ...updateData } = data as any;
-      const updatedJson = { ...existingJson, ...updateData };
-      
-      await fs.writeFile(catJsonPath, JSON.stringify(updatedJson, null, 2));
       return true;
     } catch (error) {
       console.error('Error updating category:', error);
@@ -143,8 +127,10 @@ export const blogService = {
   async deleteCategory(slug: string): Promise<boolean> {
     try {
       const catDir = path.join(BLOG_ROOT, slug);
-      // 使用 rm -rf 递归删除分类及其下的所有文章
-      await fs.rm(catDir, { recursive: true, force: true });
+      if (await fs.access(catDir).then(() => true).catch(() => false)) {
+        await fs.rm(catDir, { recursive: true, force: true });
+      }
+      db.prepare('DELETE FROM categories WHERE slug = ?').run(slug);
       return true;
     } catch (error) {
       console.error('Error deleting category:', error);
@@ -156,7 +142,10 @@ export const blogService = {
   async deletePost(category: string, id: string): Promise<boolean> {
     try {
       const postDir = path.join(BLOG_ROOT, category, id);
-      await fs.rm(postDir, { recursive: true, force: true });
+      if (await fs.access(postDir).then(() => true).catch(() => false)) {
+        await fs.rm(postDir, { recursive: true, force: true });
+      }
+      db.prepare('DELETE FROM posts WHERE category_slug = ? AND slug = ?').run(category, id);
       return true;
     } catch (error) {
       console.error('Error deleting post:', error);
@@ -165,34 +154,50 @@ export const blogService = {
   },
 
   // 创建或更新文章
-  async savePost(category: string, id: string, meta: Partial<PostMeta>, content: string): Promise<boolean> {
+  async savePost(category: string, id: string, meta: Partial<PostMeta>, content?: string): Promise<boolean> {
     try {
       const postDir = path.join(BLOG_ROOT, category, id);
-      await fs.mkdir(postDir, { recursive: true });
-
-      // 如果是新文章，需要完整的 meta
-      let existingMeta = {};
-      try {
-        existingMeta = JSON.parse(await fs.readFile(path.join(postDir, '_index.json'), 'utf-8'));
-      } catch (e) {
-        // 新文章
-        existingMeta = {
-          title: meta.title || 'Untitled',
-          date: meta.date || new Date().toISOString().split('T')[0],
-          views: 0,
-          likes: 0,
-          readTime: meta.readTime || '5 min read',
-          author: meta.author || 'Admin'
-        };
+      if (!(await fs.access(postDir).then(() => true).catch(() => false))) {
+        await fs.mkdir(postDir, { recursive: true });
       }
 
-      const finalMeta = { ...existingMeta, ...meta };
-      delete (finalMeta as any).id;
-      delete (finalMeta as any).category;
-      delete (finalMeta as any).categoryName;
+      const absoluteContentPath = path.join(postDir, 'index.md');
+      if (content !== undefined) {
+        await fs.writeFile(absoluteContentPath, content);
+      }
 
-      await fs.writeFile(path.join(postDir, '_index.json'), JSON.stringify(finalMeta, null, 2));
-      await fs.writeFile(path.join(postDir, 'index.md'), content);
+      // 数据库中仅存储相对于 BLOG_ROOT 的路径 (例如: category/id/index.md)
+      const relativeContentPath = path.join(category, id, 'index.md');
+
+      // 获取现有数据以防只更新部分字段
+      const existing = db.prepare('SELECT * FROM posts WHERE category_slug = ? AND slug = ?').get(category, id) as any;
+
+      const title = meta.title || (existing ? existing.title : 'Untitled');
+      const date = meta.date || (existing ? existing.date : new Date().toISOString().split('T')[0]);
+      const views = meta.views !== undefined ? meta.views : (existing ? existing.views : 0);
+      const likes = meta.likes !== undefined ? meta.likes : (existing ? existing.likes : 0);
+      const readTime = meta.readTime || (existing ? existing.read_time : '5 min read');
+      const author = meta.author || (existing ? existing.author : 'Admin');
+      const tags = meta.tags !== undefined ? meta.tags : (existing ? existing.tags : '');
+      
+      let summary = meta.summary !== undefined ? meta.summary : (existing ? existing.summary : '');
+      if (content !== undefined && meta.summary === undefined) {
+        summary = this.extractSummary(content);
+      }
+
+      db.prepare(`
+        INSERT INTO posts (category_slug, slug, title, date, views, likes, read_time, author, summary, tags, content_path)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(category_slug, slug) DO UPDATE SET
+          title = excluded.title,
+          date = excluded.date,
+          read_time = excluded.read_time,
+          author = excluded.author,
+          summary = excluded.summary,
+          tags = excluded.tags,
+          content_path = excluded.content_path
+      `).run(category, id, title, date, views, likes, readTime, author, summary, tags, relativeContentPath);
+
       return true;
     } catch (error) {
       console.error('Error saving post:', error);
@@ -204,113 +209,178 @@ export const blogService = {
   async getPostsByCategory(
     categorySlug: string, 
     page: number = 1, 
-    pageSize: number = 15,
+    pageSize: number = 10,
     searchQuery: string = '',
     sortBy: 'date' | 'views' | 'likes' = 'date',
     sortOrder: 'asc' | 'desc' = 'desc'
   ): Promise<PaginatedPosts> {
     try {
-      const allPosts: PostMeta[] = [];
-      const processCategory = async (slug: string) => {
-        const catDir = path.join(BLOG_ROOT, slug);
-        if (!(await fs.access(catDir).then(() => true).catch(() => false))) return;
-        
-        const catJson = JSON.parse(await fs.readFile(path.join(catDir, 'category.json'), 'utf-8'));
-        const items = await fs.readdir(catDir);
+      const offset = (page - 1) * pageSize;
+      const dbSortBy = sortBy === 'date' ? 'date' : sortBy;
+      
+      let query = `
+        FROM posts p 
+        JOIN categories c ON p.category_slug = c.slug 
+        WHERE p.category_slug = ?
+      `;
+      const params: any[] = [categorySlug];
 
-        for (const id of items) {
-          if (id === 'category.json' || id.startsWith('.')) continue;
-          const postDir = path.join(catDir, id);
-          const stat = await fs.stat(postDir);
-          if (stat.isDirectory()) {
-            const metaPath = path.join(postDir, '_index.json');
-            try {
-              const meta = JSON.parse(await fs.readFile(metaPath, 'utf-8'));
-              
-              // 搜索过滤
-              if (searchQuery && !meta.title.toLowerCase().includes(searchQuery.toLowerCase())) {
-                continue;
-              }
+      if (searchQuery) {
+        query += ` AND p.title LIKE ?`;
+        params.push(`%${searchQuery}%`);
+      }
 
-              allPosts.push({
-                ...meta,
-                id,
-                category: slug,
-                categoryName: catJson.name
-              });
-            } catch (e) {
-              // 跳过没有元数据的目录
-            }
-          }
-        }
-      };
+      const totalRow = db.prepare(`SELECT COUNT(*) as count ${query}`).get(...params) as { count: number };
+      const total = totalRow.count;
 
-      await processCategory(categorySlug);
-
-      // 排序
-      allPosts.sort((a, b) => {
-        let valA: any = a[sortBy];
-        let valB: any = b[sortBy];
-
-        if (sortBy === 'date') {
-          valA = new Date(valA).getTime();
-          valB = new Date(valB).getTime();
-        }
-
-        if (sortOrder === 'asc') {
-          return valA > valB ? 1 : -1;
-        } else {
-          return valA < valB ? 1 : -1;
-        }
-      });
-
-      // 分页截取
-      const total = allPosts.length;
-      const totalPages = Math.ceil(total / pageSize);
-      const start = (page - 1) * pageSize;
-      const paginatedPosts = allPosts.slice(start, start + pageSize);
+      const rows = db.prepare(`
+        SELECT p.*, c.name as categoryName 
+        ${query} 
+        ORDER BY p.${dbSortBy} ${sortOrder.toUpperCase()} 
+        LIMIT ? OFFSET ?
+      `).all(...params, pageSize, offset) as any[];
 
       return {
-        posts: paginatedPosts,
+        posts: rows.map(row => ({
+          id: row.slug,
+          category: row.category_slug,
+          categoryName: row.categoryName,
+          title: row.title,
+          date: row.date,
+          views: row.views,
+          likes: row.likes,
+          readTime: row.read_time,
+          author: row.author,
+          summary: row.summary,
+          tags: row.tags || ''
+        })),
         total,
         page,
         pageSize,
-        totalPages
+        totalPages: Math.ceil(total / pageSize)
       };
     } catch (error) {
       console.error('Error fetching posts:', error);
-      return {
-        posts: [],
-        total: 0,
-        page,
-        pageSize,
-        totalPages: 0
-      };
+      return { posts: [], total: 0, page, pageSize, totalPages: 0 };
     }
   },
 
   // 获取文章详情
   async getPostDetail(category: string, id: string): Promise<PostDetail | null> {
     try {
-      const postDir = path.join(BLOG_ROOT, category, id);
-      const meta = JSON.parse(await fs.readFile(path.join(postDir, '_index.json'), 'utf-8'));
-      let content = await fs.readFile(path.join(postDir, 'index.md'), 'utf-8');
-      const catJson = JSON.parse(await fs.readFile(path.join(BLOG_ROOT, category, 'category.json'), 'utf-8'));
+      const row = db.prepare(`
+        SELECT p.*, c.name as categoryName 
+        FROM posts p 
+        JOIN categories c ON p.category_slug = c.slug 
+        WHERE p.category_slug = ? AND p.slug = ?
+      `).get(category, id) as any;
 
-      // 处理 Markdown 中的图片路径
-      // 注意：这里不再进行硬编码替换，而是保持原始路径（如 ./test.svg）
-      // 这样在编辑时就能看到原始内容，而在渲染时由前端 MarkdownRenderer 根据当前文章上下文动态转换
+      if (!row) return null;
+
+      const absolutePath = path.join(BLOG_ROOT, row.content_path);
+      const content = await fs.readFile(absolutePath, 'utf-8');
       
       return {
-        ...meta,
-        id,
-        category,
-        categoryName: catJson.name,
+        id: row.slug,
+        category: row.category_slug,
+        categoryName: row.categoryName,
+        title: row.title,
+        date: row.date,
+        views: row.views,
+        likes: row.likes,
+        readTime: row.read_time,
+        author: row.author,
+        summary: row.summary,
+        tags: row.tags || '',
         content
       };
     } catch (error) {
       console.error('Error fetching post detail:', error);
       return null;
+    }
+  },
+
+  // 提取摘要
+  extractSummary(content: string): string {
+    const lines = content.split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0 && !line.startsWith('#') && !line.startsWith('!['))
+      .filter(line => !line.startsWith('---')); // 过滤掉可能的 frontmatter 分隔符
+    
+    return lines.slice(0, 3).join(' ').substring(0, 160) + (content.length > 160 ? '...' : '');
+  },
+
+  // 同步文件系统数据到数据库
+  async syncBlogData(): Promise<{ success: boolean; message: string }> {
+    try {
+      if (!(await fs.access(BLOG_ROOT).then(() => true).catch(() => false))) {
+        await fs.mkdir(BLOG_ROOT, { recursive: true });
+        return { success: true, message: '目录已创建' };
+      }
+
+      const dirs = await fs.readdir(BLOG_ROOT);
+      
+      for (const catSlug of dirs) {
+        const catDir = path.join(BLOG_ROOT, catSlug);
+        const stat = await fs.stat(catDir);
+        if (!stat.isDirectory()) continue;
+
+        // 处理分类
+        const catName = catSlug;
+        const catDesc = '';
+
+        db.prepare(`
+          INSERT INTO categories (slug, name, description) 
+          VALUES (?, ?, ?) 
+          ON CONFLICT(slug) DO UPDATE SET name = excluded.name, description = excluded.description
+        `).run(catSlug, catName, catDesc);
+
+        // 处理文章
+        const postDirs = await fs.readdir(catDir);
+        for (const postSlug of postDirs) {
+          if (postSlug.startsWith('.')) continue;
+          const postDir = path.join(catDir, postSlug);
+          const postStat = await fs.stat(postDir);
+          if (!postStat.isDirectory()) continue;
+
+          const indexPath = path.join(postDir, 'index.md');
+          if (!(await fs.access(indexPath).then(() => true).catch(() => false))) continue;
+
+          const content = await fs.readFile(indexPath, 'utf-8');
+          const summary = this.extractSummary(content);
+          const relativePath = path.join(catSlug, postSlug, 'index.md');
+
+          db.prepare(`
+            INSERT INTO posts (category_slug, slug, title, date, views, likes, read_time, author, summary, tags, content_path)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(category_slug, slug) DO UPDATE SET
+              title = excluded.title,
+              date = excluded.date,
+              read_time = excluded.read_time,
+              author = excluded.author,
+              summary = excluded.summary,
+              tags = excluded.tags,
+              content_path = excluded.content_path
+          `).run(
+            catSlug, 
+            postSlug, 
+            postSlug, // 默认使用文件夹名作为标题
+            new Date().toISOString().split('T')[0],
+            0,
+            0,
+            '5 min read',
+            'Admin',
+            summary,
+            '', // 默认 tags 为空
+            relativePath
+          );
+        }
+      }
+
+      return { success: true, message: '同步完成' };
+    } catch (error: any) {
+      console.error('Error syncing blog data:', error);
+      return { success: false, message: error.message };
     }
   }
 };

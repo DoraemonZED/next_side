@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const { category, id, meta, content } = await request.json();
-    if (!category || !id || content === undefined) {
+    if (!category || !id) {
       return NextResponse.json({ message: '参数缺失' }, { status: 400 });
     }
 

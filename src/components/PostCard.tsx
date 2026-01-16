@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Trash2 } from "lucide-react";
+import { Trash2, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useUIStore } from "@/store/useUIStore";
 import { PostMeta } from "@/lib/blogService";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { PostFormDialog } from "./PostFormDialog";
 
 interface PostCardProps {
   article: PostMeta;
@@ -13,24 +16,37 @@ interface PostCardProps {
 
 export function PostCard({ article }: PostCardProps) {
   const { isAuthenticated } = useAuthStore();
+  const { showConfirm, showToast, setLoading } = useUIStore();
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const router = useRouter();
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!confirm("确定要删除这篇文章吗？此操作不可撤销。")) return;
-
-    try {
-      const res = await fetch(`/api/blog/posts?category=${article.category}&id=${article.id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        router.refresh();
-      }
-    } catch (error) {
-      console.error("Failed to delete post", error);
-    }
+    showConfirm({
+      title: "删除文章",
+      message: "确定要删除这篇文章吗？此操作不可撤销。",
+      onConfirm: async () => {
+        setLoading(true);
+        try {
+          const res = await fetch(`/api/blog/posts?category=${article.category}&id=${article.id}`, {
+            method: "DELETE",
+          });
+          if (res.ok) {
+            showToast("文章删除成功", "success");
+            router.refresh();
+          } else {
+            showToast("文章删除失败", "error");
+          }
+        } catch (error) {
+          showToast("网络错误", "error");
+          console.error("Failed to delete post", error);
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
   return (
@@ -42,17 +58,36 @@ export function PostCard({ article }: PostCardProps) {
               {article.categoryName}
             </span>
             <span className="text-xs text-muted-foreground">{article.date}</span>
+            {article.tags && article.tags.split(',').map(tag => (
+              <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground">
+                {tag.trim()}
+              </span>
+            ))}
           </div>
 
           {isAuthenticated && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-              onClick={handleDelete}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsEditDialogOpen(true);
+                }}
+              >
+                <Settings2 className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={handleDelete}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           )}
         </div>
 
@@ -61,7 +96,7 @@ export function PostCard({ article }: PostCardProps) {
         </h2>
 
         <p className="text-sm md:text-base text-muted-foreground leading-relaxed line-clamp-3">
-          来自 {article.categoryName} 分类下的精彩内容。
+          {article.summary}
         </p>
 
         <div className="flex items-center justify-between mt-2">
@@ -74,6 +109,14 @@ export function PostCard({ article }: PostCardProps) {
           </div>
         </div>
       </div>
+
+      <PostFormDialog
+        mode="edit"
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        category={article.category}
+        article={article}
+      />
     </article>
   );
 }

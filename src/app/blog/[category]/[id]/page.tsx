@@ -53,9 +53,14 @@ export default async function BlogPostDetail(props: {
 
         {/* 文章底部标签 */}
         <div className="mt-16 pt-8 border-t flex flex-wrap gap-2">
-          <span className="px-3 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-full">
+          <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
             #{post.categoryName}
           </span>
+          {post.tags && post.tags.split(',').map(tag => (
+            <span key={tag} className="px-3 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-full">
+              #{tag.trim()}
+            </span>
+          ))}
         </div>
       </div>
       <BackToTop />

@@ -4,9 +4,10 @@ import Link from "next/link";
 import { Hash, Trash2, GripVertical, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useUIStore } from "@/store/useUIStore";
 import { Category } from "@/lib/blogService";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -52,6 +53,7 @@ function EditCategoryDialog({ cat, onUpdate }: { cat: Category; onUpdate: Sortab
   const [slug, setSlug] = useState(cat.slug);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { showToast } = useUIStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,7 +62,7 @@ function EditCategoryDialog({ cat, onUpdate }: { cat: Category; onUpdate: Sortab
       await onUpdate(cat.slug, { name, slug });
       setOpen(false);
     } catch (err) {
-      alert("更新失败");
+      showToast("更新失败", "error");
     } finally {
       setLoading(false);
     }
@@ -185,8 +187,14 @@ function SortableCategoryItem({ cat, isActive, isAuthenticated, onDelete, onUpda
 
 export function CategoryList({ categories: initialCategories, currentCategory }: CategoryListProps) {
   const { isAuthenticated } = useAuthStore();
+  const { showConfirm, showToast, setLoading } = useUIStore();
   const router = useRouter();
   const [categories, setCategories] = useState(initialCategories);
+
+  // 当服务端数据通过 router.refresh() 更新时，同步更新本地状态
+  useEffect(() => {
+    setCategories(initialCategories);
+  }, [initialCategories]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -200,6 +208,7 @@ export function CategoryList({ categories: initialCategories, currentCategory }:
   );
 
   const handleUpdate = async (oldSlug: string, newData: Partial<Category>) => {
+    setLoading(true);
     try {
       const res = await fetch("/api/blog/categories", {
         method: "PATCH",
@@ -208,6 +217,7 @@ export function CategoryList({ categories: initialCategories, currentCategory }:
       });
 
       if (res.ok) {
+        showToast("分类更新成功", "success");
         if (newData.slug && newData.slug !== oldSlug) {
           router.push(`/blog/${newData.slug}`);
         } else {
@@ -215,10 +225,13 @@ export function CategoryList({ categories: initialCategories, currentCategory }:
         }
       } else {
         const data = await res.json();
-        alert(data.message || "更新失败");
+        showToast(data.message || "更新失败", "error");
       }
     } catch (err) {
+      showToast("网络错误", "error");
       console.error("Failed to update category", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -234,6 +247,7 @@ export function CategoryList({ categories: initialCategories, currentCategory }:
       setCategories(updatedCategories);
 
       // 发送到后端保存
+      setLoading(true);
       try {
         await Promise.all(
           updatedCategories.map((cat) =>
@@ -244,31 +258,46 @@ export function CategoryList({ categories: initialCategories, currentCategory }:
             })
           )
         );
+        showToast("排序已保存", "success");
         router.refresh();
       } catch (error) {
+        showToast("排序保存失败", "error");
         console.error("Failed to update category order", error);
+      } finally {
+        setLoading(false);
       }
     }
   };
 
   const handleDelete = async (slug: string) => {
-    if (!confirm("确定要删除这个分类及其下的所有文章吗？此操作不可撤销。")) return;
-
-    try {
-      const res = await fetch(`/api/blog/categories?slug=${slug}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        setCategories(categories.filter((c) => c.slug !== slug));
-        if (currentCategory === slug) {
-          router.push("/blog");
-        } else {
-          router.refresh();
+    showConfirm({
+      title: "删除分类",
+      message: "确定要删除这个分类及其下的所有文章吗？此操作不可撤销。",
+      onConfirm: async () => {
+        setLoading(true);
+        try {
+          const res = await fetch(`/api/blog/categories?slug=${slug}`, {
+            method: "DELETE",
+          });
+          if (res.ok) {
+            showToast("分类删除成功", "success");
+            setCategories(categories.filter((c) => c.slug !== slug));
+            if (currentCategory === slug) {
+              router.push("/blog");
+            } else {
+              router.refresh();
+            }
+          } else {
+            showToast("删除失败", "error");
+          }
+        } catch (error) {
+          showToast("网络错误", "error");
+          console.error("Failed to delete category", error);
+        } finally {
+          setLoading(false);
         }
-      }
-    } catch (error) {
-      console.error("Failed to delete category", error);
-    }
+      },
+    });
   };
 
   return (

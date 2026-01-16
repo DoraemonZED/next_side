@@ -6,6 +6,7 @@ import { User, Share2, Bookmark, Edit2, Eye } from "lucide-react"
 import { MarkdownRenderer } from "@/components/MarkdownRenderer"
 import { BlogEditor } from "@/components/BlogEditor"
 import { useAuthStore } from '@/store/useAuthStore'
+import { useUIStore } from '@/store/useUIStore'
 
 interface Post {
   id: string
@@ -22,9 +23,11 @@ export function PostClientWrapper({ post }: { post: Post }) {
   const [content, setContent] = useState(post.content)
   const [loading, setLoading] = useState(false)
   const { isAuthenticated } = useAuthStore()
+  const { showToast, setLoading: setGlobalLoading } = useUIStore()
 
   const handleSave = async () => {
     setLoading(true)
+    setGlobalLoading(true)
     try {
       const res = await fetch('/api/blog/posts', {
         method: 'POST',
@@ -38,14 +41,15 @@ export function PostClientWrapper({ post }: { post: Post }) {
       })
       if (res.ok) {
         setIsEditing(false)
-        alert('保存成功')
+        showToast('文章保存成功', 'success')
       } else {
-        alert('保存失败')
+        showToast('文章保存失败', 'error')
       }
     } catch (error) {
-      alert('网络错误')
+      showToast('网络错误', 'error')
     } finally {
       setLoading(false)
+      setGlobalLoading(false)
     }
   }
 

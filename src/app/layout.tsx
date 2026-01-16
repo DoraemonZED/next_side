@@ -4,6 +4,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import SmoothScroll from "@/components/SmoothScroll";
+import { GlobalUI } from "@/components/GlobalUI";
 
 export const metadata: Metadata = {
   title: "MySite - 个人中心",
@@ -29,6 +30,7 @@ export default function RootLayout({
               <main className="flex-1">{children}</main>
               <Footer />
             </div>
+            <GlobalUI />
           </SmoothScroll>
         </ThemeProvider>
       </body>

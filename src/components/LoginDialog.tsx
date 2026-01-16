@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useUIStore } from '@/store/useUIStore';
 import {
   Dialog,
   DialogContent,
@@ -20,10 +21,12 @@ export function LoginDialog() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { setUser } = useAuthStore();
+  const { showToast, setLoading: setGlobalLoading } = useUIStore();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setGlobalLoading(true);
     setError('');
     
     try {
@@ -37,14 +40,18 @@ export function LoginDialog() {
       
       if (res.ok) {
         setUser(data.user);
+        showToast(`欢迎回来, ${data.user.username}`, 'success');
         setOpen(false);
       } else {
         setError(data.message || '登录失败');
+        showToast(data.message || '登录失败', 'error');
       }
     } catch (err) {
       setError('网络错误');
+      showToast('网络错误', 'error');
     } finally {
       setLoading(false);
+      setGlobalLoading(false);
     }
   };
 
