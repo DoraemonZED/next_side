@@ -1,7 +1,14 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Gamepad2 } from "lucide-react"
 
 export default function GamesPage() {
+  const handleStartGame = (gameName: string) => {
+    // 在新标签页打开游戏
+    window.open(`/api/game/${gameName}`, '_blank');
+  };
+
   return (
     <div className="container mx-auto px-4 py-10 md:py-16 text-center">
       <div className="flex flex-col items-center gap-4 md:gap-6 max-w-2xl mx-auto">
@@ -15,12 +22,22 @@ export default function GamesPage() {
           <div className="p-6 md:p-8 border rounded-2xl bg-card flex flex-col items-center gap-4">
             <div className="text-2xl md:text-3xl font-bold">2048</div>
             <p className="text-xs md:text-sm text-muted-foreground">经典的数字合并游戏</p>
-            <Button className="w-full h-10 md:h-11">开始游戏</Button>
+            <Button 
+              className="w-full h-10 md:h-11"
+              onClick={() => handleStartGame('2048')}
+            >
+              开始游戏
+            </Button>
           </div>
           <div className="p-6 md:p-8 border rounded-2xl bg-card flex flex-col items-center gap-4">
             <div className="text-2xl md:text-3xl font-bold">贪吃蛇</div>
             <p className="text-xs md:text-sm text-muted-foreground">怀旧风格的复古小游戏</p>
-            <Button className="w-full h-10 md:h-11">开始游戏</Button>
+            <Button 
+              className="w-full h-10 md:h-11"
+              onClick={() => handleStartGame('snake')}
+            >
+              开始游戏
+            </Button>
           </div>
         </div>
       </div>
