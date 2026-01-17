@@ -20,7 +20,7 @@ export function LoginDialog() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { setUser } = useAuthStore();
+  const { setUser, checkAuth } = useAuthStore();
   const { showToast, setLoading: setGlobalLoading } = useUIStore();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -40,6 +40,8 @@ export function LoginDialog() {
       
       if (res.ok) {
         setUser(data.user);
+        // 调用 checkAuth 确保状态完全同步（包括过期时间等）
+        await checkAuth();
         showToast(`欢迎回来, ${data.user.username}`, 'success');
         setOpen(false);
       } else {

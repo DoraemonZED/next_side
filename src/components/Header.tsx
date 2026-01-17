@@ -61,20 +61,24 @@ export function Header({ initialAuthState }: HeaderProps) {
   const [isBackingUp, setIsBackingUp] = React.useState(false)
   const { user, isAuthenticated, logout, checkAuth, setUser } = useAuthStore()
   const { showToast } = useUIStore()
+  const [isMounted, setIsMounted] = React.useState(false)
 
-  // 使用服务端传递的初始状态，确保服务端和客户端渲染一致
-  // 优先使用服务端状态，如果没有则使用 store 状态
-  const displayUser = initialAuthState ? (initialAuthState.user || user) : user
-  const displayIsAuthenticated = initialAuthState 
-    ? (initialAuthState.isAuthenticated) 
-    : isAuthenticated
+  // 组件挂载后，完全使用 store 状态（实时更新）
+  // 首次渲染时使用 initialAuthState 确保 SSR 和客户端一致
+  const displayUser = isMounted ? user : (initialAuthState?.user || user)
+  const displayIsAuthenticated = isMounted ? isAuthenticated : (initialAuthState?.isAuthenticated ?? isAuthenticated)
 
-  // 同步服务端状态到 store
+  // 组件挂载后标记为已挂载，之后完全使用 store 状态
+  React.useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  // 同步服务端状态到 store（仅在首次加载时）
   React.useLayoutEffect(() => {
-    if (initialAuthState) {
+    if (initialAuthState && !isMounted) {
       setUser(initialAuthState.user)
     }
-  }, [initialAuthState, setUser])
+  }, [initialAuthState, setUser, isMounted])
 
   React.useEffect(() => {
     // 后台验证登录状态，如果过期会自动更新
