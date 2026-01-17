@@ -42,13 +42,35 @@ const navItems = [
   { name: '简历', href: '/resume' },
 ]
 
-export function Header() {
+interface HeaderProps {
+  initialAuthState?: {
+    user: { id: number; username: string } | null;
+    isAuthenticated: boolean;
+  };
+}
+
+export function Header({ initialAuthState }: HeaderProps) {
   const pathname = usePathname()
   const { setTheme } = useTheme()
   const [isOpen, setIsOpen] = React.useState(false)
-  const { user, isAuthenticated, logout, checkAuth } = useAuthStore()
+  const { user, isAuthenticated, logout, checkAuth, setUser } = useAuthStore()
+
+  // 使用服务端传递的初始状态，确保服务端和客户端渲染一致
+  // 优先使用服务端状态，如果没有则使用 store 状态
+  const displayUser = initialAuthState ? (initialAuthState.user || user) : user
+  const displayIsAuthenticated = initialAuthState 
+    ? (initialAuthState.isAuthenticated) 
+    : isAuthenticated
+
+  // 同步服务端状态到 store
+  React.useLayoutEffect(() => {
+    if (initialAuthState) {
+      setUser(initialAuthState.user)
+    }
+  }, [initialAuthState, setUser])
 
   React.useEffect(() => {
+    // 后台验证登录状态，如果过期会自动更新
     checkAuth()
   }, [checkAuth])
 
@@ -136,13 +158,13 @@ export function Header() {
           </DropdownMenu>
 
           {/* User Avatar & Login Dialog */}
-          {isAuthenticated ? (
+          {displayIsAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full border-2 border-primary/20 hover:border-primary/50 transition-all">
                   <Avatar className="h-10 w-10">
                     <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                      {user?.username?.charAt(0).toUpperCase()}
+                      {displayUser?.username?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -150,7 +172,7 @@ export function Header() {
               <DropdownMenuContent align="end" className="w-56">
                 <div className="flex items-center justify-start gap-2 p-2">
                   <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium">{user?.username}</p>
+                    <p className="font-medium">{displayUser?.username}</p>
                     <p className="text-sm text-muted-foreground">管理员</p>
                   </div>
                 </div>

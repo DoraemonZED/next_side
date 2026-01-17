@@ -66,25 +66,6 @@ export function PostClientWrapper({ post }: { post: Post }) {
               <div className="text-sm font-bold">{post.author}</div>
               <div className="text-xs text-muted-foreground">作者</div>
             </div>
-            {/* 你要求的编辑按钮 - 仅登录可见 */}
-            {isAuthenticated && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-primary hover:text-primary hover:bg-primary/10 gap-2"
-                onClick={() => setIsEditing(!isEditing)}
-              >
-                {isEditing ? (
-                  <>
-                    <Eye className="h-4 w-4" /> 预览模式
-                  </>
-                ) : (
-                  <>
-                    <Edit2 className="h-4 w-4" /> 编辑模式
-                  </>
-                )}
-              </Button>
-            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -93,10 +74,24 @@ export function PostClientWrapper({ post }: { post: Post }) {
               {loading ? '保存中...' : '保存修改'}
             </Button>
           )}
-          <Button variant="outline" size="icon" className="rounded-full h-9 w-9">
+          {isAuthenticated && (
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="rounded-full h-9 w-9 bg-primary/5 border-primary/10 text-primary/70 hover:bg-primary/10 hover:text-primary hover:border-primary/20"
+              onClick={() => setIsEditing(!isEditing)}
+            >
+              {isEditing ? (
+                <Eye className="h-4 w-4" />
+              ) : (
+                <Edit2 className="h-4 w-4" />
+              )}
+            </Button>
+          )}
+          <Button variant="outline" size="icon" className="rounded-full h-9 w-9 bg-amber-500/5 border-amber-500/10 text-amber-500/70 hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500/20">
             <Share2 className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" className="rounded-full h-9 w-9">
+          <Button variant="outline" size="icon" className="rounded-full h-9 w-9 bg-green-500/5 border-green-500/10 text-green-500/70 hover:bg-green-500/10 hover:text-green-500 hover:border-green-500/20">
             <Bookmark className="h-4 w-4" />
           </Button>
         </div>

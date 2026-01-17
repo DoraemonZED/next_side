@@ -38,6 +38,9 @@ export interface PaginatedPosts {
   totalPages: number;
 }
 
+// 防止重复同步的标志
+let isSyncing = false;
+
 export const blogService = {
   // 获取所有分类
   async getCategories(): Promise<Category[]> {
@@ -50,12 +53,54 @@ export const blogService = {
         ORDER BY c.sort_order ASC
       `).all() as any[];
 
-      if (rows.length === 0) {
-        // 如果数据库没数据，尝试从目录结构同步一次
-        await this.syncBlogData();
-        return this.getCategories();
+      // 如果数据库没数据且没有正在同步，尝试从目录结构同步一次
+      if (rows.length === 0 && !isSyncing) {
+        isSyncing = true;
+        try {
+          await this.syncBlogData();
+          // 同步后再次查询
+          const newRows = db.prepare(`
+            SELECT c.*, COUNT(p.id) as count 
+            FROM categories c 
+            LEFT JOIN posts p ON c.slug = p.category_slug 
+            GROUP BY c.id 
+            ORDER BY c.sort_order ASC
+          `).all() as any[];
+          
+          // 如果同步后仍然没有分类，创建默认分类
+          if (newRows.length === 0) {
+            await this.createDefaultCategory();
+            // 再次查询
+            const defaultRows = db.prepare(`
+              SELECT c.*, COUNT(p.id) as count 
+              FROM categories c 
+              LEFT JOIN posts p ON c.slug = p.category_slug 
+              GROUP BY c.id 
+              ORDER BY c.sort_order ASC
+            `).all() as any[];
+            
+            return defaultRows.map(row => ({
+              name: row.name,
+              slug: row.slug,
+              description: row.description,
+              count: row.count,
+              order: row.sort_order
+            }));
+          }
+          
+          return newRows.map(row => ({
+            name: row.name,
+            slug: row.slug,
+            description: row.description,
+            count: row.count,
+            order: row.sort_order
+          }));
+        } finally {
+          isSyncing = false;
+        }
       }
 
+      // 如果已经有数据或者正在同步，直接返回
       return rows.map(row => ({
         name: row.name,
         slug: row.slug,
@@ -65,6 +110,7 @@ export const blogService = {
       }));
     } catch (error) {
       console.error('Error fetching categories:', error);
+      isSyncing = false; // 确保在错误时也重置标志
       return [];
     }
   },
@@ -310,17 +356,47 @@ export const blogService = {
     return lines.slice(0, 3).join(' ').substring(0, 160) + (content.length > 160 ? '...' : '');
   },
 
+  // 创建默认分类
+  async createDefaultCategory(): Promise<void> {
+    const defaultSlug = 'default';
+    const defaultName = '默认分类';
+    const defaultDir = path.join(BLOG_ROOT, defaultSlug);
+    
+    try {
+      // 创建默认分类目录
+      await fs.mkdir(defaultDir, { recursive: true });
+      
+      // 插入数据库
+      db.prepare(`
+        INSERT INTO categories (slug, name, description, sort_order) 
+        VALUES (?, ?, ?, ?) 
+        ON CONFLICT(slug) DO NOTHING
+      `).run(defaultSlug, defaultName, '系统默认分类', 0);
+    } catch (error) {
+      console.error('Error creating default category:', error);
+      throw error;
+    }
+  },
+
   // 同步文件系统数据到数据库
   async syncBlogData(): Promise<{ success: boolean; message: string }> {
     try {
       if (!(await fs.access(BLOG_ROOT).then(() => true).catch(() => false))) {
         await fs.mkdir(BLOG_ROOT, { recursive: true });
-        return { success: true, message: '目录已创建' };
       }
 
-      const dirs = await fs.readdir(BLOG_ROOT);
+      const dirs = await fs.readdir(BLOG_ROOT).catch(() => []);
+      
+      // 如果目录为空，创建默认分类
+      if (dirs.length === 0 || dirs.filter(d => !d.startsWith('.')).length === 0) {
+        await this.createDefaultCategory();
+        return { success: true, message: '已创建默认分类' };
+      }
       
       for (const catSlug of dirs) {
+        // 跳过隐藏文件和目录
+        if (catSlug.startsWith('.')) continue;
+        
         const catDir = path.join(BLOG_ROOT, catSlug);
         const stat = await fs.stat(catDir);
         if (!stat.isDirectory()) continue;

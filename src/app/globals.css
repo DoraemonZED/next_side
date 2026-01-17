@@ -352,6 +352,14 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* 增强滚动惯性效果 */
+    overscroll-behavior-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  html {
+    /* 优化滚动性能 */
+    scroll-behavior: smooth;
+    overscroll-behavior-y: none;
   }
 }
 

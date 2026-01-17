@@ -18,7 +18,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Create session
-    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    const { getTokenExpiresIn } = await import('@/lib/auth');
+    const expiresIn = getTokenExpiresIn();
+    const expires = new Date(Date.now() + expiresIn);
     const session = await encrypt({ user: { id: user.id, username: user.username }, expires });
 
     // Set cookie

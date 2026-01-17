@@ -17,31 +17,92 @@ export function BlogEditor({ initialValue, onChange }: BlogEditorProps) {
 
   useEffect(() => {
     if (editorRef.current && !vditorRef.current) {
+      // 检测是否为移动端小屏
+      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
+      const toolbar = isMobile
+        ? [
+            'emoji',
+            'headings',
+            'bold',
+            'italic',
+            'strike',
+            'link',
+            '|',
+            'check',
+            'list',
+            'ordered-list',
+            '|',
+            'undo',
+            'redo',
+            '|',
+            {
+              name: 'more',
+              toolbar: [
+                'outdent',
+                'indent',
+                'quote',
+                'line',
+                'code',
+                'inline-code',
+                'table',
+                'export',
+              ],
+            },
+          ]
+        : [
+            'emoji',
+            'headings',
+            'bold',
+            'italic',
+            'strike',
+            'link',
+            '|',
+            'list',
+            'ordered-list',
+            'check',
+            'outdent',
+            'indent',
+            '|',
+            'quote',
+            'line',
+            'code',
+            'inline-code',
+            '|',
+            'undo',
+            'redo',
+            '|',
+            'table',
+            'export',
+            'outline',
+          ]
+
       const vditorInstance = new Vditor(editorRef.current, {
         minHeight: 300,
         value: initialValue,
         mode: 'ir',
         cdn: '/libs/vditor',
         theme: resolvedTheme === 'dark' ? 'dark' : 'classic',
+        toolbar,
         toolbarConfig: {
-          pin: true
+          pin: true,
         },
         preview: {
           theme: {
-            current: resolvedTheme === 'dark' ? 'dark' : 'light'
+            current: resolvedTheme === 'dark' ? 'dark' : 'light',
           },
           hljs: {
-            style: resolvedTheme === 'dark' ? 'github-dark' : 'github'
-          }
+            style: resolvedTheme === 'dark' ? 'github-dark' : 'github',
+          },
         },
         cache: {
-          enable: false
+          enable: false,
         },
         input: (value) => {
           onChange?.(value)
-        }
-      });
-      vditorRef.current = vditorInstance;
+        },
+      })
+      vditorRef.current = vditorInstance
     }
 
     return () => {

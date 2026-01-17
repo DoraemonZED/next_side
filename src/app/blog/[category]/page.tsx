@@ -101,6 +101,14 @@ export default async function BlogCategoryPage(props: {
                     />
                   </PaginationItem>
                   
+                  {/* 小屏下显示当前页/总页数 */}
+                  <PaginationItem className="sm:hidden">
+                    <span className="flex items-center justify-center px-4 py-2 text-sm text-muted-foreground">
+                      {currentPage} / {totalPages}
+                    </span>
+                  </PaginationItem>
+                  
+                  {/* 大屏下显示所有页码 */}
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
                     <PaginationItem key={pageNum} className="hidden sm:inline-block">
                       <PaginationLink 
