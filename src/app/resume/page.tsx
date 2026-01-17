@@ -5,15 +5,109 @@ import { Button } from "@/components/ui/button"
 import { 
   Download, Mail, Phone, MapPin, Github, Twitter, Linkedin, 
   MessageCircle, ExternalLink, Code2, Briefcase, Globe, Monitor, 
-  Smartphone, Database, Layout, Layers, User, ChevronDown
+  Smartphone, Database, Layout, Layers, User, ChevronDown, Edit
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
+import { useAuthStore } from "@/store/useAuthStore"
+import { useUIStore } from "@/store/useUIStore"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+
+interface Skill {
+  name: string
+  level: number
+}
+
+interface Skills {
+  basics: Skill[]
+  expand: Skill[]
+  frameworks: Skill[]
+  crossPlatform: Skill[]
+}
+
+interface HistoryItem {
+  title: string
+  date: string
+  description: string
+  type: string
+}
 
 export default function ResumePage() {
   const [mounted, setMounted] = useState(false)
+  const [skills, setSkills] = useState<Skills>({
+    basics: [],
+    expand: [],
+    frameworks: [],
+    crossPlatform: []
+  })
+  const [otherSkills, setOtherSkills] = useState<string[]>([])
+  const [history, setHistory] = useState<HistoryItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [editJson, setEditJson] = useState("")
+  const [isSaving, setIsSaving] = useState(false)
+  const { isAuthenticated } = useAuthStore()
+  const { showToast } = useUIStore()
+
+  // 从API获取resume数据
+  useEffect(() => {
+    const fetchResumeData = async () => {
+      try {
+        const response = await fetch('/api/resume')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.skills) setSkills(data.skills)
+          if (data.otherSkills) setOtherSkills(data.otherSkills)
+          if (data.history) setHistory(data.history)
+        }
+      } catch (error) {
+        console.error('Failed to fetch resume data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchResumeData()
+  }, [])
+
+  // 当弹窗打开时锁定背景滚动
+  useEffect(() => {
+    if (isEditDialogOpen) {
+      // 保存当前滚动位置
+      const scrollY = window.scrollY
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+      
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.width = '100%'
+      document.body.style.overflow = 'hidden'
+      // 防止内容偏移（因为滚动条消失）
+      document.body.style.paddingRight = `${scrollbarWidth}px`
+      
+      return () => {
+        // 先恢复样式
+        document.body.style.position = ''
+        document.body.style.top = ''
+        document.body.style.width = ''
+        document.body.style.overflow = ''
+        document.body.style.paddingRight = ''
+        
+        // 使用requestAnimationFrame确保DOM更新完成后再恢复滚动位置
+        requestAnimationFrame(() => {
+          window.scrollTo(0, scrollY)
+        })
+      }
+    }
+  }, [isEditDialogOpen])
 
   useEffect(() => {
     setMounted(true)
@@ -45,63 +139,55 @@ export default function ResumePage() {
     return () => observer.disconnect()
   }, [])
 
-  // 技能数据
-  const skills = {
-    basics: [
-      { name: "HTML", level: 77 },
-      { name: "CSS", level: 70 },
-      { name: "JavaScript", level: 90 },
-    ],
-    expand: [
-      { name: "TypeScript", level: 90 },
-      { name: "SCSS", level: 88 },
-      { name: "NodeJS", level: 65 },
-    ],
-    frameworks: [
-      { name: "VueJS", level: 93 },
-      { name: "ReactJS", level: 80 },
-      { name: "JQuery", level: 70 },
-    ],
-    crossPlatform: [
-      { name: "Flutter", level: 80 },
-      { name: "React Native", level: 60 },
-      { name: "Electron", level: 90 },
-    ]
+  // 打开编辑对话框
+  const handleEditClick = () => {
+    const resumeData = {
+      skills,
+      otherSkills,
+      history
+    }
+    setEditJson(JSON.stringify(resumeData, null, 2))
+    setIsEditDialogOpen(true)
   }
 
-  // 其他技能标签
-  const otherSkills = [
-    "Unreal", "Uniapp", "小程序", "Nginx", 
-    "MySQL", "Linux", "MongoDB", "Webpack", "Koa"
-  ]
+  // 保存编辑
+  const handleSave = async () => {
+    try {
+      setIsSaving(true)
+      let parsedData
+      try {
+        parsedData = JSON.parse(editJson)
+      } catch (e) {
+        showToast('JSON格式错误，请检查后重试', 'error')
+        return
+      }
 
-  // 经历数据
-  const history = [
-    {
-      title: "前端组长 - 成都不知其名科技",
-      date: "Apr 2021 - Dec 2021",
-      description: "担任前端组长，负责组内各个项目的整合及任务分配，帮助同事一起解决项目中遇到的问题。最初开始使用JQuery和Webpack开发项目，后期项目改为Vue的服务端渲染框架NuxtJS进行重构及提升。",
-      type: "work"
-    },
-    {
-      title: "移动端跨平台开发 - 中通服",
-      date: "Oct 2020 - Apr 2021",
-      description: "在公司负责前端跨平台开发，平台包括iOS和Android两端的UI及原生功能统一，使用到的框架有Uniapp和Flutter。在工作期间掌握了跨平台开发，对原生Android和iOS开发有一定的了解。在中通服的时间积极和同事交流，增加技术知识，在此期间从前辈身上学习到很多好的开发习惯，工作中也积极努力独自完成整合项目搭建及开发。",
-      type: "work"
-    },
-    {
-      title: "实习 - 在校",
-      date: "Nov 2019 - Sep 2020",
-      description: "其中参与.NET管理系统使，用WinFrom书写Windows页面，SQL Server数据库，socket实现TCP/IP通讯。和老师同学们相处融洽，工作积极认真，帮助同学，得到老师及其同学们的好评。初次从事软件开发，了解到了行业的竞争，以及各种技术革新的速度使得我们需要不断的学习新技术，作为程序员应时刻保持对探索的兴趣，要有创新精神和探索的勇气。",
-      type: "intern"
-    },
-    {
-      title: "大学 - 山东英才学院",
-      date: "Sep 2017 - Jun 2020",
-      description: "在校主修计算机网络技术，期间学习包括计算机组成原理，操作系统，数据结构，计算机网络等课程。和老师及小组参与一些.NET项目并取得上线，通过C语言课程学习使用EasyX制作flappy bird小游戏。期间参与学生会宣传部，负责学校公众号，校宣传海报设计和PS教学，组织其他部门参与校内活动。",
-      type: "education"
+      const response = await fetch('/api/resume', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(parsedData),
+      })
+
+      if (response.ok) {
+        // 更新本地状态
+        if (parsedData.skills) setSkills(parsedData.skills)
+        if (parsedData.otherSkills) setOtherSkills(parsedData.otherSkills)
+        if (parsedData.history) setHistory(parsedData.history)
+        setIsEditDialogOpen(false)
+        showToast('保存成功', 'success')
+      } else {
+        const error = await response.json()
+        showToast(`保存失败: ${error.message || '未知错误'}`, 'error')
+      }
+    } catch (error: any) {
+      console.error('Error saving resume data:', error)
+      showToast(`保存失败: ${error.message}`, 'error')
+    } finally {
+      setIsSaving(false)
     }
-  ]
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/30 overflow-x-hidden overflow-y-hidden">
@@ -158,11 +244,90 @@ export default function ResumePage() {
                     ))}
                   </div>
 
-                  <div className="pt-8">
+                  <div className="pt-8 space-y-4">
                     <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl py-7 font-black uppercase tracking-[0.2em] text-[11px] shadow-xl group">
                       <Download className="w-5 h-5 mr-3 group-hover:animate-bounce" />
                       Download PDF
                     </Button>
+                    {isAuthenticated && (
+                      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            className="w-full rounded-2xl py-7 font-black uppercase tracking-[0.2em] text-[11px] shadow-xl group border-2"
+                            onClick={handleEditClick}
+                          >
+                            <Edit className="w-5 h-5 mr-3 group-hover:rotate-12 transition-transform" />
+                            更改数据
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent 
+                          className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+                          onWheel={(e) => {
+                            // 阻止滚动事件冒泡到背景页面
+                            e.stopPropagation()
+                          }}
+                          onTouchMove={(e) => {
+                            // 阻止触摸滚动事件冒泡
+                            e.stopPropagation()
+                          }}
+                        >
+                          <DialogHeader className="flex-shrink-0">
+                            <DialogTitle>编辑简历数据</DialogTitle>
+                            <DialogDescription>
+                              编辑以下JSON数据来更新简历内容。请确保JSON格式正确。
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4 flex-1 overflow-y-auto min-h-0">
+                            <div className="flex items-center justify-between">
+                              <Label htmlFor="json-editor">JSON数据</Label>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  try {
+                                    const parsed = JSON.parse(editJson)
+                                    setEditJson(JSON.stringify(parsed, null, 2))
+                                    showToast('JSON格式化成功', 'success')
+                                  } catch (e) {
+                                    showToast('JSON格式错误，无法格式化', 'error')
+                                  }
+                                }}
+                              >
+                                格式化JSON
+                              </Button>
+                            </div>
+                            <Textarea
+                              id="json-editor"
+                              value={editJson}
+                              onChange={(e) => setEditJson(e.target.value)}
+                              className="font-mono text-sm min-h-[500px] resize-none"
+                              placeholder='{"skills": {...}, "otherSkills": [...], "history": [...]}'
+                              onWheel={(e) => {
+                                // 确保textarea内的滚动正常工作
+                                e.stopPropagation()
+                              }}
+                            />
+                          </div>
+                          <DialogFooter className="flex-shrink-0">
+                            <Button
+                              variant="outline"
+                              onClick={() => setIsEditDialogOpen(false)}
+                              disabled={isSaving}
+                            >
+                              取消
+                            </Button>
+                            <Button
+                              onClick={handleSave}
+                              disabled={isSaving}
+                            >
+                              {isSaving ? '保存中...' : '保存'}
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+                    )}
                   </div>
                 </div>
               </div>
@@ -262,8 +427,11 @@ export default function ResumePage() {
                                     <span className="group-hover:text-primary transition-colors">{skill.name}</span>
                                     <span className="text-primary/60">{skill.level}%</span>
                                   </div>
-                                  <div className="h-1 w-full bg-muted/50 dark:bg-white/5 rounded-full overflow-hidden p-0.5">
-                                    <div className="h-full bg-primary rounded-full transition-all duration-[1.5s]" style={{ width: `${skill.level}%` }}></div>
+                                  <div className="h-1 w-full bg-muted/50 dark:bg-white/5 rounded-full overflow-hidden p-0.5 relative">
+                                    <div 
+                                      className="absolute top-0 left-0 h-full bg-primary rounded-full transition-all duration-[1.5s]" 
+                                      style={{ width: `${skill.level}%` }}
+                                    ></div>
                                   </div>
                                 </div>
                               ))}
