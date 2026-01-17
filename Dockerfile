@@ -1,15 +1,15 @@
-# Stage 1: Dependencies
-FROM node:24-alpine AS deps
-RUN apk add --no-cache libc6-compat python3 make g++
+# Stage 1: Builder
+FROM --platform=linux/amd64 node:24-alpine AS builder
 WORKDIR /app
 
+# 安装编译工具（better-sqlite3 等原生模块需要）
+RUN apk add --no-cache libc6-compat python3 make g++
+
+# 复制依赖文件并安装
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-# Stage 2: Builder
-FROM node:24-alpine AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# 复制源代码
 COPY . .
 
 # Disable telemetry during build
@@ -17,8 +17,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN npm run build
 
-# Stage 3: Runner
-FROM node:24-alpine AS runner
+# Stage 2: Runner
+FROM --platform=linux/amd64 node:24-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production

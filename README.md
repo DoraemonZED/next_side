@@ -303,6 +303,7 @@ next_site/
 MIT
 
 ```bash
+docker builder prune -f （有时候打包出错）
 docker build --platform linux/amd64 -t next-site:latest .
 docker save -o next.tar next-site
 scp next.tar root@xx.xx.xx.xx:~
