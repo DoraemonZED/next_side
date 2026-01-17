@@ -308,5 +308,5 @@ docker build --platform linux/amd64 -t next-site:latest .
 docker save -o next.tar next-site
 scp next.tar root@xx.xx.xx.xx:~
 docker load -i next.tar
-docker run -d --restart=always --name next-site -p 80:3000 next-site:latest
+docker run -d --restart=always --name next-site -v content:/app/content -p 80:3000 next-site:latest
 ```
