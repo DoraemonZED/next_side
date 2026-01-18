@@ -29,6 +29,26 @@ export async function PUT(request: NextRequest) {
   return POST(request);
 }
 
+// 增加浏览量（不需要登录）
+export async function PATCH(request: NextRequest) {
+  try {
+    const { category, id, action } = await request.json();
+    
+    if (!category || !id) {
+      return NextResponse.json({ message: '参数缺失' }, { status: 400 });
+    }
+
+    if (action === 'view') {
+      const views = await blogService.incrementViews(category, id);
+      return NextResponse.json({ views });
+    }
+
+    return NextResponse.json({ message: '未知操作' }, { status: 400 });
+  } catch (error) {
+    return NextResponse.json({ message: '服务器错误' }, { status: 500 });
+  }
+}
+
 export async function DELETE(request: NextRequest) {
   const session = await getSession();
   if (!session) {

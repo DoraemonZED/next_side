@@ -300,6 +300,9 @@ export function CategoryList({ categories: initialCategories, currentCategory }:
     });
   };
 
+  // 计算所有文章总数
+  const totalCount = categories.reduce((sum, cat) => sum + cat.count, 0);
+
   return (
     <div className="space-y-6">
       <div>
@@ -308,6 +311,28 @@ export function CategoryList({ categories: initialCategories, currentCategory }:
           文章分类
         </h3>
         <nav className="flex flex-col gap-1">
+          {/* 全部分类 - 固定在最上方 */}
+          <div className="group relative flex items-center gap-1">
+            <Button
+              variant={currentCategory === "all" ? "secondary" : "ghost"}
+              className="flex-1 justify-between h-10 px-4 font-normal transition-all"
+              asChild
+            >
+              <Link href="/blog">
+                <span className="truncate">全部</span>
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full border shrink-0 ${
+                    currentCategory === "all"
+                      ? "bg-primary/20 text-primary border-primary/20"
+                      : "text-muted-foreground bg-background border-border/40"
+                  }`}
+                >
+                  {totalCount}
+                </span>
+              </Link>
+            </Button>
+          </div>
+          
           {isAuthenticated ? (
             <DndContext
               sensors={sensors}

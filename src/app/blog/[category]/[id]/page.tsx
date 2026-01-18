@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { ArrowLeft, Calendar, Clock, User, Share2, Bookmark } from "lucide-react"
+import { ArrowLeft, Calendar, Clock, User, Share2, Bookmark, Eye } from "lucide-react"
 import { blogService } from "@/lib/blogService"
+import { formatViews } from "@/lib/utils"
 import { notFound } from "next/navigation"
 import { PostClientWrapper } from "@/components/PostClientWrapper"
 import { BackToTop } from "@/components/BackToTop"
@@ -10,6 +11,9 @@ export default async function BlogPostDetail(props: {
   params: Promise<{ category: string; id: string }> 
 }) {
   const { category, id } = await props.params
+  
+  // 增加浏览量
+  await blogService.incrementViews(category, id)
   
   const post = await blogService.getPostDetail(category, id)
   
@@ -36,7 +40,11 @@ export default async function BlogPostDetail(props: {
             </div>
             <div className="flex items-center gap-1.5">
               <Clock className="h-4 w-4" />
-              {post.readTime}
+              {post.updatedAt ? new Date(post.updatedAt).toLocaleDateString('zh-CN') : post.date} 更新
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Eye className="h-4 w-4" />
+              {formatViews(post.views)} 次浏览
             </div>
             <div className="flex items-center gap-1.5">
               <User className="h-4 w-4" />

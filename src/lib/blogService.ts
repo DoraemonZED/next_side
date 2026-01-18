@@ -20,11 +20,12 @@ export interface PostMeta {
   date: string;
   views: number;
   likes: number;
-  readTime: string;
+  updatedAt: string;
   author: string;
   summary: string;
   tags: string;
 }
+
 
 export interface PostDetail extends PostMeta {
   content: string;
@@ -218,36 +219,97 @@ export const blogService = {
       // 获取现有数据以防只更新部分字段
       const existing = db.prepare('SELECT * FROM posts WHERE category_slug = ? AND slug = ?').get(category, id) as any;
 
+      const now = new Date().toISOString();
       const title = meta.title || (existing ? existing.title : 'Untitled');
-      const date = meta.date || (existing ? existing.date : new Date().toISOString().split('T')[0]);
+      const date = meta.date || (existing ? existing.date : now.split('T')[0]);
       const views = meta.views !== undefined ? meta.views : (existing ? existing.views : 0);
       const likes = meta.likes !== undefined ? meta.likes : (existing ? existing.likes : 0);
-      const readTime = meta.readTime || (existing ? existing.read_time : '5 min read');
+      const updatedAt = now; // 每次保存都更新修改时间
       const author = meta.author || (existing ? existing.author : 'Admin');
       const tags = meta.tags !== undefined ? meta.tags : (existing ? existing.tags : '');
       
       let summary = meta.summary !== undefined ? meta.summary : (existing ? existing.summary : '');
-      if (content !== undefined && meta.summary === undefined) {
+      
+      // 如果简介为空且传入了正文，从正文中提取
+      if ((!summary || summary.trim() === '') && content !== undefined) {
         summary = this.extractSummary(content);
       }
 
       db.prepare(`
-        INSERT INTO posts (category_slug, slug, title, date, views, likes, read_time, author, summary, tags, content_path)
+        INSERT INTO posts (category_slug, slug, title, date, views, likes, updated_at, author, summary, tags, content_path)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(category_slug, slug) DO UPDATE SET
           title = excluded.title,
           date = excluded.date,
-          read_time = excluded.read_time,
+          updated_at = excluded.updated_at,
           author = excluded.author,
           summary = excluded.summary,
           tags = excluded.tags,
           content_path = excluded.content_path
-      `).run(category, id, title, date, views, likes, readTime, author, summary, tags, relativeContentPath);
+      `).run(category, id, title, date, views, likes, updatedAt, author, summary, tags, relativeContentPath);
 
       return true;
     } catch (error) {
       console.error('Error saving post:', error);
       return false;
+    }
+  },
+
+  // 获取所有文章列表 (支持分页、搜索、排序)
+  async getAllPosts(
+    page: number = 1, 
+    pageSize: number = 10,
+    searchQuery: string = '',
+    sortBy: 'date' | 'views' | 'likes' = 'date',
+    sortOrder: 'asc' | 'desc' = 'desc'
+  ): Promise<PaginatedPosts> {
+    try {
+      const offset = (page - 1) * pageSize;
+      const dbSortBy = sortBy === 'date' ? 'date' : sortBy;
+      
+      let query = `
+        FROM posts p 
+        JOIN categories c ON p.category_slug = c.slug
+      `;
+      const params: any[] = [];
+
+      if (searchQuery) {
+        query += ` WHERE (p.title LIKE ? OR p.tags LIKE ?)`;
+        params.push(`%${searchQuery}%`, `%${searchQuery}%`);
+      }
+
+      const totalRow = db.prepare(`SELECT COUNT(*) as count ${query}`).get(...params) as { count: number };
+      const total = totalRow.count;
+
+      const rows = db.prepare(`
+        SELECT p.*, c.name as categoryName 
+        ${query} 
+        ORDER BY p.${dbSortBy} ${sortOrder.toUpperCase()} 
+        LIMIT ? OFFSET ?
+      `).all(...params, pageSize, offset) as any[];
+
+      return {
+        posts: rows.map(row => ({
+          id: row.slug,
+          category: row.category_slug,
+          categoryName: row.categoryName,
+          title: row.title,
+          date: row.date,
+          views: row.views,
+          likes: row.likes,
+          updatedAt: row.updated_at || row.date,
+          author: row.author,
+          summary: row.summary,
+          tags: row.tags || ''
+        })),
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize)
+      };
+    } catch (error) {
+      console.error('Error fetching all posts:', error);
+      return { posts: [], total: 0, page, pageSize, totalPages: 0 };
     }
   },
 
@@ -272,8 +334,8 @@ export const blogService = {
       const params: any[] = [categorySlug];
 
       if (searchQuery) {
-        query += ` AND p.title LIKE ?`;
-        params.push(`%${searchQuery}%`);
+        query += ` AND (p.title LIKE ? OR p.tags LIKE ?)`;
+        params.push(`%${searchQuery}%`, `%${searchQuery}%`);
       }
 
       const totalRow = db.prepare(`SELECT COUNT(*) as count ${query}`).get(...params) as { count: number };
@@ -295,7 +357,7 @@ export const blogService = {
           date: row.date,
           views: row.views,
           likes: row.likes,
-          readTime: row.read_time,
+          updatedAt: row.updated_at || row.date,
           author: row.author,
           summary: row.summary,
           tags: row.tags || ''
@@ -334,7 +396,7 @@ export const blogService = {
         date: row.date,
         views: row.views,
         likes: row.likes,
-        readTime: row.read_time,
+        updatedAt: row.updated_at || row.date,
         author: row.author,
         summary: row.summary,
         tags: row.tags || '',
@@ -343,6 +405,22 @@ export const blogService = {
     } catch (error) {
       console.error('Error fetching post detail:', error);
       return null;
+    }
+  },
+
+  // 增加文章浏览量
+  async incrementViews(category: string, id: string): Promise<number> {
+    try {
+      db.prepare('UPDATE posts SET views = views + 1 WHERE category_slug = ? AND slug = ?')
+        .run(category, id);
+      
+      const row = db.prepare('SELECT views FROM posts WHERE category_slug = ? AND slug = ?')
+        .get(category, id) as { views: number } | undefined;
+      
+      return row?.views || 0;
+    } catch (error) {
+      console.error('Error incrementing views:', error);
+      return 0;
     }
   },
 
@@ -401,14 +479,15 @@ export const blogService = {
         const stat = await fs.stat(catDir);
         if (!stat.isDirectory()) continue;
 
-        // 处理分类
-        const catName = catSlug;
-        const catDesc = '';
+        // 处理分类：优先使用数据库中已有的分类名称，如果没有则使用 slug
+        const existingCat = db.prepare('SELECT name, description FROM categories WHERE slug = ?').get(catSlug) as { name: string; description: string } | undefined;
+        const catName = existingCat?.name || catSlug;
+        const catDesc = existingCat?.description || '';
 
         db.prepare(`
           INSERT INTO categories (slug, name, description) 
           VALUES (?, ?, ?) 
-          ON CONFLICT(slug) DO UPDATE SET name = excluded.name, description = excluded.description
+          ON CONFLICT(slug) DO NOTHING
         `).run(catSlug, catName, catDesc);
 
         // 处理文章
@@ -426,13 +505,14 @@ export const blogService = {
           const summary = this.extractSummary(content);
           const relativePath = path.join(catSlug, postSlug, 'index.md');
 
+          const now = new Date().toISOString();
           db.prepare(`
-            INSERT INTO posts (category_slug, slug, title, date, views, likes, read_time, author, summary, tags, content_path)
+            INSERT INTO posts (category_slug, slug, title, date, views, likes, updated_at, author, summary, tags, content_path)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(category_slug, slug) DO UPDATE SET
               title = excluded.title,
               date = excluded.date,
-              read_time = excluded.read_time,
+              updated_at = excluded.updated_at,
               author = excluded.author,
               summary = excluded.summary,
               tags = excluded.tags,
@@ -441,10 +521,10 @@ export const blogService = {
             catSlug, 
             postSlug, 
             postSlug, // 默认使用文件夹名作为标题
-            new Date().toISOString().split('T')[0],
+            now.split('T')[0],
             0,
             0,
-            '5 min read',
+            now,
             'Admin',
             summary,
             '', // 默认 tags 为空

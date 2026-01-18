@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import SmoothScroll from "@/components/SmoothScroll";
 import { GlobalUI } from "@/components/GlobalUI";
+import { PullToRefresh } from "@/components/PullToRefresh";
 import { getSession } from "@/lib/auth";
 
 export const metadata: Metadata = {
@@ -32,11 +33,13 @@ export default async function RootLayout({
           enableSystem
         >
           <SmoothScroll>
-            <div className="relative flex min-h-screen flex-col">
-              <Header initialAuthState={initialAuthState} />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </div>
+            <PullToRefresh>
+              <div className="relative flex min-h-screen flex-col">
+                <Header initialAuthState={initialAuthState} />
+                <main className="flex-1">{children}</main>
+                <Footer />
+              </div>
+            </PullToRefresh>
             <GlobalUI />
           </SmoothScroll>
         </ThemeProvider>

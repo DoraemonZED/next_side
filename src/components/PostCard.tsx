@@ -1,14 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { Trash2, Settings2 } from "lucide-react";
+import { Trash2, Settings2, Eye, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUIStore } from "@/store/useUIStore";
 import { PostMeta } from "@/lib/blogService";
+import { formatViews } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PostFormDialog } from "./PostFormDialog";
+
+// 格式化修改时间为相对时间
+function formatUpdatedAt(dateStr: string): string {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return '刚刚';
+  if (diffMins < 60) return `${diffMins}分钟前`;
+  if (diffHours < 24) return `${diffHours}小时前`;
+  if (diffDays < 7) return `${diffDays}天前`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}周前`;
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)}个月前`;
+  return `${Math.floor(diffDays / 365)}年前`;
+}
 
 interface PostCardProps {
   article: PostMeta;
@@ -53,13 +73,12 @@ export function PostCard({ article }: PostCardProps) {
     <article className="group flex flex-col gap-4 p-5 md:p-6 border rounded-2xl bg-card hover:shadow-md transition-all border-border/40 overflow-hidden relative">
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium">
+          <div className="flex items-center gap-2 overflow-x-auto md:flex-wrap md:overflow-visible scrollbar-none">
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium whitespace-nowrap shrink-0">
               {article.categoryName}
             </span>
-            <span className="text-xs text-muted-foreground">{article.date}</span>
             {article.tags && article.tags.split(',').map(tag => (
-              <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground">
+              <span key={tag} className="text-xs px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium whitespace-nowrap shrink-0">
                 {tag.trim()}
               </span>
             ))}
@@ -104,8 +123,14 @@ export function PostCard({ article }: PostCardProps) {
             <Link href={`/blog/${article.category}/${article.id}`}>阅读全文 →</Link>
           </Button>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <span>{article.readTime}</span>
-            <span>{article.views} views</span>
+            <span className="flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {formatUpdatedAt(article.updatedAt)}
+            </span>
+            <span className="flex items-center gap-1">
+              <Eye className="h-3 w-3" />
+              {formatViews(article.views)}
+            </span>
           </div>
         </div>
       </div>

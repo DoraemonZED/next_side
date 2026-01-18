@@ -53,7 +53,10 @@ export default async function BlogCategoryPage(props: {
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">博客</h1>
           <p className="text-lg text-muted-foreground">分享关于技术、生活和成长的见闻。</p>
         </div>
-        <NewPostButton category={category} />
+        {/* 大屏时显示在标题右侧 */}
+        <div className="hidden md:block">
+          <NewPostButton category={category} />
+        </div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
@@ -62,6 +65,7 @@ export default async function BlogCategoryPage(props: {
           <div className="sticky top-24 space-y-6">
             <CategoryList categories={categories} currentCategory={category} />
             <NewCategoryButton />
+            
 
             <div className="p-6 border rounded-xl bg-card/50 hidden md:block">
               <h4 className="text-sm font-bold mb-3">订阅邮件</h4>
@@ -70,6 +74,11 @@ export default async function BlogCategoryPage(props: {
             </div>
           </div>
         </aside>
+
+        {/* 小屏时显示在分类列表和新建分类按钮下方、搜索框上方 */}
+        <div className="md:hidden flex justify-end">
+          <NewPostButton category={category} />
+        </div>
 
         {/* 右侧文章列表 - 主内容 */}
         <main className="flex-1 min-w-0">

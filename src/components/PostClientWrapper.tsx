@@ -1,10 +1,10 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef, useCallback } from 'react'
 import { Button } from "@/components/ui/button"
 import { User, Share2, Bookmark, Edit2, Eye } from "lucide-react"
 import { MarkdownRenderer } from "@/components/MarkdownRenderer"
-import { BlogEditor } from "@/components/BlogEditor"
+import { BlogEditor, BlogEditorRef } from "@/components/BlogEditor"
 import { useAuthStore } from '@/store/useAuthStore'
 import { useUIStore } from '@/store/useUIStore'
 
@@ -21,12 +21,18 @@ interface Post {
 export function PostClientWrapper({ post }: { post: Post }) {
   const [isEditing, setIsEditing] = useState(false)
   const [content, setContent] = useState(post.content)
-  const [loading, setLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const editorRef = useRef<BlogEditorRef>(null)
   const { isAuthenticated } = useAuthStore()
   const { showToast, setLoading: setGlobalLoading } = useUIStore()
 
-  const handleSave = async () => {
-    setLoading(true)
+  const handleSave = useCallback(async () => {
+    if (isSaving) return
+    
+    // 从编辑器获取最新内容
+    const currentContent = editorRef.current?.getValue() || content
+    
+    setIsSaving(true)
     setGlobalLoading(true)
     try {
       const res = await fetch('/api/blog/posts', {
@@ -36,11 +42,11 @@ export function PostClientWrapper({ post }: { post: Post }) {
           category: post.category,
           id: post.id,
           meta: { title: post.title }, // 保持原有标题
-          content: content
+          content: currentContent
         }),
       })
       if (res.ok) {
-        setIsEditing(false)
+        setContent(currentContent)
         showToast('文章保存成功', 'success')
       } else {
         showToast('文章保存失败', 'error')
@@ -48,10 +54,10 @@ export function PostClientWrapper({ post }: { post: Post }) {
     } catch (error) {
       showToast('网络错误', 'error')
     } finally {
-      setLoading(false)
+      setIsSaving(false)
       setGlobalLoading(false)
     }
-  }
+  }, [content, isSaving, post.category, post.id, post.title, setGlobalLoading, showToast])
 
   return (
     <>
@@ -69,11 +75,6 @@ export function PostClientWrapper({ post }: { post: Post }) {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {isEditing && (
-            <Button size="sm" onClick={handleSave} disabled={loading}>
-              {loading ? '保存中...' : '保存修改'}
-            </Button>
-          )}
           {isAuthenticated && (
             <Button 
               variant="outline" 
@@ -100,7 +101,13 @@ export function PostClientWrapper({ post }: { post: Post }) {
       {/* 内容区域 */}
       <div className="mb-16 mt-8">
         {isEditing ? (
-          <BlogEditor initialValue={content} onChange={setContent} />
+          <BlogEditor 
+            ref={editorRef}
+            initialValue={content} 
+            onChange={setContent}
+            onSave={handleSave}
+            isSaving={isSaving}
+          />
         ) : (
           <MarkdownRenderer content={content} />
         )}

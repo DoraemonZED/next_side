@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Moon, Sun, Settings, User, Menu, Download } from 'lucide-react'
+import { Moon, Sun, Settings, User, Menu, Download, Database } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 import { Button } from '@/components/ui/button'
@@ -59,6 +59,9 @@ export function Header({ initialAuthState }: HeaderProps) {
   const [backupInfo, setBackupInfo] = React.useState('')
   const [recipientEmail, setRecipientEmail] = React.useState('')
   const [isBackingUp, setIsBackingUp] = React.useState(false)
+  const [isMigrationDialogOpen, setIsMigrationDialogOpen] = React.useState(false)
+  const [migrationStatus, setMigrationStatus] = React.useState<any>(null)
+  const [isMigrating, setIsMigrating] = React.useState(false)
   const { user, isAuthenticated, logout, checkAuth, setUser } = useAuthStore()
   const { showToast } = useUIStore()
   const [isMounted, setIsMounted] = React.useState(false)
@@ -84,6 +87,40 @@ export function Header({ initialAuthState }: HeaderProps) {
     // 后台验证登录状态，如果过期会自动更新
     checkAuth()
   }, [checkAuth])
+
+  // 获取迁移状态
+  const fetchMigrationStatus = async () => {
+    try {
+      const response = await fetch('/api/db/migrations')
+      if (response.ok) {
+        const data = await response.json()
+        setMigrationStatus(data)
+      } else {
+        showToast('获取迁移状态失败', 'error')
+      }
+    } catch (error) {
+      showToast('网络错误', 'error')
+    }
+  }
+
+  // 执行迁移
+  const handleRunMigrations = async () => {
+    setIsMigrating(true)
+    try {
+      const response = await fetch('/api/db/migrations', { method: 'POST' })
+      const data = await response.json()
+      if (response.ok) {
+        showToast(data.message, 'success')
+        await fetchMigrationStatus()
+      } else {
+        showToast(data.message || '迁移失败', 'error')
+      }
+    } catch (error) {
+      showToast('网络错误', 'error')
+    } finally {
+      setIsMigrating(false)
+    }
+  }
 
   const handleBackup = async () => {
     if (!recipientEmail) {
@@ -289,6 +326,83 @@ export function Header({ initialAuthState }: HeaderProps) {
                         disabled={isBackingUp || !recipientEmail}
                       >
                         {isBackingUp ? '备份中...' : '开始备份'}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                <Dialog open={isMigrationDialogOpen} onOpenChange={(open) => {
+                  setIsMigrationDialogOpen(open)
+                  if (open) fetchMigrationStatus()
+                }}>
+                  <DialogTrigger asChild>
+                    <DropdownMenuItem onSelect={(e) => {
+                      e.preventDefault()
+                      setIsMigrationDialogOpen(true)
+                    }}>
+                      <Database className="mr-2 h-4 w-4" />
+                      <span>数据库迁移</span>
+                    </DropdownMenuItem>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>数据库迁移</DialogTitle>
+                      <DialogDescription>
+                        查看和管理数据库迁移状态
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      {migrationStatus ? (
+                        <>
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-muted-foreground">当前版本</span>
+                            <span className="font-medium">{migrationStatus.current}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-muted-foreground">总迁移数</span>
+                            <span className="font-medium">{migrationStatus.total}</span>
+                          </div>
+                          {migrationStatus.pending?.length > 0 && (
+                            <div className="space-y-2">
+                              <p className="text-sm font-medium text-orange-500">待执行迁移:</p>
+                              <ul className="text-sm text-muted-foreground space-y-1">
+                                {migrationStatus.pending.map((m: any) => (
+                                  <li key={m.version} className="pl-2 border-l-2 border-orange-500">
+                                    {m.version}_{m.name}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {migrationStatus.applied?.length > 0 && (
+                            <div className="space-y-2">
+                              <p className="text-sm font-medium text-green-500">已执行迁移:</p>
+                              <ul className="text-sm text-muted-foreground space-y-1 max-h-32 overflow-y-auto">
+                                {migrationStatus.applied.slice().reverse().map((m: any) => (
+                                  <li key={m.version} className="pl-2 border-l-2 border-green-500">
+                                    {m.version}_{m.name}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">加载中...</p>
+                      )}
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsMigrationDialogOpen(false)}
+                        disabled={isMigrating}
+                      >
+                        关闭
+                      </Button>
+                      <Button
+                        onClick={handleRunMigrations}
+                        disabled={isMigrating || !migrationStatus?.pending?.length}
+                      >
+                        {isMigrating ? '迁移中...' : '执行迁移'}
                       </Button>
                     </div>
                   </DialogContent>

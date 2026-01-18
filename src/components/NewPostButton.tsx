@@ -16,17 +16,27 @@ export function NewPostButton({ category }: NewPostButtonProps) {
 
   if (!isAuthenticated) return null;
 
+  // "全部"分类时禁用新建文章按钮
+  const isAllCategory = category === "all";
+
   return (
     <>
-      <Button className="gap-2" onClick={() => setOpen(true)}>
+      <Button 
+        className="gap-2" 
+        onClick={() => setOpen(true)}
+        disabled={isAllCategory}
+        title={isAllCategory ? "请先选择具体分类" : "新建文章"}
+      >
         <Plus className="h-4 w-4" /> 新建文章
       </Button>
-      <PostFormDialog
-        mode="create"
-        open={open}
-        onOpenChange={setOpen}
-        category={category}
-      />
+      {!isAllCategory && (
+        <PostFormDialog
+          mode="create"
+          open={open}
+          onOpenChange={setOpen}
+          category={category}
+        />
+      )}
     </>
   );
 }

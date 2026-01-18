@@ -188,6 +188,22 @@
   color: var(--primary) !important;
 }
 
+/* 保存按钮样式 - 突出显示 */
+.vditor-toolbar__item[data-type="save"] {
+  background-color: var(--primary) !important;
+  border-radius: 6px !important;
+  margin: 4px !important;
+}
+
+.vditor-toolbar__item[data-type="save"] .vditor-toolbar__icon svg {
+  color: var(--primary-foreground) !important;
+}
+
+.vditor-toolbar__item[data-type="save"]:hover {
+  background-color: var(--primary-600) !important;
+  opacity: 0.9;
+}
+
 /* 编辑区域 */
 .vditor-content {
   background-color: transparent !important; /* 去掉背景色 */
@@ -357,6 +373,10 @@
     -webkit-overflow-scrolling: touch;
   }
   html {
+    /* 响应式根字体：使用 clamp() 实现大小屏平滑缩放
+       最小 14px (小屏) -> 基准 16px (中屏) -> 最大 18px (大屏)
+       中间值使用 vw 实现流畅过渡 */
+    font-size: clamp(0.875rem, 0.8rem + 0.4vw, 1.125rem);
     /* 优化滚动性能 */
     scroll-behavior: smooth;
     overscroll-behavior-y: none;
