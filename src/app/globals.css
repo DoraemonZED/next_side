@@ -78,23 +78,23 @@
     "Courier New", monospace;
 
   --radius: 0.625rem;
-  --background: #f8f9fa;
+  --background: #f0f2f5;
   --foreground: #2D3748;
-  --card: #f1f3f5;
+  --card: #ffffff;
   --card-foreground: #2D3748;
-  --popover: #f8f9fa;
+  --popover: #ffffff;
   --popover-foreground: #2D3748;
   --primary: #AFB42B;
   --primary-foreground: #ffffff;
   --secondary: #f1f3f5;
   --secondary-foreground: #2D3748;
-  --muted: #f1f3f5;
+  --muted: #e9ecef;
   --muted-foreground: #4A5568;
-  --accent: #f1f3f5;
+  --accent: #e9ecef;
   --accent-foreground: #718096;
   --destructive: #ef4444;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
+  --border: #d1d5db;
+  --input: #d1d5db;
   --ring: #AFB42B;
 
   /* HeroUI Primary Scale */
