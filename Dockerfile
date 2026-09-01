@@ -1,5 +1,5 @@
 # Stage 1: Builder
-FROM --platform=linux/amd64 node:24-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 
 # 安装编译工具（better-sqlite3 等原生模块需要）
@@ -18,7 +18,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # Stage 2: Runner
-FROM --platform=linux/amd64 node:24-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production

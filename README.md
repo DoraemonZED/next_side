@@ -25,6 +25,34 @@
 docker build -t next-site:latest .
 ```
 
+#### 本机 Docker 启动
+
+```bash
+npm run docker:local:start
+```
+
+该命令会先构建本机架构的镜像，再在 `http://localhost:3000` 启动服务。按 `Ctrl+C` 停止容器；容器会自动删除，但构建出的 `next-site:local` 镜像会保留，供下次启动复用。
+
+#### 打包为可上传至 Linux x86_64 服务器的镜像文件
+
+在 Apple Silicon Mac 上，请使用下面的命令构建目标架构镜像。依赖中的原生模块（例如 `better-sqlite3`）会在 Linux x86_64 构建环境内安装，不会使用本机的 ARM 版本：
+
+```bash
+npm run docker:package:linux
+```
+
+生成的文件为 `next-site-linux-amd64.tar`。tar 保存成功后，命令会自动删除本次构建的本地 `next-site:linux-amd64` 镜像，不会影响其他 Docker 镜像。上传到服务器后执行：
+
+```bash
+docker load -i next-site-linux-amd64.tar
+docker run -d --name next-site -p 3000:3000 \
+  -v $(pwd)/content:/app/content \
+  --restart unless-stopped \
+  next-site:linux-amd64
+```
+
+服务器应为 Linux `x86_64`/`amd64`。本机仅作日常调试时不必指定平台，直接使用 `docker build -t next-site:local .`，可生成并运行本机 ARM 镜像。
+
 #### 2. 运行容器
 
 **基础运行：**
