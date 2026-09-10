@@ -126,6 +126,8 @@ main() {
     docker rm "$backup" || echo "服务已部署，但旧容器清理失败：$backup" >&2
   fi
   echo "部署成功：容器 $container，镜像 $image，端口 $port，数据目录 $content_dir"
+  # 在 main 的局部变量仍有效时触发 EXIT trap，完成锁和临时镜像清理。
+  exit 0
 }
 
 main "$@"
