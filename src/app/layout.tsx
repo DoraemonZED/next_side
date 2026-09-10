@@ -9,8 +9,8 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import { getSession } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: "MySite - 个人中心",
-  description: "基于 Next.js, Tailwind, Shadcn 和 Zustand 构建的现代化站点",
+  title: "杨伟｜Agent 全栈工程师",
+  description: "杨伟的 Agent 全栈工程师个人简历：Node.js、NestJS、AI Agent、实时通信与多端交付。",
 };
 
 export default async function RootLayout({

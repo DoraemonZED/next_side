@@ -12,6 +12,30 @@
 
 ## Docker 部署
 
+### 服务器一键部署 / 更新
+
+服务器需要 Bash、Git、Docker 及访问 GitHub、npm、Alpine 软件源的网络，无需安装 Node.js。网站运行配置统一放在 `.env.local`，按项目要求随私有仓库提交；不要加入 SSH 或 GitHub 登录密码。配置采用 `KEY=value`，不加引号或行尾注释。Docker 构建排除 `.env*`，启动时通过 `--env-file` 注入。
+
+首次拉取仓库并安装 Docker 后，以及后续每次更新，都执行：
+
+```bash
+cd /root/next_side
+bash deploy.sh
+```
+
+脚本先执行 `git pull --ff-only`，再通过 Dockerfile 安装依赖并打包。构建成功后替换 `next` 容器，使用 root、`80:3000`、`--restart always`。首次部署默认创建仓库同级的 `content` 目录（本服务器为 `/root/content`），挂载到 `/app/content`；更新时沿用已有容器的数据挂载。
+
+启动后检查容器内首页 HTTP 响应，默认等待 120 秒。构建失败不切换服务；启动失败尝试恢复旧容器。切换期间有短暂停机，容器回退不会撤销共享数据库的迁移或写入。
+
+可选配置：
+
+```bash
+CONTENT_DIR=/srv/next-content HOST_PORT=8080 STARTUP_TIMEOUT=180 bash deploy.sh
+DEPLOY_ENV_FILE=/etc/next-site.env bash deploy.sh
+```
+
+当前分支需配置远程上游，部署仓库的已跟踪文件不能有未提交修改。缺少默认 `.env.local` 时，已有 `next` 容器可作为环境变量来源；显式指定的配置文件缺失则报错。成功后镜像标记为 `next-site:latest`，用 `docker logs -f next` 查看日志。
+
 ### 前置要求
 
 - Docker 已安装
@@ -56,6 +80,7 @@ docker run -d --name next-site -p 3000:3000 \
 #### 2. 运行容器
 
 **基础运行：**
+
 ```bash
 docker run -d \
   --name next-site \
@@ -64,6 +89,7 @@ docker run -d \
 ```
 
 **带数据持久化（推荐）：**
+
 ```bash
 docker run -d \
   --name next-site \
@@ -73,6 +99,7 @@ docker run -d \
 ```
 
 **完整配置（包含环境变量）：**
+
 ```bash
 docker run -d \
   --name next-site \
@@ -137,7 +164,7 @@ docker run -d \
 #### 1. 创建 `docker-compose.yml` 文件
 
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   next-site:
@@ -191,11 +218,11 @@ docker-compose ps
 
 ### 环境变量
 
-| 变量名 | 说明 | 默认值 |
-|--------|------|--------|
+| 变量名     | 说明     | 默认值       |
+| ---------- | -------- | ------------ |
 | `NODE_ENV` | 运行环境 | `production` |
-| `PORT` | 服务端口 | `3000` |
-| `HOSTNAME` | 监听地址 | `0.0.0.0` |
+| `PORT`     | 服务端口 | `3000`       |
+| `HOSTNAME` | 监听地址 | `0.0.0.0`    |
 
 ### 访问应用
 
@@ -255,6 +282,7 @@ netstat -tuln | grep 3000
 #### 2. 数据库问题
 
 确保 `content` 目录有正确的权限：
+
 ```bash
 chmod -R 755 content
 ```
@@ -262,6 +290,7 @@ chmod -R 755 content
 #### 3. 重新初始化数据库
 
 如果需要重新初始化数据库，可以进入容器执行：
+
 ```bash
 docker exec -it next-site sh
 node init-db.js
@@ -343,7 +372,7 @@ src/lib/
     // 你的迁移 SQL
     // 添加新列
     db.exec("ALTER TABLE users ADD COLUMN avatar TEXT;");
-    
+
     // 或创建新表
     db.exec(`
       CREATE TABLE IF NOT EXISTS comments (
@@ -359,9 +388,9 @@ src/lib/
 
 ### 迁移 API 接口
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | `/api/db/migrations` | 查看迁移状态（需登录） |
+| 方法 | 路径                 | 说明                   |
+| ---- | -------------------- | ---------------------- |
+| GET  | `/api/db/migrations` | 查看迁移状态（需登录） |
 | POST | `/api/db/migrations` | 手动运行迁移（需登录） |
 
 #### 查看迁移状态
@@ -371,15 +400,28 @@ curl -H "Cookie: session=xxx" http://localhost:3000/api/db/migrations
 ```
 
 返回示例：
+
 ```json
 {
   "current": 3,
   "total": 3,
   "pending": [],
   "applied": [
-    { "version": 1, "name": "initial_schema", "applied_at": "2026-01-18T10:00:00.000Z" },
-    { "version": 2, "name": "add_posts_tags", "applied_at": "2026-01-18T10:00:00.000Z" },
-    { "version": 3, "name": "add_posts_updated_at", "applied_at": "2026-01-18T10:00:00.000Z" }
+    {
+      "version": 1,
+      "name": "initial_schema",
+      "applied_at": "2026-01-18T10:00:00.000Z"
+    },
+    {
+      "version": 2,
+      "name": "add_posts_tags",
+      "applied_at": "2026-01-18T10:00:00.000Z"
+    },
+    {
+      "version": 3,
+      "name": "add_posts_updated_at",
+      "applied_at": "2026-01-18T10:00:00.000Z"
+    }
   ]
 }
 ```
@@ -400,12 +442,12 @@ curl -X POST -H "Cookie: session=xxx" http://localhost:3000/api/db/migrations
 
 ### 当前数据库表结构
 
-| 表名 | 说明 |
-|------|------|
-| `users` | 用户表（登录认证） |
-| `categories` | 博客分类 |
-| `posts` | 博客文章 |
-| `resume` | 简历数据 |
+| 表名          | 说明               |
+| ------------- | ------------------ |
+| `users`       | 用户表（登录认证） |
+| `categories`  | 博客分类           |
+| `posts`       | 博客文章           |
+| `resume`      | 简历数据           |
 | `_migrations` | 迁移记录（系统表） |
 
 ### 注意事项

@@ -30,8 +30,12 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env.local
+# 网站运行配置 .env.local 按项目要求提交
+.env.deploy
+
+# Docker 镜像压缩包
+*.tar
+*.tar.gz
 
 # vercel
 .vercel

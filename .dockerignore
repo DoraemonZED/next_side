@@ -2,7 +2,8 @@ node_modules
 .next
 out
 build
-next-site-linux-amd64.tar
+*.tar
+*.tar.gz
 .git
 .gitignore
 .dockerignore

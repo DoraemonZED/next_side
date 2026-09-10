@@ -15,7 +15,7 @@ COPY . .
 # Disable telemetry during build
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN npm run build
+RUN mkdir -p content && npm run build
 
 # Stage 2: Runner
 FROM node:24-alpine AS runner

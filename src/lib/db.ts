@@ -14,54 +14,54 @@ if (resumeCount.count === 0) {
   const defaultResumeData = {
     skills: {
       basics: [
-        { name: "HTML", level: 77 },
-        { name: "CSS", level: 70 },
-        { name: "JavaScript", level: 90 },
+        { name: "TypeScript", level: 92 },
+        { name: "Node.js", level: 90 },
+        { name: "Python", level: 78 },
       ],
       expand: [
-        { name: "TypeScript", level: 90 },
-        { name: "SCSS", level: 88 },
-        { name: "NodeJS", level: 65 },
+        { name: "NestJS / 微服务", level: 90 },
+        { name: "Redis / RabbitMQ", level: 86 },
+        { name: "Docker / Nginx", level: 84 },
       ],
       frameworks: [
-        { name: "VueJS", level: 93 },
-        { name: "ReactJS", level: 80 },
-        { name: "JQuery", level: 70 },
+        { name: "React / Next.js", level: 88 },
+        { name: "Vue 3", level: 88 },
+        { name: "Spring Boot", level: 74 },
       ],
       crossPlatform: [
-        { name: "Flutter", level: 80 },
-        { name: "React Native", level: 60 },
-        { name: "Electron", level: 90 },
+        { name: "Electron", level: 85 },
+        { name: "React Native", level: 76 },
+        { name: "Three.js / Cesium", level: 72 },
       ]
     },
     otherSkills: [
-      "Unreal", "Uniapp", "小程序", "Nginx", 
-      "MySQL", "Linux", "MongoDB", "Webpack", "Koa"
+      "PostgreSQL", "MinIO", "gRPC", "Nacos",
+      "Linux", "Git", "Codex", "Cursor"
     ],
     history: [
       {
-        title: "前端组长 - 成都不知其名科技",
-        date: "Apr 2021 - Dec 2021",
-        description: "担任前端组长，负责组内各个项目的整合及任务分配，帮助同事一起解决项目中遇到的问题。最初开始使用JQuery和Webpack开发项目，后期项目改为Vue的服务端渲染框架NuxtJS进行重构及提升。",
+        title: "容联云 · 全栈开发工程师",
+        date: "2025.10 — 至今",
+        description: "参与企业通信云产品的全栈研发，使用 Node.js 与 Spring Boot 交付业务服务和接口；使用 React 构建管理端，完成状态管理、组件封装、联调与版本迭代。",
         type: "work"
       },
       {
-        title: "移动端跨平台开发 - 中通服",
-        date: "Oct 2020 - Apr 2021",
-        description: "在公司负责前端跨平台开发，平台包括iOS和Android两端的UI及原生功能统一，使用到的框架有Uniapp和Flutter。在工作期间掌握了跨平台开发，对原生Android和iOS开发有一定的了解。在中通服的时间积极和同事交流，增加技术知识，在此期间从前辈身上学习到很多好的开发习惯，工作中也积极努力独自完成整合项目搭建及开发。",
+        title: "中国电子科技十所（外协）· 高级 Web / 全栈开发工程师",
+        date: "2022.11 — 2025.09",
+        description: "负责算法训练、实时数据与可视化场景的服务端及前端研发。以 NestJS、gRPC、RabbitMQ、Redis 构建模块化服务，处理大模型 SSE 流式响应与 WebSocket 高频数据渲染。",
         type: "work"
       },
       {
-        title: "实习 - 在校",
-        date: "Nov 2019 - Sep 2020",
-        description: "其中参与.NET管理系统使，用WinFrom书写Windows页面，SQL Server数据库，socket实现TCP/IP通讯。和老师同学们相处融洽，工作积极认真，帮助同学，得到老师及其同学们的好评。初次从事软件开发，了解到了行业的竞争，以及各种技术革新的速度使得我们需要不断的学习新技术，作为程序员应时刻保持对探索的兴趣，要有创新精神和探索的勇气。",
-        type: "intern"
+        title: "不知其鸣科技 · 前后端开发负责人",
+        date: "2021.04 — 2022.11",
+        description: "负责海外 ACG 内容平台及企业业务系统，推进 Node.js 服务、鉴权与资源管理、视频处理链路、Vue 3 PC/H5 页面及 Docker 化上线交付。",
+        type: "work"
       },
       {
-        title: "大学 - 山东英才学院",
-        date: "Sep 2017 - Jun 2020",
-        description: "在校主修计算机网络技术，期间学习包括计算机组成原理，操作系统，数据结构，计算机网络等课程。和老师及小组参与一些.NET项目并取得上线，通过C语言课程学习使用EasyX制作flappy bird小游戏。期间参与学生会宣传部，负责学校公众号，校宣传海报设计和PS教学，组织其他部门参与校内活动。",
-        type: "education"
+        title: "中国通行服务有限公司 · 前端开发工程师",
+        date: "2020.09 — 2021.04",
+        description: "参与通信基础设施共建共享与智慧交通管理平台，交付动态路由、RBAC 权限、复杂表单、GIS 场景及 ECharts 数据大屏。",
+        type: "work"
       }
     ]
   };
