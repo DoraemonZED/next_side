@@ -14,7 +14,7 @@
 
 ### 服务器一键部署 / 更新
 
-服务器需要 Bash、Git、Docker 及访问 GitHub、npm、Alpine 软件源的网络，无需安装 Node.js。网站运行配置统一放在 `.env.local`，按项目要求随私有仓库提交；不要加入 SSH 或 GitHub 登录密码。配置采用 `KEY=value`，不加引号或行尾注释。Docker 构建排除 `.env*`，启动时通过 `--env-file` 注入。
+服务器需要 Bash、Git、Docker 及访问 GitHub、npm、Alpine 软件源的网络，无需安装 Node.js。网站运行配置统一放在本地或服务器的 `.env.local`，不提交到 Git。首次部署先复制 `.env.example` 为 `.env.local`，填写 JWT 密钥和 QQ 邮箱配置，并执行 `chmod 600 .env.local`。不要加入 SSH 或 GitHub 登录密码。配置采用 `KEY=value`，不加引号或行尾注释。Docker 构建排除 `.env*`，启动时通过 `--env-file` 注入。
 
 首次拉取仓库并安装 Docker 后，以及后续每次更新，都执行：
 

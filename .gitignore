@@ -30,7 +30,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# 网站运行配置 .env.local 按项目要求提交
+# 网站运行配置仅保存在本地或服务器
+.env.local
 .env.deploy
 
 # Docker 镜像压缩包
