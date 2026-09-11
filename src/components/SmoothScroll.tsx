@@ -16,7 +16,6 @@ export default function SmoothScroll({ children }: { children: ReactNode }) {
       lerp: 0.16,
       // 交给 Lenis 管理单一的动画帧及其销毁，避免 Strict Mode/路由切换后遗留 RAF 循环。
       autoRaf: true,
-      respectReducedMotion: true,
     });
 
     return () => {

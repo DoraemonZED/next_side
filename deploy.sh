@@ -1,15 +1,51 @@
-#!/usr/bin/env bash
+#!/bin/sh
+# 允许误用 `sh deploy.sh` 时自动切换到 Bash；脚本主体使用了 Bash 数组和 pipefail。
+if [ -z "${BASH_VERSION:-}" ]; then
+  exec bash "$0" "$@"
+fi
+
 set -Eeuo pipefail
+
+container=''
+image=''
+backup=''
+old_running=false
+moved=false
+attempted=false
+success=false
+temp_env=''
+candidate=''
+lock=''
+
+cleanup() {
+  local status=$?
+  trap - EXIT INT TERM
+  set +e
+  if [[ "$success" != true ]]; then
+    [[ "$attempted" != true ]] || docker rm -f "$container" >/dev/null
+    if [[ "$moved" == true ]]; then
+      echo '部署失败，正在恢复旧容器……' >&2
+      if docker rename "$backup" "$container" && [[ "$old_running" == true ]]; then docker start "$container"; fi
+    elif [[ "$old_running" == true ]]; then
+      docker start "$container" >/dev/null
+    fi
+  fi
+  [[ -z "$temp_env" ]] || rm -f "$temp_env"
+  [[ -z "$candidate" ]] || docker image rm "$candidate" >/dev/null 2>&1
+  [[ -z "$lock" ]] || rmdir "$lock"
+  exit "$status"
+}
 
 main() {
   cd "$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-  local container=next image=next-site:latest backup=next-deploy-backup
+  container=next image=next-site:latest backup=next-deploy-backup
   local env_file="${DEPLOY_ENV_FILE:-$PWD/.env.local}"
   local port="${HOST_PORT:-80}" timeout="${STARTUP_TIMEOUT:-120}"
   local parent_dir="$(dirname "$PWD")"
   local blog_dir="${BLOG_DIR:-$parent_dir/blog}" game_dir="${GAME_DIR:-$parent_dir/game}" db_dir="${DB_DIR:-$parent_dir/db}"
-  local old_exists=false old_running=false moved=false attempted=false success=false
-  local temp_env='' candidate="next-site:deploy-$(date +%s)-$$" lock
+  local old_exists=false
+  old_running=false moved=false attempted=false success=false
+  temp_env='' candidate="next-site:deploy-$(date +%s)-$$" lock=''
 
   for command in git docker; do
     command -v "$command" >/dev/null || { echo "缺少命令：$command" >&2; exit 1; }
@@ -19,24 +55,6 @@ main() {
   lock="$(git rev-parse --git-path next-site-deploy.lock)"
   mkdir "$lock" 2>/dev/null || { echo "部署锁已存在：$lock；确认无部署进程后可手动移除。" >&2; exit 1; }
 
-  cleanup() {
-    local status=$?
-    trap - EXIT INT TERM
-    set +e
-    if [[ "$success" != true ]]; then
-      [[ "$attempted" != true ]] || docker rm -f "$container" >/dev/null
-      if [[ "$moved" == true ]]; then
-        echo '部署失败，正在恢复旧容器……' >&2
-        if docker rename "$backup" "$container" && [[ "$old_running" == true ]]; then docker start "$container"; fi
-      elif [[ "$old_running" == true ]]; then
-        docker start "$container" >/dev/null
-      fi
-    fi
-    [[ -z "$temp_env" ]] || rm -f "$temp_env"
-    docker image rm "$candidate" >/dev/null 2>&1
-    rmdir "$lock"
-    exit "$status"
-  }
   trap cleanup EXIT
   trap 'exit 130' INT
   trap 'exit 143' TERM
