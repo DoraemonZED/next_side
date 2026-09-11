@@ -25,7 +25,7 @@ bash deploy.sh
 
 脚本先执行 `git pull --ff-only`，再通过 Dockerfile 安装依赖并打包。构建成功后替换 `next` 容器，使用 root、`80:3000`、`--restart always`。首次部署默认创建代码仓库同级的 `blog`、`game` 和 `db` 目录（本服务器分别为 `/root/blog`、`/root/game`、`/root/db`），分别挂载到容器的 `/app/blog`、`/app/game`、`/app/db`。
 
-启动后检查容器内首页 HTTP 响应，默认等待 120 秒。构建失败不切换服务；启动失败尝试恢复旧容器。切换期间有短暂停机，容器回退不会撤销共享数据库的迁移或写入。
+启动后检查容器内首页 HTTP 响应，默认等待 120 秒。构建失败不切换服务；启动失败尝试恢复旧容器。切换期间有短暂停机，容器回退不会撤销共享数据库已写入的数据。
 
 可选配置：
 
@@ -348,110 +348,6 @@ npm run build
 # 启动生产服务器
 npm start
 ```
-
-## 数据库迁移系统
-
-项目使用 SQLite 数据库，并内置了轻量级的迁移系统来管理表结构变更。
-
-### 文件结构
-
-```
-src/lib/
-├── db.ts                    # 数据库连接，启动时自动运行迁移
-└── migrations/
-    └── index.ts             # 迁移定义和执行逻辑
-```
-
-### 工作原理
-
-1. 应用启动时自动检测并执行所有未执行的迁移
-2. 迁移记录保存在 `_migrations` 表中，确保每个迁移只执行一次
-3. 迁移按版本号顺序执行，使用事务保证原子性
-
-### 如何添加新迁移
-
-编辑 `src/lib/migrations/index.ts`，在 `migrations` 数组末尾添加新迁移：
-
-```typescript
-{
-  version: 2,  // 递增的版本号（必须唯一）
-  name: 'add_user_avatar',  // 描述性名称
-  up: (db) => {
-    // 你的迁移 SQL
-    // 添加新列
-    db.exec("ALTER TABLE users ADD COLUMN avatar TEXT;");
-
-    // 或创建新表
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS comments (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        post_id INTEGER NOT NULL,
-        content TEXT NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
-  },
-},
-```
-
-### 迁移 API 接口
-
-| 方法 | 路径                 | 说明                   |
-| ---- | -------------------- | ---------------------- |
-| GET  | `/api/db/migrations` | 查看迁移状态（需登录） |
-| POST | `/api/db/migrations` | 手动运行迁移（需登录） |
-
-#### 查看迁移状态
-
-```bash
-curl -H "Cookie: session=xxx" http://localhost:3000/api/db/migrations
-```
-
-返回示例：
-
-```json
-{
-  "current": 1,
-  "total": 1,
-  "pending": [],
-  "applied": [
-    {
-      "version": 1,
-      "name": "initial_schema",
-      "applied_at": "2026-01-18T10:00:00.000Z"
-    }
-  ]
-}
-```
-
-#### 手动运行迁移
-
-```bash
-curl -X POST -H "Cookie: session=xxx" http://localhost:3000/api/db/migrations
-```
-
-### 部署流程
-
-1. 在本地 `src/lib/migrations/index.ts` 中添加新迁移
-2. 本地测试确保迁移正常工作
-3. 提交代码并部署到服务器
-4. 应用启动时会自动检测并执行新迁移
-5. 也可通过 API 手动触发迁移
-
-### 当前数据库表结构
-
-| 表名          | 说明               |
-| ------------- | ------------------ |
-| `users`       | 用户表（登录认证） |
-| `resume`      | 简历数据           |
-| `_migrations` | 迁移记录（系统表） |
-
-### 注意事项
-
-- 迁移版本号必须唯一且递增
-- SQLite 不支持删除列，只能添加列或创建新表
-- 修改表结构前建议备份数据库
-- 迁移一旦执行成功，不要修改已执行的迁移代码
 
 ## 项目结构
 

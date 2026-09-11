@@ -2,15 +2,28 @@ import Database from 'better-sqlite3';
 import bcrypt from 'bcryptjs';
 import fs from 'node:fs';
 import path from 'path';
-import { runMigrations } from './migrations';
 
 const dbDir = path.join(process.cwd(), 'db');
 fs.mkdirSync(dbDir, { recursive: true });
 const dbPath = path.join(dbDir, 'db.sqlite3');
 const db = new Database(dbPath);
 
-// 运行数据库迁移
-runMigrations(db);
+// 数据库只保存登录账号和简历数据，因此直接确保两张表存在，不使用迁移系统。
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS resume (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    key TEXT UNIQUE NOT NULL,
+    value TEXT NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+`);
 
 // 用户表为空时只创建一次管理员。之后即使修改环境变量，也不会覆盖已有密码。
 const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get() as { count: number };
