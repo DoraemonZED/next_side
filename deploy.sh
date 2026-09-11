@@ -52,7 +52,7 @@ main() {
   done
   [[ "$timeout" =~ ^[1-9][0-9]*$ ]] || { echo 'STARTUP_TIMEOUT 必须为正整数' >&2; exit 1; }
   docker info >/dev/null
-  lock="$(git rev-parse --git-path next-site-deploy.lock)"
+  lock="$PWD/.deploy.lock"
   mkdir "$lock" 2>/dev/null || { echo "部署锁已存在：$lock；确认无部署进程后可手动移除。" >&2; exit 1; }
 
   trap cleanup EXIT

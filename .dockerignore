@@ -20,5 +20,6 @@ blog
 game
 db
 content
+.deploy.lock
 *.tsbuildinfo
 next-env.d.ts

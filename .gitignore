@@ -50,3 +50,4 @@ next-env.d.ts
 /blog
 /game
 /db
+/.deploy.lock/
