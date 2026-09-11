@@ -9,7 +9,7 @@ fi
 #
 # 1. 检查 Git、Docker 和部署锁，避免两个部署同时操作同一个容器。
 # 2. 拉取当前代码仓库的最新提交；构建失败时，线上旧服务不会停止。
-# 3. 读取 .env.local，并确认网站运行所需的 JWT 与 QQ 邮箱配置存在。
+# 3. 读取 .env.local，并确认网站运行配置和首次管理员密码存在。
 # 4. 首次部署时创建 blog、game、db 三个持久化目录；若配置了博客仓库，克隆它。
 # 5. 构建一个带时间戳的候选镜像。
 # 6. 将旧 next 容器改名为 next-deploy-backup，再启动新的 next 容器。
@@ -189,7 +189,7 @@ main() {
     ENV_FILE="$TEMP_ENV_FILE"
   fi
   [[ -r "$ENV_FILE" ]] || { echo "首次部署请填写 .env.local；找不到：$ENV_FILE" >&2; exit 1; }
-  for key in JWT_SECRET QQ_EMAIL_USER QQ_EMAIL_PASS; do
+  for key in JWT_SECRET QQ_EMAIL_USER QQ_EMAIL_PASS INITIAL_ADMIN_PASSWORD; do
     grep -Eq "^${key}=.+" "$ENV_FILE" || { echo "配置文件缺少非空的 $key。" >&2; exit 1; }
   done
 
