@@ -15,20 +15,36 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
   const [isPulling, setIsPulling] = useState(false);
   const startY = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
+  const pullDistanceRef = useRef(0);
+  const isPullingRef = useRef(false);
+  const isRefreshingRef = useRef(false);
+  const animationFrameRef = useRef<number | null>(null);
 
   const threshold = 80; // 触发刷新的阈值
   const maxPull = 120; // 最大下拉距离
 
+  const setPullDistanceAtNextFrame = useCallback((distance: number) => {
+    pullDistanceRef.current = distance;
+
+    if (animationFrameRef.current !== null) return;
+
+    animationFrameRef.current = requestAnimationFrame(() => {
+      animationFrameRef.current = null;
+      setPullDistance(pullDistanceRef.current);
+    });
+  }, []);
+
   const handleTouchStart = useCallback((e: TouchEvent) => {
     // 只有在页面顶部才启用下拉刷新
-    if (window.scrollY === 0 && !isRefreshing) {
+    if (window.scrollY === 0 && !isRefreshingRef.current) {
       startY.current = e.touches[0].clientY;
+      isPullingRef.current = true;
       setIsPulling(true);
     }
-  }, [isRefreshing]);
+  }, []);
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
-    if (!isPulling || isRefreshing) return;
+    if (!isPullingRef.current || isRefreshingRef.current) return;
 
     const currentY = e.touches[0].clientY;
     const diff = currentY - startY.current;
@@ -37,23 +53,26 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
     if (diff > 0 && window.scrollY === 0) {
       // 使用阻尼效果，拉得越远阻力越大
       const dampedPull = Math.min(diff * 0.5, maxPull);
-      setPullDistance(dampedPull);
+      // 触摸事件可在一帧内触发多次；仅在下一帧更新界面，避免滚动时反复渲染。
+      setPullDistanceAtNextFrame(dampedPull);
       
       // 阻止页面滚动
       if (dampedPull > 10) {
         e.preventDefault();
       }
     }
-  }, [isPulling, isRefreshing]);
+  }, [setPullDistanceAtNextFrame]);
 
   const handleTouchEnd = useCallback(async () => {
-    if (!isPulling) return;
+    if (!isPullingRef.current) return;
 
+    isPullingRef.current = false;
     setIsPulling(false);
 
-    if (pullDistance >= threshold && !isRefreshing) {
+    if (pullDistanceRef.current >= threshold && !isRefreshingRef.current) {
+      isRefreshingRef.current = true;
       setIsRefreshing(true);
-      setPullDistance(threshold);
+      setPullDistanceAtNextFrame(threshold);
 
       // 执行刷新
       try {
@@ -61,14 +80,21 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
         // 等待一小段时间让用户看到刷新效果
         await new Promise(resolve => setTimeout(resolve, 800));
       } finally {
+        isRefreshingRef.current = false;
         setIsRefreshing(false);
-        setPullDistance(0);
+        setPullDistanceAtNextFrame(0);
       }
     } else {
       // 回弹动画
-      setPullDistance(0);
+      setPullDistanceAtNextFrame(0);
     }
-  }, [isPulling, pullDistance, isRefreshing, router]);
+  }, [router, setPullDistanceAtNextFrame]);
+
+  const handleTouchCancel = useCallback(() => {
+    isPullingRef.current = false;
+    setIsPulling(false);
+    setPullDistanceAtNextFrame(0);
+  }, [setPullDistanceAtNextFrame]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -78,13 +104,21 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
     document.addEventListener("touchstart", handleTouchStart, { passive: true });
     document.addEventListener("touchmove", handleTouchMove, { passive: false });
     document.addEventListener("touchend", handleTouchEnd, { passive: true });
+    document.addEventListener("touchcancel", handleTouchCancel, { passive: true });
 
     return () => {
       document.removeEventListener("touchstart", handleTouchStart);
       document.removeEventListener("touchmove", handleTouchMove);
       document.removeEventListener("touchend", handleTouchEnd);
+      document.removeEventListener("touchcancel", handleTouchCancel);
     };
-  }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd, handleTouchCancel]);
+
+  useEffect(() => () => {
+    if (animationFrameRef.current !== null) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+  }, []);
 
   const progress = Math.min(pullDistance / threshold, 1);
   const shouldTrigger = pullDistance >= threshold;
