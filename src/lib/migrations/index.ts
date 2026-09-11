@@ -31,29 +31,6 @@ export const migrations: Migration[] = [
           created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
 
-        CREATE TABLE IF NOT EXISTS categories (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          slug TEXT UNIQUE NOT NULL,
-          name TEXT NOT NULL,
-          description TEXT,
-          sort_order INTEGER DEFAULT 0
-        );
-
-        CREATE TABLE IF NOT EXISTS posts (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          category_slug TEXT NOT NULL,
-          slug TEXT NOT NULL,
-          title TEXT NOT NULL,
-          date TEXT NOT NULL,
-          views INTEGER DEFAULT 0,
-          likes INTEGER DEFAULT 0,
-          author TEXT,
-          summary TEXT,
-          content_path TEXT NOT NULL,
-          UNIQUE(category_slug, slug),
-          FOREIGN KEY (category_slug) REFERENCES categories(slug) ON DELETE CASCADE
-        );
-
         CREATE TABLE IF NOT EXISTS resume (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           key TEXT UNIQUE NOT NULL,
@@ -63,33 +40,11 @@ export const migrations: Migration[] = [
       `);
     },
   },
-  {
-    version: 2,
-    name: 'add_posts_tags',
-    up: (db) => {
-      const columns = db.prepare("PRAGMA table_info(posts)").all() as any[];
-      if (!columns.some(col => col.name === 'tags')) {
-        db.exec("ALTER TABLE posts ADD COLUMN tags TEXT;");
-      }
-    },
-  },
-  {
-    version: 3,
-    name: 'add_posts_updated_at',
-    up: (db) => {
-      const columns = db.prepare("PRAGMA table_info(posts)").all() as any[];
-      if (!columns.some(col => col.name === 'updated_at')) {
-        db.exec("ALTER TABLE posts ADD COLUMN updated_at TEXT;");
-      }
-      // 为现有记录设置默认值
-      db.exec("UPDATE posts SET updated_at = date WHERE updated_at IS NULL;");
-    },
-  },
   // ========================================
   // 在这里添加新的迁移
   // ========================================
   // {
-  //   version: 4,
+  //   version: 2,
   //   name: 'your_migration_name',
   //   up: (db) => {
   //     // 迁移逻辑

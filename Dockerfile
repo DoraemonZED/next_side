@@ -15,7 +15,7 @@ COPY . .
 # Disable telemetry during build
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN mkdir -p content && npm run build
+RUN mkdir -p blog game db && npm run build
 
 # Stage 2: Runner
 FROM node:24-alpine AS runner
@@ -24,6 +24,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+RUN apk add --no-cache git
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
@@ -31,16 +33,13 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/public ./public
 
 # Set permissions for pre-rendered cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+RUN mkdir -p .next blog game db
+RUN chown -R nextjs:nodejs .next blog game db
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-# Copy content and database if they exist
-COPY --from=builder --chown=nextjs:nodejs /app/content ./content
-
 USER nextjs
 
 EXPOSE 3000

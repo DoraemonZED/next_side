@@ -96,7 +96,7 @@ function parseGameInfo(html: string, gameName: string): GameInfo {
 
 export async function GET() {
   try {
-    const gameDir = path.join(process.cwd(), 'content/game');
+    const gameDir = path.join(process.cwd(), 'game');
     
     // 读取游戏目录
     const entries = await fs.readdir(gameDir, { withFileTypes: true });

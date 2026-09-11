@@ -23,18 +23,20 @@ cd /root/next_side
 bash deploy.sh
 ```
 
-脚本先执行 `git pull --ff-only`，再通过 Dockerfile 安装依赖并打包。构建成功后替换 `next` 容器，使用 root、`80:3000`、`--restart always`。首次部署默认创建仓库同级的 `content` 目录（本服务器为 `/root/content`），挂载到 `/app/content`；更新时沿用已有容器的数据挂载。
+脚本先执行 `git pull --ff-only`，再通过 Dockerfile 安装依赖并打包。构建成功后替换 `next` 容器，使用 root、`80:3000`、`--restart always`。首次部署默认创建代码仓库同级的 `blog`、`game` 和 `db` 目录（本服务器分别为 `/root/blog`、`/root/game`、`/root/db`），分别挂载到容器的 `/app/blog`、`/app/game`、`/app/db`。
 
 启动后检查容器内首页 HTTP 响应，默认等待 120 秒。构建失败不切换服务；启动失败尝试恢复旧容器。切换期间有短暂停机，容器回退不会撤销共享数据库的迁移或写入。
 
 可选配置：
 
 ```bash
-CONTENT_DIR=/srv/next-content HOST_PORT=8080 STARTUP_TIMEOUT=180 bash deploy.sh
+BLOG_DIR=/srv/next-blog GAME_DIR=/srv/next-game DB_DIR=/srv/next-db HOST_PORT=8080 STARTUP_TIMEOUT=180 bash deploy.sh
 DEPLOY_ENV_FILE=/etc/next-site.env bash deploy.sh
 ```
 
 当前分支需配置远程上游，部署仓库的已跟踪文件不能有未提交修改。缺少默认 `.env.local` 时，已有 `next` 容器可作为环境变量来源；显式指定的配置文件缺失则报错。成功后镜像标记为 `next-site:latest`，用 `docker logs -f next` 查看日志。
+
+博客使用 `blog/categories.json` 保存分类，文章目录中的 `post.json` 保存元数据，`index.md` 保存正文。若设置了 `BLOG_GIT_REPO`、`BLOG_GIT_USERNAME` 和 `BLOG_GIT_TOKEN`，首次部署会将博客仓库克隆到 `blog` 目录；Token 应为仅有博客仓库 Contents 读写权限的 GitHub Personal Access Token。`BLOG_GIT_AUTO_SYNC=true` 会在每次博客写入前拉取远程内容；管理员菜单中的“GitHub 同步”按钮会以 `blog update` 为提交信息推送本地修改。无法自动合并时，服务器博客目录会恢复为远程版本。
 
 ### 前置要求
 
@@ -70,7 +72,9 @@ npm run docker:package:linux
 ```bash
 docker load -i next-site-linux-amd64.tar
 docker run -d --name next-site -p 3000:3000 \
-  -v $(pwd)/content:/app/content \
+  -v $(pwd)/blog:/app/blog \
+  -v $(pwd)/game:/app/game \
+  -v $(pwd)/db:/app/db \
   --restart unless-stopped \
   next-site:linux-amd64
 ```
@@ -94,7 +98,9 @@ docker run -d \
 docker run -d \
   --name next-site \
   -p 3000:3000 \
-  -v $(pwd)/content:/app/content \
+  -v $(pwd)/blog:/app/blog \
+  -v $(pwd)/game:/app/game \
+  -v $(pwd)/db:/app/db \
   next-site:latest
 ```
 
@@ -104,7 +110,9 @@ docker run -d \
 docker run -d \
   --name next-site \
   -p 3000:3000 \
-  -v $(pwd)/content:/app/content \
+  -v $(pwd)/blog:/app/blog \
+  -v $(pwd)/game:/app/game \
+  -v $(pwd)/db:/app/db \
   -e NODE_ENV=production \
   -e PORT=3000 \
   --restart unless-stopped \
@@ -154,7 +162,9 @@ docker build -t next-site:latest .
 docker run -d \
   --name next-site \
   -p 3000:3000 \
-  -v $(pwd)/content:/app/content \
+  -v $(pwd)/blog:/app/blog \
+  -v $(pwd)/game:/app/game \
+  -v $(pwd)/db:/app/db \
   --restart unless-stopped \
   next-site:latest
 ```
@@ -173,7 +183,9 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./content:/app/content
+      - ./blog:/app/blog
+      - ./game:/app/game
+      - ./db:/app/db
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -206,8 +218,9 @@ docker-compose ps
 
 **重要：** 为了确保数据不丢失，建议使用数据卷挂载：
 
-- `content` 目录：包含博客文章、游戏文件和数据库
-- 挂载方式：`-v $(pwd)/content:/app/content`
+- `blog` 目录：博客 JSON、Markdown 和文章附件
+- `game` 目录：游戏文件
+- `db` 目录：SQLite 数据库文件
 
 如果不使用数据卷，容器删除后所有数据（包括数据库）都会丢失。
 
@@ -241,7 +254,9 @@ docker build --platform linux/amd64 -t next-site:latest .
 docker run -d --name next-site -p 3000:3000 next-site:latest
 
 # 运行容器（带数据持久化）
-docker run -d --name next-site -p 3000:3000 -v $(pwd)/content:/app/content next-site:latest
+docker run -d --name next-site -p 3000:3000 \
+  -v $(pwd)/blog:/app/blog -v $(pwd)/game:/app/game -v $(pwd)/db:/app/db \
+  next-site:latest
 
 # 查看日志
 docker logs -f next-site
@@ -281,26 +296,17 @@ netstat -tuln | grep 3000
 
 #### 2. 数据库问题
 
-确保 `content` 目录有正确的权限：
+确保 `blog`、`game` 和 `db` 目录有正确的权限：
 
 ```bash
-chmod -R 755 content
-```
-
-#### 3. 重新初始化数据库
-
-如果需要重新初始化数据库，可以进入容器执行：
-
-```bash
-docker exec -it next-site sh
-node init-db.js
+chmod -R 755 blog game db
 ```
 
 ### 生产环境建议
 
 1. **使用反向代理**：建议使用 Nginx 或 Traefik 作为反向代理
 2. **HTTPS**：配置 SSL 证书
-3. **数据备份**：定期备份 `content` 目录
+3. **数据备份**：定期备份 `blog`、`game` 和 `db` 目录
 4. **监控**：配置容器健康检查和监控
 5. **资源限制**：为容器设置 CPU 和内存限制
 
@@ -366,7 +372,7 @@ src/lib/
 
 ```typescript
 {
-  version: 4,  // 递增的版本号（必须唯一）
+  version: 2,  // 递增的版本号（必须唯一）
   name: 'add_user_avatar',  // 描述性名称
   up: (db) => {
     // 你的迁移 SQL
@@ -403,23 +409,13 @@ curl -H "Cookie: session=xxx" http://localhost:3000/api/db/migrations
 
 ```json
 {
-  "current": 3,
-  "total": 3,
+  "current": 1,
+  "total": 1,
   "pending": [],
   "applied": [
     {
       "version": 1,
       "name": "initial_schema",
-      "applied_at": "2026-01-18T10:00:00.000Z"
-    },
-    {
-      "version": 2,
-      "name": "add_posts_tags",
-      "applied_at": "2026-01-18T10:00:00.000Z"
-    },
-    {
-      "version": 3,
-      "name": "add_posts_updated_at",
       "applied_at": "2026-01-18T10:00:00.000Z"
     }
   ]
@@ -445,8 +441,6 @@ curl -X POST -H "Cookie: session=xxx" http://localhost:3000/api/db/migrations
 | 表名          | 说明               |
 | ------------- | ------------------ |
 | `users`       | 用户表（登录认证） |
-| `categories`  | 博客分类           |
-| `posts`       | 博客文章           |
 | `resume`      | 简历数据           |
 | `_migrations` | 迁移记录（系统表） |
 
@@ -461,10 +455,9 @@ curl -X POST -H "Cookie: session=xxx" http://localhost:3000/api/db/migrations
 
 ```
 next_site/
-├── content/           # 内容目录（博客、游戏等）
-│   ├── blog/         # 博客文章
-│   ├── game/         # 游戏文件
-│   └── db.sqlite3   # 数据库文件
+├── blog/              # 博客 JSON、Markdown 和附件（独立 Git 仓库）
+├── game/              # 游戏文件（后续可独立维护）
+├── db/                # SQLite 数据库
 ├── src/              # 源代码
 ├── public/           # 静态资源
 ├── Dockerfile        # Docker 构建文件
@@ -474,12 +467,3 @@ next_site/
 ## 许可证
 
 MIT
-
-```bash
-docker builder prune -f （有时候打包出错）
-docker build --platform linux/amd64 -t next-site:latest .
-docker save -o next.tar next-site
-scp next.tar root@xx.xx.xx.xx:~
-docker load -i next.tar
-docker run -d --restart=always --name next-site -v content:/app/content -p 80:3000 next-site:latest
-```

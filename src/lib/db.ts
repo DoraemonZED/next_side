@@ -1,8 +1,11 @@
 import Database from 'better-sqlite3';
+import fs from 'node:fs';
 import path from 'path';
 import { runMigrations } from './migrations';
 
-const dbPath = path.join(process.cwd(), 'content/db.sqlite3');
+const dbDir = path.join(process.cwd(), 'db');
+fs.mkdirSync(dbDir, { recursive: true });
+const dbPath = path.join(dbDir, 'db.sqlite3');
 const db = new Database(dbPath);
 
 // 运行数据库迁移

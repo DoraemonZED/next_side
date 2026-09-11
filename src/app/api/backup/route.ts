@@ -25,20 +25,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 获取content目录路径
-    const contentDir = path.join(process.cwd(), 'content');
-    
-    // 检查content目录是否存在
-    if (!fs.existsSync(contentDir)) {
+    const appRoot = process.cwd();
+    const backupDirs = ['blog', 'game', 'db']
+      .map((name) => ({ name, source: path.join(appRoot, name) }))
+      .filter(({ source }) => fs.existsSync(source));
+
+    if (backupDirs.length === 0) {
       return NextResponse.json(
-        { message: 'content目录不存在' },
+        { message: '没有可备份的数据目录' },
         { status: 404 }
       );
     }
 
     // 创建临时zip文件
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-    const zipFileName = `content-backup-${timestamp}.zip`;
+    const zipFileName = `site-backup-${timestamp}.zip`;
     const zipFilePath = path.join(process.cwd(), zipFileName);
 
     // 创建zip文件
@@ -59,8 +60,7 @@ export async function POST(request: NextRequest) {
 
       archive.pipe(output);
       
-      // 添加content目录到zip
-      archive.directory(contentDir, 'content');
+      backupDirs.forEach(({ name, source }) => archive.directory(source, name));
       
       archive.finalize();
     });
@@ -84,12 +84,12 @@ export async function POST(request: NextRequest) {
       from: `"备份系统" <${process.env.QQ_EMAIL_USER}>`,
       to: recipientEmail,
       subject: `数据备份 - ${new Date().toLocaleString('zh-CN')}`,
-      text: backupInfo || '这是您的content目录备份文件。',
+      text: backupInfo || '这是您的博客、游戏和运行数据备份文件。',
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px;">
           <h2 style="color: #333;">数据备份通知</h2>
           <p style="color: #666; line-height: 1.6;">
-            ${backupInfo || '这是您的content目录备份文件。'}
+            ${backupInfo || '这是您的博客、游戏和运行数据备份文件。'}
           </p>
           <p style="color: #999; font-size: 12px; margin-top: 20px;">
             备份时间: ${new Date().toLocaleString('zh-CN')}<br/>
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
     
     // 清理临时文件（如果存在）
     try {
-      const files = fs.readdirSync(process.cwd()).filter(f => f.startsWith('content-backup-') && f.endsWith('.zip'));
+      const files = fs.readdirSync(process.cwd()).filter(f => f.startsWith('site-backup-') && f.endsWith('.zip'));
       files.forEach(file => {
         try {
           fs.unlinkSync(path.join(process.cwd(), file));

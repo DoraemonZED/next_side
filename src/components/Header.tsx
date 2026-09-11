@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Moon, Sun, Settings, User, Menu, Download, Database } from 'lucide-react'
+import { Moon, Sun, Settings, User, Menu, Download, Database, GitBranch } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 import { Button } from '@/components/ui/button'
@@ -62,6 +62,7 @@ export function Header({ initialAuthState }: HeaderProps) {
   const [isMigrationDialogOpen, setIsMigrationDialogOpen] = React.useState(false)
   const [migrationStatus, setMigrationStatus] = React.useState<any>(null)
   const [isMigrating, setIsMigrating] = React.useState(false)
+  const [isGitSyncing, setIsGitSyncing] = React.useState(false)
   const { user, isAuthenticated, logout, checkAuth, setUser } = useAuthStore()
   const { showToast } = useUIStore()
   const [isMounted, setIsMounted] = React.useState(false)
@@ -143,7 +144,7 @@ export function Header({ initialAuthState }: HeaderProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          backupInfo: backupInfo || '这是您的content目录备份文件。',
+          backupInfo: backupInfo || '这是您的博客、游戏和运行数据备份文件。',
           recipientEmail,
         }),
       })
@@ -163,6 +164,19 @@ export function Header({ initialAuthState }: HeaderProps) {
       showToast(`备份失败: ${error.message || '网络错误'}`, 'error')
     } finally {
       setIsBackingUp(false)
+    }
+  }
+
+  const handleGitSync = async () => {
+    setIsGitSyncing(true)
+    try {
+      const response = await fetch('/api/blog/git-sync', { method: 'POST' })
+      const data = await response.json()
+      showToast(data.message || (response.ok ? 'GitHub 同步完成' : 'GitHub 同步失败'), response.ok ? 'success' : 'error')
+    } catch {
+      showToast('网络错误', 'error')
+    } finally {
+      setIsGitSyncing(false)
     }
   }
 
@@ -282,7 +296,7 @@ export function Header({ initialAuthState }: HeaderProps) {
                     <DialogHeader>
                       <DialogTitle>备份数据</DialogTitle>
                       <DialogDescription>
-                        输入备份信息和接收邮箱，系统将压缩content目录并发送到您的邮箱。
+                        输入备份信息和接收邮箱，系统将压缩博客、游戏和运行数据并发送到您的邮箱。
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
@@ -330,6 +344,10 @@ export function Header({ initialAuthState }: HeaderProps) {
                     </div>
                   </DialogContent>
                 </Dialog>
+                <DropdownMenuItem onClick={handleGitSync} disabled={isGitSyncing}>
+                  <GitBranch className="mr-2 h-4 w-4" />
+                  <span>{isGitSyncing ? 'GitHub 同步中...' : 'GitHub 同步'}</span>
+                </DropdownMenuItem>
                 <Dialog open={isMigrationDialogOpen} onOpenChange={(open) => {
                   setIsMigrationDialogOpen(open)
                   if (open) fetchMigrationStatus()

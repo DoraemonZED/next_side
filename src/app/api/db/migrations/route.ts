@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const dbPath = path.join(process.cwd(), 'content/db.sqlite3');
+    const dbPath = path.join(process.cwd(), 'db/db.sqlite3');
     const db = new Database(dbPath);
     
     const status = getMigrationStatus(db);
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const dbPath = path.join(process.cwd(), 'content/db.sqlite3');
+    const dbPath = path.join(process.cwd(), 'db/db.sqlite3');
     const db = new Database(dbPath);
     
     const result = runMigrations(db);

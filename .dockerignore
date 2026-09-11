@@ -16,5 +16,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 .env*
+blog
+game
+db
+content
 *.tsbuildinfo
 next-env.d.ts

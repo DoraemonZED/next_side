@@ -13,18 +13,15 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PlusCircle, RefreshCcw } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { PlusCircle } from 'lucide-react';
 
 export function NewCategoryButton() {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [syncing, setSyncing] = useState(false);
   const { isAuthenticated } = useAuthStore();
   const { showToast, setLoading: setGlobalLoading } = useUIStore();
-  const router = useRouter();
 
   if (!isAuthenticated) return null;
 
@@ -52,28 +49,6 @@ export function NewCategoryButton() {
       showToast('网络错误', 'error');
     } finally {
       setLoading(false);
-      setGlobalLoading(false);
-    }
-  };
-
-  const handleSync = async () => {
-    setSyncing(true);
-    setGlobalLoading(true);
-    try {
-      const res = await fetch('/api/blog/sync', {
-        method: 'POST',
-      });
-      if (res.ok) {
-        showToast('数据同步成功', 'success');
-        router.refresh();
-      } else {
-        const data = await res.json();
-        showToast(data.message || '同步失败', 'error');
-      }
-    } catch (err) {
-      showToast('网络错误', 'error');
-    } finally {
-      setSyncing(false);
       setGlobalLoading(false);
     }
   };
@@ -120,17 +95,6 @@ export function NewCategoryButton() {
           </form>
         </DialogContent>
       </Dialog>
-      
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className="w-full gap-2 text-muted-foreground hover:text-primary"
-        onClick={handleSync}
-        disabled={syncing}
-      >
-        <RefreshCcw className={`h-3 w-3 ${syncing ? 'animate-spin' : ''}`} />
-        {syncing ? '正在同步...' : '同步本地文件'}
-      </Button>
     </div>
   );
 }
