@@ -1,54 +1,110 @@
 export const resumeData = {
   skills: {
-    basics: [
-      { name: "TypeScript", level: 92 },
-      { name: "Node.js", level: 90 },
-      { name: "Python", level: 78 },
+    backend: [
+      { name: "Java / Spring Boot", level: 90, note: "企业级服务与领域建模" },
+      { name: "Go", level: 84, note: "高并发服务与工程工具" },
+      { name: "Rust", level: 76, note: "性能敏感模块与系统编程" },
+      { name: "Node.js / MySQL", level: 90, note: "实时 API、数据建模与索引优化" },
     ],
-    expand: [
-      { name: "NestJS / 微服务", level: 90 },
-      { name: "Redis / RabbitMQ", level: 86 },
-      { name: "Docker / Nginx", level: 84 },
+    ai: [
+      { name: "Python", level: 87, note: "数据处理、自动化与 AI 服务" },
+      { name: "Dify", level: 88, note: "工作流编排、知识库与应用交付" },
+      { name: "LangChain / LangGraph", level: 84, note: "工具调用、记忆与状态化 Agent" },
+      { name: "RAG / Ollama", level: 84, note: "文档召回、上下文构建与本地推理" },
     ],
-    frameworks: [
-      { name: "React / Next.js", level: 88 },
-      { name: "Vue 3", level: 88 },
-      { name: "Spring Boot", level: 74 },
+    devops: [
+      { name: "Docker / Compose", level: 90, note: "镜像构建、编排与环境一致性" },
+      { name: "Nginx", level: 87, note: "反向代理、缓存与流量入口治理" },
+      { name: "Linux", level: 88, note: "服务排障、脚本化与运行环境管理" },
+      { name: "CI/CD / 可观测性", level: 84, note: "自动发布、日志指标与故障定位" },
     ],
-    crossPlatform: [
-      { name: "Electron", level: 85 },
-      { name: "React Native", level: 76 },
-      { name: "Three.js / Cesium", level: 72 },
+    frontend: [
+      { name: "Vue 3", level: 90, note: "复杂业务组件与状态管理" },
+      { name: "React / Next.js", level: 91, note: "SSR、性能优化与产品工程化" },
+      { name: "JavaScript / TypeScript", level: 92, note: "类型建模与可维护前端架构" },
+      { name: "Tailwind / Electron / RN", level: 87, note: "设计系统与多端产品交付" },
     ],
   },
   otherSkills: [
-    "PostgreSQL", "MinIO", "gRPC", "Nacos",
-    "Linux", "Git", "Codex", "Cursor",
+    "PostgreSQL", "MySQL", "Redis", "RabbitMQ", "Kafka", "gRPC", "Nacos", "MinIO",
+    "Nginx", "CI/CD", "Kubernetes", "Linux", "Git", "WebSocket", "SSE", "Codex", "Cursor",
   ],
   history: [
     {
       title: "容联云 · 全栈开发工程师",
+      company: "容联云",
+      role: "全栈开发工程师",
+      description: "参与企业通信云产品的全栈研发。",
       date: "2025.10 — 至今",
       type: "work",
-      description: "参与企业通信云产品的全栈研发，使用 Node.js 与 Spring Boot 交付业务服务和接口；使用 React 构建管理端，完成状态管理、组件封装、联调与版本迭代。",
+      stack: ["Node.js", "Spring Boot", "React", "TypeScript", "Redis", "Docker"],
+      responsibilities: [
+        "主导核心业务服务与开放接口的领域建模、接口规范和版本治理。",
+        "设计管理端状态流与组件抽象方案，推动前后端联调、灰度验证和稳定发布。",
+        "参与链路性能排查与可观测性建设，保障高频业务迭代的交付质量。",
+      ],
+      projects: [
+        { name: "企业通信云管理平台", summary: "统一租户、资源与运营配置，沉淀可复用的业务管理能力。" },
+        { name: "业务服务与接口建设", summary: "构建核心领域接口，完善鉴权、幂等、异常治理与调用规范。" },
+        { name: "管理端组件体系", summary: "抽象通用表单与数据视图组件，提升多模块研发效率与一致性。" },
+      ],
     },
     {
       title: "中国电子科技十所（外协）· 高级 Web / 全栈开发工程师",
+      company: "中国电子科技十所（外协）",
+      role: "高级 Web / 全栈开发工程师",
+      description: "负责算法训练、实时数据与可视化场景的服务端及前端研发。",
       date: "2022.11 — 2025.09",
       type: "work",
-      description: "负责算法训练、实时数据与可视化场景的服务端及前端研发。以 NestJS、gRPC、RabbitMQ、Redis 构建模块化服务，处理大模型 SSE 流式响应与 WebSocket 高频数据渲染。",
+      stack: ["NestJS", "gRPC", "RabbitMQ", "Redis", "WebSocket", "SSE", "Python"],
+      responsibilities: [
+        "负责算法训练、实时数据与可视化场景的服务拆分和端到端研发。",
+        "以 gRPC、消息队列和 Redis 构建高可用模块，处理异步任务编排与流量削峰。",
+        "设计大模型流式响应、断线恢复和高频数据渲染链路，优化交互实时性。",
+      ],
+      projects: [
+        { name: "算法训练与实时数据平台", summary: "连接训练任务、结果分发与实时监控，支持多模块协同运行。" },
+        { name: "大模型交互与可视化系统", summary: "实现 SSE 流式输出、增量渲染与异常恢复，提升交互稳定性。" },
+        { name: "分布式任务调度服务", summary: "通过消息队列解耦异步任务，支持可靠投递、消费幂等与状态追踪。" },
+      ],
     },
     {
       title: "不知其鸣科技 · 前后端开发负责人",
+      company: "不知其鸣科技",
+      role: "前后端开发负责人",
+      description: "负责海外 ACG 内容平台及企业业务系统的研发与交付。",
       date: "2021.04 — 2022.11",
       type: "work",
-      description: "负责海外 ACG 内容平台及企业业务系统，推进 Node.js 服务、鉴权与资源管理、视频处理链路、Vue 3 PC/H5 页面及 Docker 化上线交付。",
+      stack: ["Node.js", "Vue 3", "FFmpeg", "Docker", "Nginx", "MySQL"],
+      responsibilities: [
+        "负责海外内容平台和企业系统的技术方案、核心模块研发与上线交付。",
+        "搭建鉴权、资源管理与媒体处理链路，统筹 PC / H5 多端体验与接口协作。",
+        "推进容器化部署、日志定位和发布流程标准化，提升系统可维护性。",
+      ],
+      projects: [
+        { name: "海外 ACG 内容平台", summary: "覆盖内容发布、资源管理与多端消费场景，支撑持续内容运营。" },
+        { name: "视频转码与分发链路", summary: "基于 FFmpeg 处理媒体任务，完善状态追踪与异常重试机制。" },
+        { name: "企业业务管理系统", summary: "交付核心业务流程与权限模块，完成容器化部署和生产环境上线。" },
+      ],
     },
     {
       title: "中国通行服务有限公司 · 前端开发工程师",
+      company: "中国通行服务有限公司",
+      role: "前端开发工程师",
+      description: "参与通信基础设施共建共享与智慧交通管理平台研发。",
       date: "2020.09 — 2021.04",
       type: "work",
-      description: "参与通信基础设施共建共享与智慧交通管理平台，交付动态路由、RBAC 权限、复杂表单、GIS 场景及 ECharts 数据大屏。",
+      stack: ["Vue 2", "ECharts", "GIS", "RBAC", "JavaScript"],
+      responsibilities: [
+        "参与通信基础设施与智慧交通产品的前端架构、业务模块及数据可视化研发。",
+        "构建动态路由与 RBAC 权限体系，解决复杂表单、流程编排和多角色协作问题。",
+        "负责 GIS 场景与 ECharts 大屏性能优化，保障复杂数据的清晰呈现与稳定交互。",
+      ],
+      projects: [
+        { name: "通信基础设施共建共享平台", summary: "实现资源协同、权限控制与业务流程管理，支持多角色高效协作。" },
+        { name: "智慧交通管理平台", summary: "集成地图态势、事件处置与运营数据，提升交通运营可视化能力。" },
+        { name: "运营分析数据大屏", summary: "构建多维指标与实时图表展示，支持管理层快速决策与异常研判。" },
+      ],
     },
   ],
 };

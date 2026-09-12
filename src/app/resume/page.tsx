@@ -44,18 +44,29 @@ import { useUIStore } from "@/store/useUIStore"
 import { resumeData } from "./data"
 import "./resume.css"
 
-type Skill = { name: string; level: number }
+type Skill = { name: string; level: number; note: string }
 type Skills = {
-  basics: Skill[]
-  expand: Skill[]
-  frameworks: Skill[]
-  crossPlatform: Skill[]
+  backend: Skill[]
+  ai: Skill[]
+  devops: Skill[]
+  frontend: Skill[]
 }
+const stackMeta = [
+  { badge: "BACKEND", note: "服务端语言、框架与数据层能力" },
+  { badge: "AI AGENT", note: "Agent 编排、RAG 与模型服务落地" },
+  { badge: "DELIVERY", note: "部署、运维与稳定性保障" },
+  { badge: "PRODUCT", note: "Web、桌面与移动端产品工程" },
+]
 type HistoryItem = {
   title: string
+  company: string
+  role: string
   date: string
   description: string
   type: string
+  stack: string[]
+  responsibilities: string[]
+  projects: { name: string; summary: string }[]
 }
 
 const projects = [
@@ -122,17 +133,17 @@ const projects = [
 ]
 
 const capabilities = [
-  { icon: ServerCog, no: "01", title: "后端与微服务", text: "NestJS / Spring Boot / Nacos", tags: ["模块化", "gRPC", "REST API"] },
-  { icon: Radio, no: "02", title: "实时通信", text: "SSE / WebSocket / 消息队列", tags: ["流式响应", "ACK", "重连"] },
-  { icon: Layers3, no: "03", title: "多端产品", text: "Web / Electron / React Native", tags: ["响应式", "桌面端", "移动端"] },
-  { icon: CloudCog, no: "04", title: "交付与运维", text: "Docker / Nginx / Linux / CI/CD", tags: ["容器化", "监控", "部署"] },
+  { icon: ServerCog, no: "01", title: "微服务与分布式架构", text: "以领域边界拆分服务，围绕服务发现、配置治理、RPC 通信与故障隔离构建可演进的系统架构。", tags: ["Spring Boot", "NestJS", "Nacos", "gRPC", "Redis"] },
+  { icon: Radio, no: "02", title: "高并发与异步任务", text: "设计削峰填谷、任务编排与可靠消费链路，覆盖实时推送、幂等控制、重试补偿与背压治理。", tags: ["RabbitMQ", "Kafka", "WebSocket", "SSE"] },
+  { icon: Layers3, no: "03", title: "数据性能与可观测性", text: "从数据模型、索引与缓存策略到日志、指标和链路定位，持续优化复杂业务系统的响应与稳定性。", tags: ["MySQL", "PostgreSQL", "Tracing", "Metrics"] },
+  { icon: CloudCog, no: "04", title: "多端产品与工程底座", text: "复用领域模型和状态逻辑，将 Web、桌面与移动端纳入统一工程体系，并理解渲染、通信与打包链路。", tags: ["React", "Vue 3", "Electron", "React Native"] },
 ]
 
 const skillLabels: Record<keyof Skills, string> = {
-  basics: "LANGUAGE / RUNTIME",
-  expand: "BACKEND / INFRA",
-  frameworks: "FRAMEWORK",
-  crossPlatform: "CROSS PLATFORM",
+  backend: "后端与数据服务",
+  ai: "AI Agent 工程",
+  devops: "部署与运维",
+  frontend: "前端与跨端产品",
 }
 
 function SectionHeader({
@@ -248,6 +259,7 @@ export default function ResumePage() {
             <a href="#projects">项目</a>
             <a href="#stack">技术栈</a>
             <a href="#experience">经历</a>
+            <a href="#contact">联系</a>
           </div>
           <a className="resume-nav__contact" href="mailto:2433255732@qq.com">LET&apos;S TALK <ArrowUpRight /></a>
         </nav>
@@ -320,10 +332,10 @@ export default function ResumePage() {
 
           <main className="resume-main">
             <section className="resume-section">
-              <SectionHeader index="01" eyebrow="CORE CAPABILITIES" title="把复杂系统，做成稳定产品" note="WHAT I DO" />
+              <SectionHeader index="01" eyebrow="SYSTEM ENGINEERING" title="从底层约束到复杂系统交付" note="CORE EXPERTISE" />
               <div className="resume-capabilities">
                 {capabilities.map(({ icon: Icon, no, title, text, tags }) => (
-                  <article key={no}>
+                  <article className={no === "01" ? "is-featured" : ""} key={no}>
                     <div className="resume-capability__icon"><Icon /></div>
                     <span>{no}</span>
                     <h3>{title}</h3>
@@ -406,13 +418,20 @@ export default function ResumePage() {
                   <article key={group}>
                     <div className="resume-stack__head">
                       <span>0{groupIndex + 1}</span>
-                      <h3>{skillLabels[group]}</h3>
+                      <div><h3>{skillLabels[group]}</h3><small>{stackMeta[groupIndex].note}</small></div>
+                      <b>{stackMeta[groupIndex].badge}</b>
                     </div>
                     <div className="resume-stack__items">
                       {items.map((skill) => (
                         <div key={skill.name}>
-                          <p><strong>{skill.name}</strong><span>{skill.level}%</span></p>
-                          <div><i style={{ width: skill.level + "%" }} /></div>
+                          <div className="resume-stack__skill-copy">
+                            <p><strong>{skill.name}</strong></p>
+                            <small>{skill.note}</small>
+                          </div>
+                          <div className="resume-stack__skill-progress">
+                            <span>{skill.level}%</span>
+                            <div><i style={{ width: skill.level + "%" }} /></div>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -440,14 +459,44 @@ export default function ResumePage() {
                           <time>{item.date}</time>
                           <span>{learningEntry ? <BookOpen /> : <BriefcaseBusiness />}{learningEntry ? "学习经历" : "工作经历"}</span>
                         </div>
-                        <h3>{item.title}</h3>
-                        <p>{item.description}</p>
-                        <div>
-                          {index === 0 && <><span>Node.js</span><span>Spring Boot</span><span>React</span></>}
-                          {index === 1 && <><span>NestJS</span><span>Realtime</span><span>Python</span><span>Docker</span></>}
-                          {index === 2 && <><span>Node.js</span><span>Vue 3</span><span>FFmpeg</span></>}
-                          {index === 3 && <><span>Vue 2</span><span>ECharts</span><span>GIS</span></>}
-                        </div>
+                        {learningEntry ? (
+                          <>
+                            <h3>{item.title}</h3>
+                            <p>{item.description}</p>
+                          </>
+                        ) : (
+                          <>
+                            <div className="resume-work-title">
+                              <p>WORK EXPERIENCE</p>
+                              <h3>{item.company}<span>{item.role}</span></h3>
+                            </div>
+                            <div className="resume-work-detail">
+                              <section>
+                                <p className="resume-work-label">使用技术 / TECH STACK</p>
+                                <div className="resume-work-stack">
+                                  {item.stack.map((technology) => <span key={technology}>{technology}</span>)}
+                                </div>
+                              </section>
+                              <section>
+                                <p className="resume-work-label">负责内容 / KEY RESPONSIBILITIES</p>
+                                <ul>
+                                  {item.responsibilities.map((responsibility) => <li key={responsibility}><Check />{responsibility}</li>)}
+                                </ul>
+                              </section>
+                            </div>
+                            <div className="resume-work-projects">
+                              <p className="resume-work-label">参与项目 / SELECTED PROJECTS</p>
+                              <div>
+                                {item.projects.map((project, projectIndex) => (
+                                  <article key={project.name}>
+                                    <span>{String(projectIndex + 1).padStart(2, "0")}</span>
+                                    <p><strong>{project.name}</strong><small>{project.summary}</small></p>
+                                  </article>
+                                ))}
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </article>
                   )
@@ -506,16 +555,18 @@ export default function ResumePage() {
             </section>
 
             <section className="resume-section">
-              <SectionHeader index="05" eyebrow="ENGINEERING" title="不仅写代码，也负责交付" note="FULL CYCLE" />
+              <SectionHeader index="05" eyebrow="ENGINEERING SUMMARY" title="不仅写代码，更让系统持续可靠地运行" note="FULL CYCLE" />
               <div className="resume-engineering">
-                <article><Cpu /><span>01</span><h3>架构与性能</h3><p>模块化、缓存、消息解耦、索引优化、实时数据渲染与服务性能排查。</p></article>
-                <article><Boxes /><span>02</span><h3>交付与运维</h3><p>Docker Compose、Nginx、Linux、CI/CD、日志定位和多环境部署。</p></article>
-                <article><Sparkles /><span>03</span><h3>AI 辅助研发</h3><p>熟练使用 Codex、Cursor，结合 Dify、Ollama、LangChain 落地 AI 功能。</p></article>
+                <article><Cpu /><span>01</span><h3>架构与性能工程</h3><p>在领域建模、缓存策略、消息解耦与索引优化之间权衡，将高并发、实时响应和可维护性落实到系统设计。</p><div><small>DOMAIN DESIGN</small><small>PERFORMANCE</small></div></article>
+                <article><Boxes /><span>02</span><h3>可靠交付与运行保障</h3><p>将镜像构建、环境编排、灰度发布、日志追踪与故障回滚纳入交付闭环，让上线过程可观测、可恢复、可复用。</p><div><small>CI/CD</small><small>OBSERVABILITY</small></div></article>
+                <article><Sparkles /><span>03</span><h3>AI 原生研发方法</h3><p>将 Agent 工作流、检索增强和工具调用嵌入业务研发；结合 Codex、Cursor 与本地模型持续缩短从想法到可验证版本的路径。</p><div><small>AGENT WORKFLOW</small><small>RAG</small></div></article>
               </div>
             </section>
 
-            <section className="resume-contact" id="contact">
-              <div className="resume-contact__intro">
+            <section className="resume-section resume-contact-section" id="contact">
+              <SectionHeader index="06" eyebrow="CONTACT" title="联系我" note="LET'S BUILD" />
+              <div className="resume-contact">
+                <div className="resume-contact__intro">
                 <p>DIRECT MESSAGE / READY TO COLLABORATE</p>
                 <h2>有合适的机会？<br /><em>直接给我留言。</em></h2>
                 <span>填写您的真实邮箱和留言内容。发送功能接入后，消息会直接投递到我的邮箱。</span>
@@ -525,7 +576,7 @@ export default function ResumePage() {
                   <p><Radio />每天仅可成功发送一次</p>
                 </div>
               </div>
-              <form className="resume-contact__form" onSubmit={handleContactSubmit} noValidate>
+                <form className="resume-contact__form" onSubmit={handleContactSubmit} noValidate>
                 <div className="resume-contact__form-head">
                   <span><i /> MESSAGE TERMINAL</span>
                   <small>SECURE CHANNEL / TODO</small>
@@ -564,8 +615,9 @@ export default function ResumePage() {
                     <Send />
                   </button>
                 </div>
-              </form>
-              <Network className="resume-contact__icon" aria-hidden="true" />
+                </form>
+                <Network className="resume-contact__icon" aria-hidden="true" />
+              </div>
             </section>
           </main>
         </div>

@@ -110,13 +110,15 @@
 .resume-capabilities article { position: relative; min-height: 245px; overflow: hidden; padding: 28px; border: 1px solid var(--resume-line); border-radius: 22px; background: rgba(255,255,255,.47); transition: transform .24s ease, border-color .24s ease, box-shadow .24s ease; }
 .dark .resume-capabilities article { background: rgba(18,39,44,.72); }
 .resume-capabilities article:hover { border-color: rgba(112,211,204,.52); box-shadow: 0 25px 55px -42px rgba(9,54,58,.6); transform: translateY(-4px); }
-.resume-capabilities article:nth-child(1) { grid-column: span 1; background: var(--resume-panel); color: #e8f0e9; }
+.resume-capabilities article.is-featured { grid-column: 1 / -1; min-height: 228px; background: radial-gradient(circle at 92% 12%,rgba(112,211,204,.18),transparent 25%),linear-gradient(135deg,#102c33,#091d23); color: #e8f0e9; }
+.resume-capabilities article.is-featured::before { position: absolute; right: 42px; bottom: -62px; width: 180px; height: 180px; content: ""; border: 1px solid rgba(185,218,99,.2); border-radius: 50%; box-shadow: 0 0 0 24px rgba(112,211,204,.035); }
 .resume-capability__icon { display: grid; width: 48px; height: 48px; place-items: center; border-radius: 14px; color: #5da7a2; background: rgba(112,211,204,.11); }
 .resume-capability__icon svg { width: 23px; }
 .resume-capabilities article > span { position: absolute; top: 28px; right: 28px; color: #8ca09d; font: 700 11px/1 ui-monospace, monospace; }
 .resume-capabilities h3 { margin: 26px 0 8px; font-size: 19px; font-weight: 850; }
 .resume-capabilities p { margin: 0; color: var(--resume-muted); font: 600 11px/1.6 ui-monospace, monospace; }
-.resume-capabilities article:nth-child(1) p { color: #7f9a97; }
+.resume-capabilities article.is-featured p { max-width: 620px; color: #a5c2be; font-size: 12px; line-height: 1.75; }
+.resume-capabilities article.is-featured > div:nth-of-type(2) { max-width: 650px; }
 .resume-capabilities article > div:nth-of-type(2) { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 20px; }
 .resume-capabilities small { padding: 6px 9px; border-radius: 7px; color: #668380; background: rgba(112,211,204,.09); font-size: 9px; font-weight: 700; }
 .resume-capability__arrow { position: absolute; right: 26px; bottom: 25px; width: 17px; color: #6b9693; opacity: 0; transform: translate(-5px,5px); transition: .22s ease; }
@@ -175,22 +177,33 @@
 .resume-project-dialog__footer button { color: #081418; background: #b9da63; font-size: 10px; font-weight: 850; }
 
 .resume-stack { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; }
-.resume-stack article { overflow: hidden; border: 1px solid var(--resume-line); border-radius: 20px; background: rgba(255,255,255,.48); }
-.dark .resume-stack article { background: rgba(18,39,44,.7); }
-.resume-stack__head { display: flex; align-items: center; gap: 14px; padding: 18px 21px; border-bottom: 1px solid var(--resume-line); background: rgba(112,211,204,.06); }
-.resume-stack__head span { color: #66a19e; font: 800 10px/1 ui-monospace, monospace; }
-.resume-stack__head h3 { margin: 0; color: var(--resume-muted); font: 750 9px/1 ui-monospace, monospace; letter-spacing: .1em; }
-.resume-stack__items { display: grid; gap: 20px; padding: 22px; }
-.resume-stack__items p { display: flex; justify-content: space-between; margin: 0 0 9px; }
-.resume-stack__items strong { font-size: 12px; }
-.resume-stack__items p span { color: #63908e; font: 700 10px/1 ui-monospace, monospace; }
-.resume-stack__items > div > div { height: 4px; overflow: hidden; border-radius: 9px; background: rgba(90,122,121,.13); }
-.resume-stack__items i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#5fb3ae,var(--resume-acid)); box-shadow: 0 0 15px rgba(112,211,204,.3); }
-.resume-toolbelt { display: grid; grid-template-columns: 145px 1fr; align-items: start; gap: 20px; margin-top: 15px; padding: 20px 22px; border: 1px dashed rgba(91,139,136,.3); border-radius: 17px; }
-.resume-toolbelt > span { display: flex; align-items: center; gap: 8px; color: #5e8e8b; font: 800 9px/1 ui-monospace, monospace; letter-spacing: .11em; }
+.resume-stack article { --stack-accent: #70d3cc; --stack-soft: rgba(112,211,204,.11); position: relative; overflow: hidden; border: 1px solid var(--resume-line); border-radius: 20px; background: linear-gradient(145deg,var(--stack-soft),rgba(255,255,255,.44) 48%); box-shadow: 0 18px 34px -29px rgba(11,41,45,.5); transition: transform .2s ease, box-shadow .2s ease; }
+.resume-stack article::after { position: absolute; top: -45px; right: -34px; width: 130px; height: 130px; content: ""; border: 1px solid color-mix(in srgb,var(--stack-accent),transparent 72%); border-radius: 50%; box-shadow: 0 0 0 18px color-mix(in srgb,var(--stack-accent),transparent 92%); pointer-events: none; }
+.resume-stack article:hover { transform: translateY(-4px); box-shadow: 0 25px 40px -28px color-mix(in srgb,var(--stack-accent),transparent 45%); }
+.resume-stack article:nth-child(2) { --stack-accent: #b486d4; --stack-soft: rgba(180,134,212,.11); }
+.resume-stack article:nth-child(3) { --stack-accent: #d89b5d; --stack-soft: rgba(216,155,93,.11); }
+.resume-stack article:nth-child(4) { --stack-accent: #91b85b; --stack-soft: rgba(145,184,91,.12); }
+.dark .resume-stack article { background: linear-gradient(145deg,var(--stack-soft),rgba(18,39,44,.76) 55%); }
+.resume-stack__head { position: relative; z-index: 1; display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 12px; padding: 18px 21px; border-bottom: 1px solid color-mix(in srgb,var(--stack-accent),transparent 78%); background: color-mix(in srgb,var(--stack-accent),transparent 94%); }
+.resume-stack__head > span { display: grid; width: 30px; height: 30px; place-items: center; border-radius: 8px; color: var(--stack-accent); background: color-mix(in srgb,var(--stack-accent),transparent 86%); font: 800 10px/1 ui-monospace, monospace; }
+.resume-stack__head h3 { margin: 0; color: var(--resume-ink); font-size: 15px; line-height: 1.2; letter-spacing: -.02em; }
+.resume-stack__head small { display: block; margin-top: 5px; color: var(--resume-muted); font-size: 10px; line-height: 1.4; }
+.resume-stack__head b { padding: 5px 7px; border: 1px solid color-mix(in srgb,var(--stack-accent),transparent 62%); border-radius: 5px; color: var(--stack-accent); font: 800 8px/1 ui-monospace, monospace; letter-spacing: .08em; }
+.resume-stack__items { position: relative; z-index: 1; display: grid; gap: 9px; padding: 14px 17px 17px; }
+.resume-stack__items > div { display: grid; grid-template-columns: minmax(0,1.2fr) minmax(155px,.8fr); align-items: center; gap: 18px; padding: 12px 13px; border: 1px solid color-mix(in srgb,var(--stack-accent),transparent 85%); border-radius: 11px; background: color-mix(in srgb,var(--stack-accent),transparent 95%); transition: background .18s ease, transform .18s ease; }
+.resume-stack__items > div:hover { background: color-mix(in srgb,var(--stack-accent),transparent 89%); transform: translateX(3px); }
+.resume-stack__skill-copy p { margin: 0 0 4px; }
+.resume-stack__items strong { color: var(--resume-ink); font-size: 13px; }
+.resume-stack__skill-copy small { display: block; color: var(--resume-muted); font-size: 10px; line-height: 1.4; }
+.resume-stack__skill-progress { display: grid; gap: 6px; align-content: center; }
+.resume-stack__skill-progress > span { justify-self: end; color: var(--stack-accent); font: 750 10px/1 ui-monospace, monospace; }
+.resume-stack__skill-progress > div { height: 8px; overflow: hidden; border-radius: 99px; background: color-mix(in srgb,var(--stack-accent),transparent 83%); box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--stack-accent),transparent 78%); }
+.resume-stack__skill-progress i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,var(--stack-accent),var(--resume-acid)); box-shadow: 0 0 15px color-mix(in srgb,var(--stack-accent),transparent 45%); }
+.resume-toolbelt { display: grid; grid-template-columns: 145px 1fr; align-items: start; gap: 20px; margin-top: 15px; padding: 21px 22px; border: 1px dashed rgba(91,139,136,.3); border-radius: 17px; background: rgba(112,211,204,.035); }
+.resume-toolbelt > span { display: flex; align-items: center; gap: 8px; color: #5e8e8b; font: 800 10px/1 ui-monospace, monospace; letter-spacing: .11em; }
 .resume-toolbelt svg { width: 15px; }
 .resume-toolbelt > div { display: flex; flex-wrap: wrap; gap: 7px; }
-.resume-toolbelt small { padding: 5px 8px; border-radius: 5px; color: var(--resume-muted); background: rgba(112,211,204,.08); font: 650 9px/1 ui-monospace, monospace; }
+.resume-toolbelt small { padding: 6px 9px; border: 1px solid rgba(112,211,204,.1); border-radius: 6px; color: var(--resume-muted); background: rgba(112,211,204,.08); font: 650 10px/1 ui-monospace, monospace; }
 
 .resume-timeline { position: relative; }
 .resume-timeline > article { display: grid; grid-template-columns: 58px minmax(0,1fr); }
@@ -220,11 +233,11 @@
 .resume-education-title > span b { margin-left: 7px; padding: 5px 8px; border-radius: 6px; color: #76531b; background: rgba(219,168,67,.17); font-size: 9px; }
 .resume-education-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 23px; }
 .resume-education-detail > section + section { padding-left: 27px; border-left: 1px solid rgba(181,136,51,.16); }
-.resume-education-label { margin: 0 0 13px !important; color: #98703a !important; font: 780 8px/1 ui-monospace, monospace !important; letter-spacing: .13em; }
+.resume-education-label { margin: 0 0 13px !important; color: #98703a !important; font: 780 10px/1 ui-monospace, monospace !important; letter-spacing: .13em; }
 .resume-education-courses { display: flex; flex-wrap: wrap; gap: 7px; }
-.resume-education-courses span { padding: 7px 9px; border: 1px solid rgba(181,136,51,.18); border-radius: 7px; color: #806b4b; background: rgba(222,177,85,.08); font-size: 9px; font-weight: 700; }
+.resume-education-courses span { padding: 7px 9px; border: 1px solid rgba(181,136,51,.18); border-radius: 7px; color: #806b4b; background: rgba(222,177,85,.08); font-size: 11px; font-weight: 700; }
 .resume-education-detail ul { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
-.resume-education-detail li { display: flex; gap: 8px; color: var(--resume-muted); font-size: 10px; line-height: 1.55; }
+.resume-education-detail li { display: flex; gap: 8px; color: var(--resume-muted); font-size: 12px; line-height: 1.6; }
 .resume-education-detail li svg { flex: 0 0 12px; width: 12px; color: #b07f2f; }
 .resume-education-projects { margin-top: 24px; padding-top: 21px; border-top: 1px dashed rgba(181,136,51,.2); }
 .resume-education-projects > div { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
@@ -233,35 +246,64 @@
 .resume-education-projects article > span { display: grid; width: 25px; height: 25px; place-items: center; border-radius: 7px; color: #8d672c; background: rgba(221,173,78,.14); font: 750 8px/1 ui-monospace, monospace; }
 .resume-education-projects article p { min-width: 0; margin: 0; }
 .resume-education-projects article strong, .resume-education-projects article small { display: block; }
-.resume-education-projects article strong { overflow: hidden; color: var(--resume-ink); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
-.resume-education-projects article small { margin-top: 5px; color: var(--resume-muted); font-size: 8px; line-height: 1.5; }
+.resume-education-projects article strong { overflow: hidden; color: var(--resume-ink); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.resume-education-projects article small { margin-top: 5px; color: var(--resume-muted); font-size: 10px; line-height: 1.5; }
 .resume-education-certificate { display: flex !important; align-items: center; gap: 12px !important; margin-top: 15px !important; padding: 13px 15px; border-radius: 10px; color: #76561f; background: rgba(219,168,67,.13); }
 .resume-education-certificate > svg { flex: 0 0 21px; width: 21px; }
 .resume-education-certificate p { margin: 0; }
 .resume-education-certificate small, .resume-education-certificate strong { display: block; }
-.resume-education-certificate small { color: #a27b3b; font: 700 7px/1 ui-monospace, monospace; letter-spacing: .1em; }
-.resume-education-certificate strong { margin-top: 5px; color: #775a2d; font-size: 9px; }
+.resume-education-certificate small { color: #a27b3b; font: 700 9px/1 ui-monospace, monospace; letter-spacing: .1em; }
+.resume-education-certificate strong { margin-top: 5px; color: #775a2d; font-size: 11px; }
 .dark .resume-education-title > span, .dark .resume-education-courses span, .dark .resume-education-certificate strong { color: #d0b071; }
+.resume-work-title { margin-top: 21px; padding-bottom: 22px; border-bottom: 1px solid rgba(92,151,147,.18); }
+.resume-work-title > p { margin: 0 0 7px !important; color: #5b908c !important; font: 750 10px/1 ui-monospace, monospace !important; letter-spacing: .13em; }
+.resume-work-title h3 { display: flex; align-items: baseline; flex-wrap: wrap; gap: 11px; margin: 0; font-size: 23px; }
+.resume-work-title h3 span { color: var(--resume-muted); font-size: 13px; font-weight: 650; letter-spacing: 0; }
+.resume-work-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 23px; }
+.resume-work-detail > section + section { padding-left: 27px; border-left: 1px solid rgba(92,151,147,.16); }
+.resume-work-label { margin: 0 0 13px !important; color: #5b908c !important; font: 780 10px/1 ui-monospace, monospace !important; letter-spacing: .13em; }
+.resume-work-stack { display: flex; flex-wrap: wrap; gap: 8px; }
+.resume-work-stack span { padding: 7px 10px; border: 1px solid rgba(92,151,147,.18); border-radius: 7px; color: #527b78; background: rgba(112,211,204,.08); font-size: 11px; font-weight: 700; }
+.resume-work-detail ul { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.resume-work-detail li { display: flex; gap: 8px; color: var(--resume-muted); font-size: 12px; line-height: 1.65; }
+.resume-work-detail li svg { flex: 0 0 14px; width: 14px; margin-top: 2px; color: #5aa7a2; }
+.resume-work-projects { margin-top: 24px; padding-top: 21px; border-top: 1px dashed rgba(92,151,147,.22); }
+.resume-work-projects > div { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 9px; }
+.resume-work-projects article { display: grid; grid-template-columns: 28px minmax(0,1fr); align-items: start; gap: 10px; min-width: 0; padding: 13px; border: 1px solid rgba(92,151,147,.16); border-radius: 10px; background: rgba(112,211,204,.045); }
+.resume-work-projects article > span { display: grid; width: 26px; height: 26px; place-items: center; border-radius: 7px; color: #4e8682; background: rgba(112,211,204,.13); font: 750 9px/1 ui-monospace, monospace; }
+.resume-work-projects article p { min-width: 0; margin: 0; }
+.resume-work-projects strong, .resume-work-projects small { display: block; }
+.resume-work-projects strong { color: var(--resume-ink); font-size: 11px; line-height: 1.4; }
+.resume-work-projects small { margin-top: 5px; color: var(--resume-muted); font-size: 10px; line-height: 1.55; }
+.dark .resume-work-stack span { color: #9dc8c4; }
 .resume-timeline__card h3 { max-width: 690px; margin: 15px 0 11px; font-size: 17px; letter-spacing: -.025em; font-weight: 850; }
 .resume-timeline__card p { margin: 0; color: var(--resume-muted); font-size: 12px; line-height: 1.85; }
 .resume-timeline__card > div:last-child { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 18px; }
 .resume-timeline__card > div:last-child span { padding: 5px 8px; border: 1px solid var(--resume-line); border-radius: 5px; color: #6a8582; font: 650 8px/1 ui-monospace, monospace; }
+.resume-timeline__card > .resume-work-projects { display: grid; grid-template-columns: 1fr; gap: 13px; margin-top: 24px; }
+.resume-timeline__card > .resume-work-projects > div { width: 100%; }
+.resume-timeline__card > .resume-work-projects article > span { width: 26px; height: 26px; padding: 0; border: 0; border-radius: 7px; color: #4e8682; background: rgba(112,211,204,.13); font: 750 9px/1 ui-monospace, monospace; }
 
 .resume-engineering { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
-.resume-engineering article { position: relative; min-height: 245px; padding: 26px; overflow: hidden; border-radius: 20px; color: #eaf3eb; background: var(--resume-panel); }
+.resume-engineering article { position: relative; min-height: 276px; padding: 26px; overflow: hidden; border-radius: 20px; color: #eaf3eb; background: var(--resume-panel); }
 .resume-engineering article:nth-child(2) { color: #102124; background: var(--resume-cyan); }
 .resume-engineering article:nth-child(3) { color: #101b17; background: var(--resume-acid); }
 .resume-engineering article > svg { width: 27px; opacity: .75; }
 .resume-engineering article > span { position: absolute; top: 26px; right: 25px; opacity: .5; font: 700 10px/1 ui-monospace, monospace; }
-.resume-engineering h3 { margin: 58px 0 10px; font-size: 17px; font-weight: 850; }
-.resume-engineering p { margin: 0; opacity: .65; font-size: 11px; line-height: 1.75; }
+.resume-engineering h3 { margin: 54px 0 11px; font-size: 17px; font-weight: 850; }
+.resume-engineering p { margin: 0; opacity: .72; font-size: 11px; line-height: 1.8; }
+.resume-engineering article > div { position: absolute; right: 24px; bottom: 23px; left: 24px; display: flex; flex-wrap: wrap; gap: 6px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.13); }
+.resume-engineering article > div small { padding: 5px 7px; border: 1px solid currentColor; border-radius: 5px; color: inherit; font: 750 8px/1 ui-monospace, monospace; letter-spacing: .07em; opacity: .72; }
+
+.resume-contact-section { margin-bottom: 42px; }
+.resume-contact-section > .resume-section-head { margin-bottom: 30px; }
 
 .resume-contact {
   position: relative;
   display: grid;
   grid-template-columns: minmax(0,.8fr) minmax(360px,1.2fr);
   gap: 52px;
-  margin-bottom: 42px;
+  margin-bottom: 0;
   padding: 48px;
   overflow: hidden;
   border: 1px solid rgba(112,211,204,.17);
@@ -341,6 +383,7 @@
   .resume-hero { grid-template-columns: 1fr minmax(320px,.65fr); min-height: 650px; }
   .resume-hero__main { padding-left: 48px; }
   .resume-content { grid-template-columns: 250px minmax(0,1fr); gap: 30px; }
+  .resume-stack { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 900px) {
@@ -386,6 +429,8 @@
   .resume-section-head > span { display: none; }
   .resume-section-head h2 { font-size: 25px; }
   .resume-capabilities, .resume-stack, .resume-engineering { grid-template-columns: 1fr; }
+  .resume-stack__items > div { grid-template-columns: 1fr; gap: 10px; }
+  .resume-stack__skill-progress { width: 100%; }
   .resume-capabilities article { min-height: 220px; }
   .resume-section { margin-bottom: 72px; }
   .resume-project { padding: 22px 20px; }
@@ -410,6 +455,10 @@
   .resume-education-detail > section + section { padding: 20px 0 0; border-top: 1px solid rgba(181,136,51,.16); border-left: 0; }
   .resume-education-projects > div { grid-template-columns: 1fr; }
   .resume-education-projects article strong { white-space: normal; }
+  .resume-work-title h3 { align-items: flex-start; flex-direction: column; gap: 7px; font-size: 21px; }
+  .resume-work-detail { grid-template-columns: 1fr; gap: 22px; }
+  .resume-work-detail > section + section { padding: 20px 0 0; border-top: 1px solid rgba(92,151,147,.16); border-left: 0; }
+  .resume-work-projects > div { grid-template-columns: 1fr; }
   .resume-engineering article { min-height: 210px; }
   .resume-contact { gap: 27px; padding: 27px 20px; border-radius: 24px; }
   .resume-contact__intro { padding: 4px 3px 0; }
