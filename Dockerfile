@@ -6,7 +6,7 @@ WORKDIR /app
 RUN apk add --no-cache libc6-compat python3 make g++
 
 # 复制依赖文件并安装
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN corepack enable && pnpm install --frozen-lockfile
 
 # 复制源代码
