@@ -127,9 +127,10 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
     <div ref={containerRef} className="relative">
       {/* 下拉刷新指示器 */}
       <div
-        className="fixed left-1/2 -translate-x-1/2 z-50 flex items-center justify-center transition-all duration-200 pointer-events-none"
+        className="fixed left-1/2 z-50 flex items-center justify-center transition-[transform,opacity] duration-200 pointer-events-none will-change-transform"
         style={{
-          top: `${Math.max(pullDistance - 50, -50)}px`,
+          // 仅合成层中的提示器跟随手势移动，避免每帧平移整页长内容导致拖拽卡顿。
+          transform: `translate3d(-50%, ${Math.max(pullDistance - 50, -50)}px, 0)`,
           opacity: pullDistance > 10 ? 1 : 0,
         }}
       >
@@ -153,15 +154,8 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
         </div>
       </div>
 
-      {/* 下拉时的内容偏移 */}
-      <div
-        style={{
-          transform: `translateY(${pullDistance}px)`,
-          transition: isPulling ? "none" : "transform 0.3s ease-out",
-        }}
-      >
-        {children}
-      </div>
+      {/* 内容保持原位，避免长页面在触摸移动期间反复触发布局与绘制。 */}
+      {children}
     </div>
   );
 }
