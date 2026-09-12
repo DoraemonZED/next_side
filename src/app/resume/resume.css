@@ -9,7 +9,8 @@
   --resume-line: rgba(13, 42, 47, .14);
   position: relative;
   min-height: 100vh;
-  overflow: hidden;
+  /* clip 保留背景装饰的裁切，不创建会阻断 sticky 的滚动容器。 */
+  overflow: clip;
   color: var(--resume-ink);
   background: radial-gradient(circle at 6% 5%, rgba(112,211,204,.14), transparent 26%), radial-gradient(circle at 91% 12%, rgba(185,218,99,.13), transparent 25%), var(--resume-paper);
 }
