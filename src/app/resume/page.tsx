@@ -28,13 +28,11 @@ import {
   ShieldCheck,
   TerminalSquare,
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { Carousel, CarouselItem } from "@/components/ui/carousel"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -79,6 +77,8 @@ const projects = [
       "设计 SSE 流式响应状态机，覆盖分片解析、增量 Markdown、取消与异常恢复。",
       "以 requestAnimationFrame 分片渲染和可视区更新控制高频数据压力。",
     ],
+    role: "负责 Node.js 服务编排、实时传输链路与管理端核心交互，推进从模型输出到业务工作台的端到端交付。",
+    architecture: ["Agent 工作流与工具调用编排", "SSE / WebSocket 双通道实时推送", "Redis 会话状态与任务进度协调"],
     metric: "REAL-TIME",
     value: "< 16ms",
   },
@@ -91,6 +91,8 @@ const projects = [
       "设计会话路由、坐席状态、消息顺序与离线补偿机制。",
       "以 RabbitMQ 解耦分发与质检任务，管理端提供实时监控。",
     ],
+    role: "负责 Java / Node.js 服务边界设计、核心会话链路和管理端协作，支撑多租户场景的持续迭代。",
+    architecture: ["多租户会话、坐席与路由领域建模", "Redis 状态缓存与消息顺序控制", "RabbitMQ 异步分发、质检与补偿"],
     metric: "DELIVERY",
     value: "99.9%",
   },
@@ -103,6 +105,8 @@ const projects = [
       "实现心跳、ACK、断线重连与多实例会话映射。",
       "通过队列削峰、幂等消费和索引优化应对突发流量。",
     ],
+    role: "负责实时通信服务的服务端设计与线上稳定性治理，覆盖连接生命周期、消息可靠性和性能优化。",
+    architecture: ["多实例连接路由与 Redis 会话映射", "ACK / 重连 / 离线补偿状态机", "队列削峰与幂等消费保障"],
     metric: "CONNECTION",
     value: "MULTI-NODE",
   },
@@ -115,6 +119,8 @@ const projects = [
       "封装 Electron 进程通信、本地能力接入及自动化打包发布。",
       "统一 REST / WebSocket 协议处理，降低多端维护成本。",
     ],
+    role: "负责跨端技术方案与公共能力沉淀，让桌面、移动端和服务端在同一领域模型下协作演进。",
+    architecture: ["共享 TypeScript 类型与 API Client", "Electron 主进程能力封装与发布链路", "REST / WebSocket 协议统一适配"],
     metric: "PLATFORM",
     value: "3 ENDS",
   },
@@ -127,14 +133,16 @@ const projects = [
       "分层设计 API、权限模型及内容数据结构，保障安全与可维护性。",
       "完成视频链路、SSR / SEO 及 200 QPS 场景压测调优。",
     ],
+    role: "负责 Node.js 服务、内容数据模型与媒体处理链路，完成面向生产运营的产品交付与性能调优。",
+    architecture: ["JWT 鉴权与内容权限模型", "FFmpeg 异步转码与状态追踪", "HLS 分发、缓存策略与 SEO 优化"],
     metric: "LOAD TEST",
     value: "200 QPS",
   },
 ]
 
 const capabilities = [
-  { icon: ServerCog, no: "01", title: "微服务与分布式架构", text: "以领域边界拆分服务，围绕服务发现、配置治理、RPC 通信与故障隔离构建可演进的系统架构。", tags: ["Spring Boot", "NestJS", "Nacos", "gRPC", "Redis"] },
-  { icon: Radio, no: "02", title: "高并发与异步任务", text: "设计削峰填谷、任务编排与可靠消费链路，覆盖实时推送、幂等控制、重试补偿与背压治理。", tags: ["RabbitMQ", "Kafka", "WebSocket", "SSE"] },
+  { icon: ServerCog, no: "01", title: "Node.js / Java 服务架构", text: "围绕领域边界组织 Node.js 与 Spring Boot 服务，结合服务发现、配置治理、RPC 通信和故障隔离，构建可演进的业务系统。", tags: ["Spring Boot", "Node.js", "Nacos", "gRPC", "Redis"] },
+  { icon: Radio, no: "02", title: "高并发与异步任务", text: "面向峰值流量设计削峰、任务编排和可靠消费链路，覆盖实时推送、幂等控制、重试补偿与背压治理。", tags: ["RabbitMQ", "Kafka", "WebSocket", "SSE"] },
   { icon: Layers3, no: "03", title: "数据性能与可观测性", text: "从数据模型、索引与缓存策略到日志、指标和链路定位，持续优化复杂业务系统的响应与稳定性。", tags: ["MySQL", "PostgreSQL", "Tracing", "Metrics"] },
   { icon: CloudCog, no: "04", title: "多端产品与工程底座", text: "复用领域模型和状态逻辑，将 Web、桌面与移动端纳入统一工程体系，并理解渲染、通信与打包链路。", tags: ["React", "Vue 3", "Electron", "React Native"] },
   { icon: ShieldCheck, no: "05", title: "安全与稳定性治理", text: "将鉴权边界、权限模型、限流降级与优雅停机纳入服务设计，兼顾业务迭代速度与生产环境的可控性。", tags: ["JWT", "RBAC", "Rate Limit", "Graceful Shutdown"] },
@@ -178,15 +186,16 @@ function ProjectCard({ project, index, onOpen }: { project: Project; index: numb
       <div className="resume-project__grid" />
       <div className="resume-project__topline">
         <span>{project.code}</span>
-        <span className="resume-project__signal"><i /> SYSTEM ONLINE</span>
+        <span className="resume-project__signal"><i /> {project.metric} · {project.value}</span>
       </div>
       <div className="resume-project__body">
         <div>
-          <p className="resume-project__eyebrow">SELECTED CASE · 0{index + 1}</p>
+          <p className="resume-project__eyebrow">SELECTED CASE · 0{index + 1} / NODE.JS · JAVA FULL-STACK</p>
           <h3>{project.title}</h3>
           <p className="resume-project__intro">{project.intro}</p>
           <div className="resume-project__tags">
-            {project.stack.map((tag) => <span key={tag}>{tag}</span>)}
+            {project.stack.slice(0, 3).map((tag) => <span key={tag}>{tag}</span>)}
+            {project.stack.length > 3 && <span>+{project.stack.length - 3}</span>}
           </div>
           <button
             className="resume-project__open"
@@ -199,16 +208,6 @@ function ProjectCard({ project, index, onOpen }: { project: Project; index: numb
             <Eye />查看项目详情<ArrowUpRight />
           </button>
         </div>
-        <div className="resume-project__metric">
-          <span>{project.metric}</span>
-          <strong>{project.value}</strong>
-          <small>CORE INDICATOR</small>
-        </div>
-      </div>
-      <div className="resume-project__points">
-        {project.points.map((point) => (
-          <p key={point}><Check />{point}</p>
-        ))}
       </div>
     </CarouselItem>
   )
@@ -270,10 +269,10 @@ export default function ResumePage() {
           <div className="resume-hero__main">
             <div className="resume-availability"><i /> OPEN TO WORK · CHENGDU</div>
             <p className="resume-hero__overline">NODE.JS / JAVA FULL-STACK ENGINEER / 2026</p>
-            <h1><span>杨伟</span>构建可靠的<br /><em>AI 原生产品。</em></h1>
+            <h1><span>杨伟</span>交付可靠的<br /><em>全栈业务系统。</em></h1>
             <p className="resume-hero__summary">
-              以 Node.js / NestJS 为核心，覆盖 AI Agent、实时通信、微服务及 Web、桌面、移动端开发。
-              从架构设计到容器部署，独立推进复杂产品落地。
+              聚焦 Node.js / Java 全栈研发，具备从领域建模、服务治理与实时通信，到 Web / 桌面 / 移动端交付的完整工程能力。
+              能够面向复杂业务独立推进架构设计、核心开发、稳定性治理与容器化上线。
             </p>
             <div className="resume-hero__actions">
               <a href="#projects">查看代表项目 <ArrowDownRight /></a>
@@ -289,8 +288,8 @@ export default function ResumePage() {
               <p className="indent">role: <b>&quot;Node.js / Java Full-Stack&quot;</b>,</p>
               <p className="indent">experience: <strong>5+</strong>,</p>
               <p className="indent">focus: [</p>
-              <p className="indent-2"><b>&quot;AI Agent&quot;</b>, <b>&quot;Realtime&quot;</b>,</p>
-              <p className="indent-2"><b>&quot;Microservices&quot;</b></p>
+              <p className="indent-2"><b>&quot;Node.js / Java&quot;</b>, <b>&quot;Realtime&quot;</b>,</p>
+              <p className="indent-2"><b>&quot;Distributed Systems&quot;</b></p>
               <p className="indent">],</p>
               <p className="indent">status: <em>&quot;READY_TO_BUILD&quot;</em></p>
               <p>{"}"}</p>
@@ -298,7 +297,7 @@ export default function ResumePage() {
             <div className="resume-console__footer"><TerminalSquare /> pnpm run create-future <span>↵</span></div>
           </div>
 
-          <div className="resume-hero__stats">
+            <div className="resume-hero__stats">
             <div><strong>05<sup>+</sup></strong><span>年全栈研发</span></div>
             <div><strong>05</strong><span>代表性项目</span></div>
             <div><strong>03</strong><span>多端交付能力</span></div>
@@ -312,7 +311,7 @@ export default function ResumePage() {
               <div className="resume-avatar"><span>YW</span><i /></div>
               <p className="resume-profile__role">NODE.JS / JAVA FULL-STACK ENGINEER</p>
               <h2>杨伟 <small>Wayne Yang</small></h2>
-              <p className="resume-profile__bio">Node.js / Java 全栈工程师，专注实时通信、AI Agent 服务与复杂跨端产品的全链路研发。</p>
+              <p className="resume-profile__bio">Node.js / Java 高级全栈工程师，擅长复杂业务建模、实时通信、AI 应用服务与跨端产品的全链路交付。</p>
               <div className="resume-profile__meta">
                 <a href="tel:18244230571"><Phone />182 4423 0571</a>
                 <a href="mailto:2433255732@qq.com"><Mail />2433255732@qq.com</a>
@@ -333,7 +332,7 @@ export default function ResumePage() {
 
           <main className="resume-main">
             <section className="resume-section">
-              <SectionHeader index="01" eyebrow="SYSTEM ENGINEERING" title="从底层约束到复杂系统交付" note="CORE EXPERTISE" />
+              <SectionHeader index="01" eyebrow="SYSTEM ENGINEERING" title="从服务架构到复杂业务交付" note="CORE EXPERTISE" />
               <div className="resume-capabilities">
                 {capabilities.map(({ icon: Icon, no, title, text, tags }) => (
                   <article className={no === "01" ? "is-featured" : ""} key={no}>
@@ -380,6 +379,8 @@ export default function ResumePage() {
                       </DialogHeader>
                       <div className="resume-project-dialog__body">
                         <section>
+                          <p className="resume-project-dialog__label">ROLE & DELIVERY</p>
+                          <p className="resume-project-dialog__role">{selectedProject.role}</p>
                           <p className="resume-project-dialog__label">CORE IMPLEMENTATION</p>
                           <div className="resume-project-dialog__points">
                             {selectedProject.points.map((point, index) => (
@@ -396,16 +397,19 @@ export default function ResumePage() {
                             <strong>{selectedProject.value}</strong>
                             <span>CORE INDICATOR</span>
                           </div>
+                          <p className="resume-project-dialog__label">SYSTEM DESIGN</p>
+                          <div className="resume-project-dialog__architecture">
+                            {selectedProject.architecture.map((item, index) => <p key={item}><span>0{index + 1}</span>{item}</p>)}
+                          </div>
                           <p className="resume-project-dialog__label">TECH STACK</p>
                           <div className="resume-project-dialog__tags">
                             {selectedProject.stack.map((tag) => <span key={tag}>{tag}</span>)}
                           </div>
                         </aside>
                       </div>
-                      <DialogFooter className="resume-project-dialog__footer">
-                        <span><BookOpen />项目详情已展开，轮播已暂停</span>
-                        <Button onClick={() => setSelectedProject(null)}>关闭并继续轮播</Button>
-                      </DialogFooter>
+                      <div className="resume-project-dialog__footer">
+                        <span><BookOpen />项目详情已展开，点击右上角关闭后轮播将自动继续</span>
+                      </div>
                     </>
                   )}
                 </DialogContent>
@@ -556,7 +560,7 @@ export default function ResumePage() {
             </section>
 
             <section className="resume-section">
-              <SectionHeader index="05" eyebrow="ENGINEERING SUMMARY" title="不仅写代码，更让系统持续可靠地运行" note="FULL CYCLE" />
+              <SectionHeader index="05" eyebrow="ENGINEERING SUMMARY" title="从业务实现到稳定运行的全栈闭环" note="FULL CYCLE" />
               <div className="resume-engineering">
                 <article><Cpu /><span>01</span><h3>架构与性能工程</h3><p>在领域建模、缓存策略、消息解耦与索引优化之间权衡，将高并发、实时响应和可维护性落实到系统设计。</p><div><small>DOMAIN DESIGN</small><small>PERFORMANCE</small></div></article>
                 <article><Boxes /><span>02</span><h3>可靠交付与运行保障</h3><p>将镜像构建、环境编排、灰度发布、日志追踪与故障回滚纳入交付闭环，让上线过程可观测、可恢复、可复用。</p><div><small>CI/CD</small><small>OBSERVABILITY</small></div></article>

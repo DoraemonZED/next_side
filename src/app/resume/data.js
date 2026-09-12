@@ -31,10 +31,10 @@ export const resumeData = {
   ],
   history: [
     {
-      title: "容联云 · 全栈开发工程师",
+      title: "容联云 · Node.js / Java 全栈开发工程师",
       company: "容联云",
-      role: "全栈开发工程师",
-      description: "参与企业通信云产品的全栈研发。",
+      role: "Node.js / Java 全栈开发工程师",
+      description: "负责企业通信云产品的服务端核心模块与管理端协同交付。",
       date: "2025.10 — 至今",
       type: "work",
       stack: ["Node.js", "Spring Boot", "React", "TypeScript", "Redis", "Docker"],
@@ -50,10 +50,10 @@ export const resumeData = {
       ],
     },
     {
-      title: "中国电子科技十所（外协）· 高级 Web / 全栈开发工程师",
+      title: "中国电子科技十所（外协）· 高级 Node.js 全栈开发工程师",
       company: "中国电子科技十所（外协）",
-      role: "高级 Web / 全栈开发工程师",
-      description: "负责算法训练、实时数据与可视化场景的服务端及前端研发。",
+      role: "高级 Node.js 全栈开发工程师",
+      description: "负责算法训练、实时数据与可视化场景的服务端架构及前端交付。",
       date: "2022.11 — 2025.09",
       type: "work",
       stack: ["NestJS", "gRPC", "RabbitMQ", "Redis", "WebSocket", "SSE", "Python"],
@@ -71,8 +71,8 @@ export const resumeData = {
     {
       title: "不知其鸣科技 · 前后端开发负责人",
       company: "不知其鸣科技",
-      role: "前后端开发负责人",
-      description: "负责海外 ACG 内容平台及企业业务系统的研发与交付。",
+      role: "Node.js 全栈开发负责人",
+      description: "负责海外内容平台及企业业务系统的技术方案、研发与上线交付。",
       date: "2021.04 — 2022.11",
       type: "work",
       stack: ["Node.js", "Vue 3", "FFmpeg", "Docker", "Nginx", "MySQL"],

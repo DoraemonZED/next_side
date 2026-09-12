@@ -15,7 +15,7 @@
 
 .carousel-3d__stage {
   position: relative;
-  height: clamp(420px, 48vw, 550px);
+  height: clamp(380px, 43vw, 490px);
   overflow: hidden;
   perspective: 1500px;
   perspective-origin: 50% 42%;
@@ -27,7 +27,7 @@
   left: 50%;
   z-index: 1;
   width: min(72%, 760px);
-  height: clamp(330px, 38vw, 430px);
+  height: clamp(290px, 33vw, 365px);
   opacity: 0;
   pointer-events: none;
   transform: translate(-50%, -50%) translateZ(-220px) scale(.62);
@@ -195,28 +195,35 @@
 
 @media (max-width: 640px) {
   .carousel-3d__stage {
-    height: 460px;
+    height: 348px;
+    overflow: visible;
+    perspective: none;
   }
 
   .carousel-3d__slide {
-    top: 44%;
-    width: 88%;
-    height: 370px;
+    top: 43%;
+    width: 100%;
+    height: 272px;
+    transform: translate(-50%, -50%) scale(.94);
   }
 
-  .carousel-3d__slide[data-position="-1"] {
-    transform: translate(-50%, -50%) translateX(-87%) translateZ(-60px) scale(.8) rotateY(12deg);
-  }
-
-  .carousel-3d__slide[data-position="1"] {
-    transform: translate(-50%, -50%) translateX(87%) translateZ(-60px) scale(.8) rotateY(-12deg);
+  .carousel-3d__slide[data-position="-1"],
+  .carousel-3d__slide[data-position="1"],
+  .carousel-3d__slide[data-position="-2"],
+  .carousel-3d__slide[data-position="2"] {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -50%) scale(.94);
   }
 
   .carousel-3d__arrows {
     right: 50%;
-    bottom: 12px;
+    bottom: 3px;
     transform: translateX(50%);
   }
+
+  .carousel-3d__floor { display: none; }
+  .carousel-3d__dots { margin-top: 7px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
