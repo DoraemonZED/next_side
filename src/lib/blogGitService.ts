@@ -3,9 +3,10 @@ import { access, chmod, constants, mkdtemp, rm, writeFile } from 'node:fs/promis
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
+import { runtimeDataDirectory } from '@/lib/runtimePaths';
 
 const execFileAsync = promisify(execFile);
-const BLOG_ROOT = path.join(process.cwd(), 'blog');
+const BLOG_ROOT = runtimeDataDirectory('blog');
 
 class BlogGitError extends Error {}
 

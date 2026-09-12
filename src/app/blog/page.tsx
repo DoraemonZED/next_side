@@ -7,7 +7,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { blogService } from "@/lib/blogService"
+import { blogService, postSortField, postSortOrder } from "@/lib/blogService"
 import { NewCategoryButton } from "@/components/NewCategoryButton"
 import { CategoryList } from "@/components/CategoryList"
 import { PostCard } from "@/components/PostCard"
@@ -32,12 +32,12 @@ export default async function BlogRootPage(props: {
   
   // 获取所有分类和所有文章
   const categories = await blogService.getCategories()
-  const { posts, totalPages, total } = await blogService.getAllPosts(
+  const { posts, totalPages } = await blogService.getAllPosts(
     currentPage, 
     10,
     searchQuery,
-    sortBy as any,
-    sortOrder as any
+    postSortField(sortBy),
+    postSortOrder(sortOrder)
   )
 
   return (

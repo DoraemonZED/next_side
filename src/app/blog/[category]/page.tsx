@@ -1,6 +1,4 @@
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
-import { Hash } from "lucide-react"
 import {
   Pagination,
   PaginationContent,
@@ -9,7 +7,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
-import { blogService } from "@/lib/blogService"
+import { blogService, postSortField, postSortOrder } from "@/lib/blogService"
 import { NewPostButton } from "@/components/NewPostButton"
 import { NewCategoryButton } from "@/components/NewCategoryButton"
 import { CategoryList } from "@/components/CategoryList"
@@ -37,13 +35,13 @@ export default async function BlogCategoryPage(props: {
   
   // 从后端(文件系统)获取数据
   const categories = await blogService.getCategories()
-  const { posts, totalPages, total } = await blogService.getPostsByCategory(
+  const { posts, totalPages } = await blogService.getPostsByCategory(
     category, 
     currentPage, 
     10,
     searchQuery,
-    sortBy as any,
-    sortOrder as any
+    postSortField(sortBy),
+    postSortOrder(sortOrder)
   )
 
   return (

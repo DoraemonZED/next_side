@@ -38,7 +38,7 @@ DEPLOY_ENV_FILE=/etc/next-site.env bash deploy.sh
 
 首次部署还必须在 `.env.local` 填写 `INITIAL_ADMIN_PASSWORD`；可选的 `INITIAL_ADMIN_USERNAME` 默认是 `admin`。应用只会在 `users` 表为空时创建该账号，并将密码以 bcrypt 哈希保存。以后修改这两个配置不会改写已有管理员账号。
 
-SQLite 只保存登录账号。简历内容在 `src/app/resume/data.js` 中维护，不再写入数据库。应用启动时会按文件名中的数字顺序执行 `migrations/` 中尚未记录的 SQL 文件，例如 `003_add_login_log.sql`；数据库的 `_migrations` 表记录已执行的文件名。博客 JSON 不使用数据库迁移。
+SQLite 只保存登录账号。简历内容在 `src/app/resume/data.js` 中维护，不再写入数据库。应用启动时由 `src/lib/dbMigration.ts` 按文件名中的数字顺序执行 `migrations/` 中尚未记录的 SQL 文件，例如 `003_add_login_log.sql`；数据库的 `_migrations` 表记录已执行的文件名。博客 JSON 不使用数据库迁移。
 
 博客使用 `blog/categories.json` 保存分类，文章目录中的 `post.json` 保存元数据，`index.md` 保存正文。若设置了 `BLOG_GIT_REPO`、`BLOG_GIT_USERNAME` 和 `BLOG_GIT_TOKEN`，首次部署会将博客仓库克隆到 `blog` 目录；Token 应为仅有博客仓库 Contents 读写权限的 GitHub Personal Access Token。`BLOG_GIT_AUTO_SYNC=true` 会在每次博客写入前拉取远程内容；管理员菜单中的“GitHub 同步”按钮会以 `blog update` 为提交信息推送本地修改。无法自动合并时，服务器博客目录会恢复为远程版本。
 
@@ -171,51 +171,6 @@ docker run -d \
   -v $(pwd)/db:/app/db \
   --restart unless-stopped \
   next-site:latest
-```
-
-### 方式二：使用 Docker Compose（推荐）
-
-#### 1. 创建 `docker-compose.yml` 文件
-
-```yaml
-version: "3.8"
-
-services:
-  next-site:
-    build: .
-    container_name: next-site
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./blog:/app/blog
-      - ./game:/app/game
-      - ./db:/app/db
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
-    restart: unless-stopped
-```
-
-#### 2. 使用 Docker Compose 命令
-
-```bash
-# 构建并启动
-docker-compose up -d
-
-# 查看日志
-docker-compose logs -f
-
-# 停止服务
-docker-compose down
-
-# 停止并删除卷
-docker-compose down -v
-
-# 重新构建并启动
-docker-compose up -d --build
-
-# 查看运行状态
-docker-compose ps
 ```
 
 ### 数据持久化说明
@@ -355,14 +310,25 @@ npm start
 
 ```
 next_site/
-├── blog/              # 博客 JSON、Markdown 和附件（独立 Git 仓库）
-├── game/              # 游戏文件（后续可独立维护）
-├── db/                # SQLite 数据库
-├── src/              # 源代码
-├── public/           # 静态资源
-├── Dockerfile        # Docker 构建文件
-└── package.json      # 项目配置
+├── migrations/        # 按版本排序的 SQLite SQL 文件
+├── src/
+│   ├── app/           # 页面和 HTTP 路由
+│   ├── components/    # 可复用界面组件
+│   ├── lib/           # 认证、数据访问、Git 与路径工具
+│   └── store/         # 客户端 UI、认证状态
+├── public/            # 静态资源
+├── deploy.sh          # Git 拉取、构建、切换、健康检查与回退
+├── Dockerfile         # 生产镜像构建
+└── package.json       # 本地开发命令与依赖
 ```
+
+运行时数据不在仓库内：本地开发时它们位于项目根目录的 `blog`、`game`、`db`；生产环境由 `deploy.sh` 挂载代码目录同级的三个目录。
+
+### 代码约定
+
+- 改动 SQLite 结构时只新增一个 `migrations/序号_说明.sql` 文件，不修改已执行的迁移。
+- `src/lib` 中的服务不处理 HTTP；路由负责请求校验、鉴权和响应，服务负责业务与文件操作。
+- 所有来自 URL 或表单的文件名、分类和文章 ID 都必须经 `runtimePaths.ts` 校验后才能拼入路径。
 
 ## 许可证
 

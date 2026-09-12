@@ -1,13 +1,8 @@
-'use client'
-
 import { Button } from "@/components/ui/button"
-import { useCounterStore } from "@/store/useCounterStore"
 import Link from "next/link"
 import { ArrowRight, Code2, Rocket, Sparkles } from "lucide-react"
 
 export default function Home() {
-  const { count, increment } = useCounterStore()
-
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
@@ -20,7 +15,7 @@ export default function Home() {
           构建您的 <span className="text-primary">数字世界</span>
         </h1>
         <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 md:mb-12">
-          使用 Next.js, Tailwind, Shadcn 和 Zustand 打造的极致开发模板。快速、美观、且完全可定制。
+          记录全栈开发、实时通信与 AI Agent 实践，也收录可直接游玩的浏览器小游戏。
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Button size="lg" className="w-full sm:w-auto h-12 px-8 text-base gap-2" asChild>
@@ -31,20 +26,6 @@ export default function Home() {
           <Button variant="outline" size="lg" className="w-full sm:w-auto h-12 px-8 text-base" asChild>
             <Link href="/resume">查看简历</Link>
           </Button>
-        </div>
-      </section>
-
-      {/* Zustand Counter Section */}
-      <section className="bg-card border-y py-16 md:py-24">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl md:text-3xl font-bold mb-4">Zustand 共享状态演示</h2>
-          <p className="text-sm md:text-base text-muted-foreground mb-8">全局计数器，无论你跳转到哪个页面，状态都会保留。</p>
-          <div className="inline-flex items-center gap-4 sm:gap-6 p-4 border rounded-2xl bg-background shadow-inner">
-            <span className="text-3xl sm:text-4xl font-mono font-bold w-12 sm:w-16 text-center">{count}</span>
-            <Button onClick={increment} size="icon" className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl">
-              +
-            </Button>
-          </div>
         </div>
       </section>
 

@@ -1,26 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
-
-function safeSegment(value: string): string | null {
-  const normalized = value.trim();
-  return normalized && normalized !== '.' && normalized !== '..' && !normalized.includes('/') && !normalized.includes('\\') && !normalized.includes('\0')
-    ? normalized
-    : null;
-}
+import { runtimeDataDirectory, safePathSegment } from '@/lib/runtimePaths';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ category: string; id: string; filename: string }> }
 ) {
   const { category, id, filename } = await params;
-  const safeCategory = safeSegment(category);
-  const safeId = safeSegment(id);
-  const safeFilename = safeSegment(filename);
+  const safeCategory = safePathSegment(category);
+  const safeId = safePathSegment(id);
+  const safeFilename = safePathSegment(filename);
   if (!safeCategory || !safeId || !safeFilename) return new NextResponse('Asset not found', { status: 404 });
   
-  // 这里的逻辑和之前的 API 路由一致，但它现在处理的是文章路径下的直接请求
-  const filePath = path.join(process.cwd(), 'blog', safeCategory, safeId, safeFilename);
+  const filePath = path.join(runtimeDataDirectory('blog'), safeCategory, safeId, safeFilename);
 
   try {
     const fileBuffer = await fs.readFile(filePath);

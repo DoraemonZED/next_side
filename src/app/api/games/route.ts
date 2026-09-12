@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
+import { runtimeDataDirectory } from '@/lib/runtimePaths';
 
 interface GameInfo {
   name: string;
@@ -96,7 +97,7 @@ function parseGameInfo(html: string, gameName: string): GameInfo {
 
 export async function GET() {
   try {
-    const gameDir = path.join(process.cwd(), 'game');
+    const gameDir = runtimeDataDirectory('game');
     
     // 读取游戏目录
     const entries = await fs.readdir(gameDir, { withFileTypes: true });

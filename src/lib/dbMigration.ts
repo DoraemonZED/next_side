@@ -5,7 +5,12 @@ import path from 'node:path';
 const migrationsDirectory = path.join(process.cwd(), 'migrations');
 const migrationFilePattern = /^(\d+)_.+\.sql$/;
 
-function migrationFiles(): string[] {
+/**
+ * Finds migrations such as 001_create_users.sql and orders them by version.
+ * A version number may describe exactly one SQL file so the execution order is
+ * always unambiguous.
+ */
+function getMigrationFiles(): string[] {
   if (!fs.existsSync(migrationsDirectory)) {
     throw new Error(`找不到迁移目录：${migrationsDirectory}`);
   }
@@ -15,7 +20,7 @@ function migrationFiles(): string[] {
     .sort((left, right) => {
       const leftVersion = Number(left.match(migrationFilePattern)?.[1]);
       const rightVersion = Number(right.match(migrationFilePattern)?.[1]);
-      return leftVersion - rightVersion || left.localeCompare(right);
+      return leftVersion - rightVersion;
     });
 
   const versions = new Set<number>();
@@ -30,10 +35,12 @@ function migrationFiles(): string[] {
   return files;
 }
 
-function createMigrationTable(db: Database.Database): void {
+/** Creates the file-name based migration ledger and upgrades the old ledger. */
+function ensureMigrationLedger(db: Database.Database): void {
   const columns = db.prepare("SELECT name FROM pragma_table_info('_migrations')").all() as { name: string }[];
-  if (columns.length > 0 && !columns.some(({ name }) => name === 'filename')) {
-    // 将旧版 version/name 记录转换为按 SQL 文件名记录的格式。
+  const usesLegacySchema = columns.length > 0 && !columns.some(({ name }) => name === 'filename');
+
+  if (usesLegacySchema) {
     db.exec('ALTER TABLE _migrations RENAME TO _migrations_legacy');
   }
 
@@ -44,7 +51,7 @@ function createMigrationTable(db: Database.Database): void {
     );
   `);
 
-  if (columns.length > 0 && !columns.some(({ name }) => name === 'filename')) {
+  if (usesLegacySchema) {
     db.exec(`
       INSERT INTO _migrations (filename, applied_at)
       SELECT printf('%03d_legacy.sql', version), applied_at FROM _migrations_legacy;
@@ -53,16 +60,20 @@ function createMigrationTable(db: Database.Database): void {
   }
 }
 
-// 每次应用启动时检查迁移表；只执行尚未记录的 SQL 文件。
-export function runMigrations(db: Database.Database): void {
-  createMigrationTable(db);
-  const applied = new Set(
+/**
+ * Applies every SQL file that does not appear in SQLite's _migrations table.
+ * Each file and its ledger entry are wrapped in one transaction, so a failed
+ * migration is retried cleanly after its SQL has been fixed.
+ */
+export function runDatabaseMigrations(db: Database.Database): void {
+  ensureMigrationLedger(db);
+  const appliedFiles = new Set(
     (db.prepare('SELECT filename FROM _migrations').all() as { filename: string }[])
       .map(({ filename }) => filename),
   );
 
-  for (const filename of migrationFiles()) {
-    if (applied.has(filename)) continue;
+  for (const filename of getMigrationFiles()) {
+    if (appliedFiles.has(filename)) continue;
 
     const sql = fs.readFileSync(path.join(migrationsDirectory, filename), 'utf8');
     db.transaction(() => {

@@ -1,14 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 import bcrypt from 'bcryptjs';
-import { encrypt } from '@/lib/auth';
+import { createSessionToken, getTokenExpiresIn } from '@/lib/auth';
 import { cookies } from 'next/headers';
+
+interface UserRow {
+  id: number;
+  username: string;
+  password: string;
+}
 
 export async function POST(request: NextRequest) {
   try {
     const { username, password } = await request.json();
+    if (typeof username !== 'string' || typeof password !== 'string') {
+      return NextResponse.json({ message: '用户名和密码不能为空' }, { status: 400 });
+    }
 
-    const user: any = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+    const user = db.prepare('SELECT id, username, password FROM users WHERE username = ?').get(username) as UserRow | undefined;
 
     if (!user || !bcrypt.compareSync(password, user.password)) {
       return NextResponse.json(
@@ -17,14 +26,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create session
-    const { getTokenExpiresIn } = await import('@/lib/auth');
     const expiresIn = getTokenExpiresIn();
     const expires = new Date(Date.now() + expiresIn);
-    const session = await encrypt({ user: { id: user.id, username: user.username }, expires });
+    const session = await createSessionToken({ user: { id: user.id, username: user.username } });
 
-    // Set cookie
-    (await cookies()).set('session', session, { expires, httpOnly: true, path: '/' });
+    (await cookies()).set('session', session, {
+      expires,
+      httpOnly: true,
+      path: '/',
+      sameSite: 'lax',
+    });
 
     return NextResponse.json({ 
       message: '登录成功',

@@ -1,139 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import * as fs from 'fs';
-import * as path from 'path';
-import archiver from 'archiver';
-import nodemailer from 'nodemailer';
+import { createBackupArchive, sendBackupEmail } from '@/lib/backupService';
 
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Creates one data archive and sends it to an authenticated administrator. */
 export async function POST(request: NextRequest) {
+  if (!(await getSession())) {
+    return NextResponse.json({ message: '未授权' }, { status: 401 });
+  }
+
+  let archive: Awaited<ReturnType<typeof createBackupArchive>> | undefined;
   try {
-    // 验证用户登录状态
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json(
-        { message: '未授权' },
-        { status: 401 }
-      );
-    }
-
     const { backupInfo, recipientEmail } = await request.json();
-
-    if (!recipientEmail) {
-      return NextResponse.json(
-        { message: '请提供接收邮箱地址' },
-        { status: 400 }
-      );
+    if (typeof recipientEmail !== 'string' || !emailPattern.test(recipientEmail.trim())) {
+      return NextResponse.json({ message: '请提供有效的接收邮箱地址' }, { status: 400 });
+    }
+    if (backupInfo !== undefined && typeof backupInfo !== 'string') {
+      return NextResponse.json({ message: '备份说明必须是文本' }, { status: 400 });
     }
 
-    const appRoot = process.cwd();
-    const backupDirs = ['blog', 'game', 'db']
-      .map((name) => ({ name, source: path.join(appRoot, name) }))
-      .filter(({ source }) => fs.existsSync(source));
-
-    if (backupDirs.length === 0) {
-      return NextResponse.json(
-        { message: '没有可备份的数据目录' },
-        { status: 404 }
-      );
-    }
-
-    // 创建临时zip文件
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-    const zipFileName = `site-backup-${timestamp}.zip`;
-    const zipFilePath = path.join(process.cwd(), zipFileName);
-
-    // 创建zip文件
-    await new Promise<void>((resolve, reject) => {
-      const output = fs.createWriteStream(zipFilePath);
-      const archive = archiver('zip', {
-        zlib: { level: 9 } // 最高压缩级别
-      });
-
-      output.on('close', () => {
-        console.log(`压缩完成，文件大小: ${archive.pointer()} 字节`);
-        resolve();
-      });
-
-      archive.on('error', (err: Error) => {
-        reject(err);
-      });
-
-      archive.pipe(output);
-      
-      backupDirs.forEach(({ name, source }) => archive.directory(source, name));
-      
-      archive.finalize();
-    });
-
-    // 读取zip文件
-    const zipBuffer = fs.readFileSync(zipFilePath);
-
-    // 配置QQ邮箱SMTP
-    const transporter = nodemailer.createTransport({
-      host: process.env.QQ_SMTP_HOST || 'smtp.qq.com',
-      port: parseInt(process.env.QQ_SMTP_PORT || '587'),
-      secure: false, // true for 465, false for other ports
-      auth: {
-        user: process.env.QQ_EMAIL_USER, // QQ邮箱地址
-        pass: process.env.QQ_EMAIL_PASS, // QQ邮箱授权码（不是密码）
-      },
-    });
-
-    // 发送邮件
-    const mailOptions = {
-      from: `"备份系统" <${process.env.QQ_EMAIL_USER}>`,
-      to: recipientEmail,
-      subject: `数据备份 - ${new Date().toLocaleString('zh-CN')}`,
-      text: backupInfo || '这是您的博客、游戏和运行数据备份文件。',
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px;">
-          <h2 style="color: #333;">数据备份通知</h2>
-          <p style="color: #666; line-height: 1.6;">
-            ${backupInfo || '这是您的博客、游戏和运行数据备份文件。'}
-          </p>
-          <p style="color: #999; font-size: 12px; margin-top: 20px;">
-            备份时间: ${new Date().toLocaleString('zh-CN')}<br/>
-            文件大小: ${(zipBuffer.length / 1024 / 1024).toFixed(2)} MB
-          </p>
-        </div>
-      `,
-      attachments: [
-        {
-          filename: zipFileName,
-          content: zipBuffer,
-        },
-      ],
-    };
-
-    await transporter.sendMail(mailOptions);
-
-    // 删除临时zip文件
-    fs.unlinkSync(zipFilePath);
-
-    return NextResponse.json({ 
+    archive = await createBackupArchive();
+    await sendBackupEmail(recipientEmail.trim(), backupInfo || '', archive);
+    return NextResponse.json({
       message: '备份已成功发送到您的邮箱',
-      fileSize: `${(zipBuffer.length / 1024 / 1024).toFixed(2)} MB`
+      fileSize: `${(archive.sizeInBytes / 1024 / 1024).toFixed(2)} MB`,
     });
-  } catch (error: any) {
-    console.error('备份错误:', error);
-    
-    // 清理临时文件（如果存在）
-    try {
-      const files = fs.readdirSync(process.cwd()).filter(f => f.startsWith('site-backup-') && f.endsWith('.zip'));
-      files.forEach(file => {
-        try {
-          fs.unlinkSync(path.join(process.cwd(), file));
-        } catch (unlinkError) {
-          // 忽略单个文件删除错误
-        }
-      });
-    } catch (cleanupError) {
-      // 忽略清理错误
-    }
-
-    return NextResponse.json(
-      { message: `备份失败: ${error.message || '未知错误'}` },
-      { status: 500 }
-    );
+  } catch (error) {
+    console.error('备份失败:', error);
+    const message = error instanceof Error ? error.message : '未知错误';
+    return NextResponse.json({ message: `备份失败：${message}` }, { status: 500 });
+  } finally {
+    await archive?.cleanup();
   }
 }

@@ -2,8 +2,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { blogGitService } from '@/lib/blogGitService';
 import { withBlogLock } from '@/lib/blogLock';
+import { requiredPathSegment, runtimeDataDirectory } from '@/lib/runtimePaths';
 
-const BLOG_ROOT = path.join(process.cwd(), 'blog');
+const BLOG_ROOT = runtimeDataDirectory('blog');
 const CATEGORIES_PATH = path.join(BLOG_ROOT, 'categories.json');
 
 export interface Category {
@@ -40,6 +41,17 @@ export interface PaginatedPosts {
   totalPages: number;
 }
 
+export type PostSortField = 'date' | 'views' | 'likes';
+export type PostSortOrder = 'asc' | 'desc';
+
+export function postSortField(value: string | undefined): PostSortField {
+  return value === 'views' || value === 'likes' ? value : 'date';
+}
+
+export function postSortOrder(value: string | undefined): PostSortOrder {
+  return value === 'asc' ? 'asc' : 'desc';
+}
+
 interface StoredCategory {
   name: string;
   slug: string;
@@ -58,14 +70,6 @@ interface CategoryStore {
 
 function isMissing(error: unknown): boolean {
   return Boolean(error && typeof error === 'object' && 'code' in error && (error as NodeJS.ErrnoException).code === 'ENOENT');
-}
-
-function safeSegment(value: string, label: string): string {
-  const normalized = value.trim();
-  if (!normalized || normalized === '.' || normalized === '..' || normalized.includes('/') || normalized.includes('\\') || normalized.includes('\0')) {
-    throw new Error(`无效的${label}`);
-  }
-  return normalized;
 }
 
 async function writeJson(filePath: string, value: unknown): Promise<void> {
@@ -89,11 +93,11 @@ async function ensureStore(): Promise<CategoryStore> {
 }
 
 function categoryDirectory(slug: string): string {
-  return path.join(BLOG_ROOT, safeSegment(slug, '分类路径'));
+  return path.join(BLOG_ROOT, requiredPathSegment(slug, '分类路径'));
 }
 
 function postDirectory(category: string, id: string): string {
-  return path.join(categoryDirectory(category), safeSegment(id, '文章路径'));
+  return path.join(categoryDirectory(category), requiredPathSegment(id, '文章路径'));
 }
 
 async function readPost(category: StoredCategory, id: string): Promise<StoredPost | null> {
@@ -125,7 +129,7 @@ async function listPosts(categories: StoredCategory[]): Promise<PostMeta[]> {
   return posts;
 }
 
-function sortPosts(posts: PostMeta[], sortBy: 'date' | 'views' | 'likes', sortOrder: 'asc' | 'desc'): PostMeta[] {
+function sortPosts(posts: PostMeta[], sortBy: PostSortField, sortOrder: PostSortOrder): PostMeta[] {
   const direction = sortOrder === 'asc' ? 1 : -1;
   return posts.sort((left, right) => {
     const l = sortBy === 'date' ? Date.parse(left.date) : left[sortBy];
@@ -159,7 +163,7 @@ export const blogService = {
   async createCategory(slug: string, name: string, description = ''): Promise<boolean> {
     try {
       return await writeMutation(async () => {
-        const normalizedSlug = safeSegment(slug, '分类路径');
+        const normalizedSlug = requiredPathSegment(slug, '分类路径');
         const normalizedName = name.trim();
         if (!normalizedName) throw new Error('分类名称不能为空');
         const store = await ensureStore();
@@ -178,11 +182,11 @@ export const blogService = {
   async updateCategory(slug: string, data: Partial<Category>): Promise<boolean> {
     try {
       return await writeMutation(async () => {
-        const oldSlug = safeSegment(slug, '分类路径');
+        const oldSlug = requiredPathSegment(slug, '分类路径');
         const store = await ensureStore();
         const category = store.categories.find((item) => item.slug === oldSlug);
         if (!category) throw new Error('分类不存在');
-        const nextSlug = data.slug === undefined ? oldSlug : safeSegment(data.slug, '分类路径');
+        const nextSlug = data.slug === undefined ? oldSlug : requiredPathSegment(data.slug, '分类路径');
         if (nextSlug !== oldSlug) {
           if (store.categories.some((item) => item.slug === nextSlug)) throw new Error('新的分类路径已存在');
           await fs.rename(categoryDirectory(oldSlug), categoryDirectory(nextSlug));
@@ -204,7 +208,7 @@ export const blogService = {
   async deleteCategory(slug: string): Promise<boolean> {
     try {
       return await writeMutation(async () => {
-        const normalizedSlug = safeSegment(slug, '分类路径');
+        const normalizedSlug = requiredPathSegment(slug, '分类路径');
         await fs.rm(categoryDirectory(normalizedSlug), { recursive: true, force: true });
         const store = await ensureStore();
         store.categories = store.categories.filter((category) => category.slug !== normalizedSlug);
@@ -233,8 +237,8 @@ export const blogService = {
   async savePost(category: string, id: string, meta: Partial<PostMeta>, content?: string): Promise<boolean> {
     try {
       return await writeMutation(async () => {
-        const normalizedCategory = safeSegment(category, '分类路径');
-        const normalizedId = safeSegment(id, '文章路径');
+        const normalizedCategory = requiredPathSegment(category, '分类路径');
+        const normalizedId = requiredPathSegment(id, '文章路径');
         const store = await ensureStore();
         const storedCategory = store.categories.find((item) => item.slug === normalizedCategory);
         if (!storedCategory) throw new Error('分类不存在');
@@ -268,7 +272,7 @@ export const blogService = {
     }
   },
 
-  async getAllPosts(page = 1, pageSize = 10, searchQuery = '', sortBy: 'date' | 'views' | 'likes' = 'date', sortOrder: 'asc' | 'desc' = 'desc'): Promise<PaginatedPosts> {
+  async getAllPosts(page = 1, pageSize = 10, searchQuery = '', sortBy: PostSortField = 'date', sortOrder: PostSortOrder = 'desc'): Promise<PaginatedPosts> {
     const store = await ensureStore();
     const query = searchQuery.trim().toLocaleLowerCase();
     const posts = sortPosts((await listPosts(store.categories)).filter((post) => !query || post.title.toLocaleLowerCase().includes(query) || post.tags.toLocaleLowerCase().includes(query)), sortBy, sortOrder);
@@ -277,7 +281,7 @@ export const blogService = {
     return { posts: posts.slice((currentPage - 1) * pageSize, currentPage * pageSize), total, page: currentPage, pageSize, totalPages: Math.ceil(total / pageSize) };
   },
 
-  async getPostsByCategory(categorySlug: string, page = 1, pageSize = 10, searchQuery = '', sortBy: 'date' | 'views' | 'likes' = 'date', sortOrder: 'asc' | 'desc' = 'desc'): Promise<PaginatedPosts> {
+  async getPostsByCategory(categorySlug: string, page = 1, pageSize = 10, searchQuery = '', sortBy: PostSortField = 'date', sortOrder: PostSortOrder = 'desc'): Promise<PaginatedPosts> {
     const all = await this.getAllPosts(1, Number.MAX_SAFE_INTEGER, searchQuery, sortBy, sortOrder);
     const posts = all.posts.filter((post) => post.category === categorySlug);
     const currentPage = Math.max(1, page);
