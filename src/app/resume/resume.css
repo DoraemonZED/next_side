@@ -123,8 +123,11 @@ body:has(.resume-shell) { overscroll-behavior-y: none; }
 .resume-capabilities article { position: relative; min-height: 245px; overflow: hidden; padding: 28px; border: 1px solid var(--resume-line); border-radius: 22px; background: rgba(255,255,255,.47); transition: transform .24s ease, border-color .24s ease, box-shadow .24s ease; }
 .dark .resume-capabilities article { background: rgba(18,39,44,.72); }
 .resume-capabilities article:hover { border-color: rgba(112,211,204,.52); box-shadow: 0 25px 55px -42px rgba(9,54,58,.6); transform: translateY(-4px); }
-.resume-capabilities article.is-featured { grid-column: 1 / -1; min-height: 228px; }
-.resume-capabilities article.is-featured::before { position: absolute; right: 42px; bottom: -62px; width: 180px; height: 180px; content: ""; border: 1px solid rgba(92,151,147,.32); border-radius: 50%; box-shadow: 0 0 0 24px rgba(112,211,204,.06); }
+.resume-capabilities article.is-featured { grid-column: 1 / -1; min-height: 228px; background-image: radial-gradient(circle at 88% 22%, rgba(112,211,204,.08), transparent 23%), linear-gradient(135deg, rgba(112,211,204,.035), transparent 42%); }
+.resume-capabilities article.is-featured::before { position: absolute; right: 42px; bottom: -62px; width: 180px; height: 180px; content: ""; border: 1px solid rgba(92,151,147,.16); border-radius: 50%; box-shadow: 0 0 0 24px rgba(112,211,204,.025); }
+.resume-capabilities article.is-featured::after { position: absolute; top: 18px; right: 22px; bottom: 18px; width: min(28%,220px); content: ""; opacity: .55; background-image: linear-gradient(rgba(87,151,145,.14) 1px, transparent 1px), linear-gradient(90deg, rgba(87,151,145,.14) 1px, transparent 1px), linear-gradient(135deg, transparent 46%, rgba(185,218,99,.22) 46.5%, rgba(185,218,99,.22) 47%, transparent 47.5%); background-size: 18px 18px,18px 18px,100% 100%; mask-image: linear-gradient(90deg, transparent, black 32%, black 76%, transparent); pointer-events: none; }
+.resume-capabilities article.is-featured > :not(.resume-capability__arrow) { position: relative; z-index: 1; }
+.dark .resume-capabilities article.is-featured { background-image: radial-gradient(circle at 88% 22%, rgba(112,211,204,.1), transparent 23%), linear-gradient(135deg, rgba(112,211,204,.045), transparent 42%); }
 .resume-capability__icon { display: grid; width: 48px; height: 48px; place-items: center; border-radius: 14px; color: #5da7a2; background: rgba(112,211,204,.11); }
 .resume-capability__icon svg { width: 23px; }
 .resume-capabilities article > span { position: absolute; top: 28px; right: 28px; color: #8ca09d; font: 700 11px/1 ui-monospace, monospace; }
