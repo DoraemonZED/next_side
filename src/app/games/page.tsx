@@ -3,12 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Gamepad2, Loader2 } from "lucide-react"
-
-interface GameInfo {
-  name: string;
-  title: string;
-  description: string;
-}
+import type { GameInfo } from "@/lib/gameService"
 
 export default function GamesPage() {
   const [games, setGames] = useState<GameInfo[]>([]);
@@ -84,4 +79,3 @@ export default function GamesPage() {
     </div>
   )
 }
-
