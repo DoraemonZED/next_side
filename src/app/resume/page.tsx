@@ -282,7 +282,7 @@ export default function ResumePage() {
               <p className="indent">status: <em>&quot;READY_TO_BUILD&quot;</em></p>
               <p>{"}"}</p>
             </div>
-            <div className="resume-console__footer"><TerminalSquare /> npm run create-future <span>↵</span></div>
+            <div className="resume-console__footer"><TerminalSquare /> pnpm run create-future <span>↵</span></div>
           </div>
 
           <div className="resume-hero__stats">

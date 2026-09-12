@@ -25,9 +25,6 @@
 *.pem
 
 # debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 .pnpm-debug.log*
 
 # 网站运行配置仅保存在本地或服务器

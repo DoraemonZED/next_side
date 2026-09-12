@@ -12,324 +12,91 @@
 
 ## Docker 部署
 
-### 服务器一键部署 / 更新
+### 首次部署
 
-服务器需要 Bash、Git、Docker 及访问 GitHub、npm、Alpine 软件源的网络，无需安装 Node.js。网站运行配置统一放在本地或服务器的 `.env.local`，不提交到 Git。首次部署先复制 `.env.example` 为 `.env.local`，填写 JWT 密钥和 QQ 邮箱配置，并执行 `chmod 600 .env.local`。不要加入 SSH 或 GitHub 登录密码。配置采用 `KEY=value`，不加引号或行尾注释。Docker 构建排除 `.env*`，启动时通过 `--env-file` 注入。
+服务器需要 Bash、Git、Docker，以及访问 GitHub、pnpm 和 Alpine 软件源的网络；无需安装 Node.js。
 
-首次拉取仓库并安装 Docker 后，以及后续每次更新，都执行：
+1. 拉取代码（以下以 `/root/next_site` 为例）：
+
+   ```bash
+   git clone <你的仓库地址> /root/next_site
+   cd /root/next_site
+   ```
+
+2. 安装 Docker（Ubuntu/Debian 可执行）：
+
+   ```bash
+   curl -fsSL https://get.docker.com | sh
+   docker --version
+   ```
+
+3. 创建或指定持久化目录。默认会自动创建代码目录同级的 `blog`、`game`、`db`，并映射到容器的 `/app/blog`、`/app/game`、`/app/db`；例如上面的路径对应 `/root/blog`、`/root/game`、`/root/db`。如需自定义目录，部署时传入：
+
+   ```bash
+   BLOG_DIR=/srv/next-blog GAME_DIR=/srv/next-game DB_DIR=/srv/next-db bash deploy.sh
+   ```
+
+   这三个目录不会随代码更新被删除：`blog` 保存博客内容，`game` 保存游戏数据，`db` 保存 SQLite 数据库。
+
+4. 配置环境变量。复制模板后填写 `.env.local`；使用 `KEY=value` 格式，不要提交此文件。
+
+   ```bash
+   cp .env.example .env.local
+   chmod 600 .env.local
+   ```
+
+   | 配置项 | 作用 |
+   | --- | --- |
+   | `QQ_EMAIL_USER` | QQ 邮箱账号，用于发送邮件。 |
+   | `QQ_EMAIL_PASS` | QQ 邮箱 SMTP 授权码。 |
+   | `QQ_SMTP_HOST` | SMTP 服务器地址，默认 `smtp.qq.com`。 |
+   | `QQ_SMTP_PORT` | SMTP 端口，默认 `587`。 |
+   | `JWT_SECRET` | 登录令牌签名密钥，必须使用随机长字符串。 |
+   | `JWT_EXPIRES_HOURS` | 登录令牌有效期（小时），默认 `24`。 |
+   | `INITIAL_ADMIN_USERNAME` | 首次创建管理员时的用户名，默认 `admin`。 |
+   | `INITIAL_ADMIN_PASSWORD` | 首次创建管理员时的密码，必填；之后修改不会改写已有账号。 |
+   | `BLOG_GIT_REPO` | 博客内容 Git 仓库 HTTPS 地址；配置后首次部署会克隆到 `blog` 目录。 |
+   | `BLOG_GIT_BRANCH` | 博客仓库分支，默认 `main`。 |
+   | `BLOG_GIT_USERNAME` | 博客仓库的 GitHub 用户名；配置仓库时必填。 |
+   | `BLOG_GIT_TOKEN` | 有该仓库 Contents 读写权限的 GitHub Personal Access Token；切勿提交。 |
+   | `BLOG_GIT_AUTO_SYNC` | 设为 `true` 时，每次写博客前先拉取远程更新；默认 `false`。 |
+
+   首次部署至少填写 `JWT_SECRET`、`QQ_EMAIL_USER`、`QQ_EMAIL_PASS` 和 `INITIAL_ADMIN_PASSWORD`。不使用博客 Git 同步时，保留所有 `BLOG_GIT_*` 为空即可。
+
+5. 部署：
+
+   ```bash
+   bash deploy.sh
+   ```
+
+   脚本会拉取最新代码、构建镜像、启动 `next` 容器，并将默认端口 `80` 映射到应用 `3000` 端口。用 `docker logs -f next` 查看日志。
+
+### 每次更新代码
+
+进入部署目录后再次执行部署脚本即可；脚本会先执行 `git pull --ff-only`，再构建和切换服务。
 
 ```bash
-cd /root/next_side
+cd /root/next_site
 bash deploy.sh
 ```
 
-脚本先执行 `git pull --ff-only`，再通过 Dockerfile 安装依赖并打包。构建成功后替换 `next` 容器，使用 root、`80:3000`、`--restart always`。首次部署默认创建代码仓库同级的 `blog`、`game` 和 `db` 目录（本服务器分别为 `/root/blog`、`/root/game`、`/root/db`），分别挂载到容器的 `/app/blog`、`/app/game`、`/app/db`。
+部署仓库的已跟踪文件不能有未提交修改。需要改端口或启动等待时间时，可传入 `HOST_PORT=8080 STARTUP_TIMEOUT=180 bash deploy.sh`。
 
-启动后检查容器内首页 HTTP 响应，默认等待 120 秒。构建失败不切换服务；启动失败尝试恢复旧容器。切换期间有短暂停机，容器回退不会撤销共享数据库已写入的数据。
+### 将博客更新同步到 Git
 
-可选配置：
+先在 `.env.local` 配置完整的 `BLOG_GIT_REPO`、`BLOG_GIT_USERNAME` 和 `BLOG_GIT_TOKEN`，然后重新执行一次 `bash deploy.sh`，首次会克隆博客仓库到 `blog` 目录。之后在网站后台编辑博客，点击管理员菜单中的“GitHub 同步”，即可将本地博客内容提交并推送到该仓库（提交信息为 `blog update`）。
 
-```bash
-BLOG_DIR=/srv/next-blog GAME_DIR=/srv/next-game DB_DIR=/srv/next-db HOST_PORT=8080 STARTUP_TIMEOUT=180 bash deploy.sh
-DEPLOY_ENV_FILE=/etc/next-site.env bash deploy.sh
-```
-
-当前分支需配置远程上游，部署仓库的已跟踪文件不能有未提交修改。缺少默认 `.env.local` 时，已有 `next` 容器可作为环境变量来源；显式指定的配置文件缺失则报错。成功后镜像标记为 `next-site:latest`，用 `docker logs -f next` 查看日志。
-
-首次部署还必须在 `.env.local` 填写 `INITIAL_ADMIN_PASSWORD`；可选的 `INITIAL_ADMIN_USERNAME` 默认是 `admin`。应用只会在 `users` 表为空时创建该账号，并将密码以 bcrypt 哈希保存。以后修改这两个配置不会改写已有管理员账号。
-
-SQLite 只保存登录账号。简历内容在 `src/app/resume/data.js` 中维护，不再写入数据库。应用启动时由 `src/lib/dbMigration.ts` 按文件名中的数字顺序执行 `migrations/` 中尚未记录的 SQL 文件，例如 `003_add_login_log.sql`；数据库的 `_migrations` 表记录已执行的文件名。博客 JSON 不使用数据库迁移。
-
-博客使用 `blog/categories.json` 保存分类，文章目录中的 `post.json` 保存元数据，`index.md` 保存正文。若设置了 `BLOG_GIT_REPO`、`BLOG_GIT_USERNAME` 和 `BLOG_GIT_TOKEN`，首次部署会将博客仓库克隆到 `blog` 目录；Token 应为仅有博客仓库 Contents 读写权限的 GitHub Personal Access Token。`BLOG_GIT_AUTO_SYNC=true` 会在每次博客写入前拉取远程内容；管理员菜单中的“GitHub 同步”按钮会以 `blog update` 为提交信息推送本地修改。无法自动合并时，服务器博客目录会恢复为远程版本。
-
-### 前置要求
-
-- Docker 已安装
-- Docker Compose（可选，用于更便捷的管理）
-
-### 方式一：使用 Docker 命令
-
-#### 1. 构建 Docker 镜像
-
-```bash
-docker build -t next-site:latest .
-```
-
-#### 本机 Docker 启动
-
-```bash
-npm run docker:local:start
-```
-
-该命令会先构建本机架构的镜像，再在 `http://localhost:3000` 启动服务。按 `Ctrl+C` 停止容器；容器会自动删除，但构建出的 `next-site:local` 镜像会保留，供下次启动复用。
-
-#### 打包为可上传至 Linux x86_64 服务器的镜像文件
-
-在 Apple Silicon Mac 上，请使用下面的命令构建目标架构镜像。依赖中的原生模块（例如 `better-sqlite3`）会在 Linux x86_64 构建环境内安装，不会使用本机的 ARM 版本：
-
-```bash
-npm run docker:package:linux
-```
-
-生成的文件为 `next-site-linux-amd64.tar`。tar 保存成功后，命令会自动删除本次构建的本地 `next-site:linux-amd64` 镜像，不会影响其他 Docker 镜像。上传到服务器后执行：
-
-```bash
-docker load -i next-site-linux-amd64.tar
-docker run -d --name next-site -p 3000:3000 \
-  -v $(pwd)/blog:/app/blog \
-  -v $(pwd)/game:/app/game \
-  -v $(pwd)/db:/app/db \
-  --restart unless-stopped \
-  next-site:linux-amd64
-```
-
-服务器应为 Linux `x86_64`/`amd64`。本机仅作日常调试时不必指定平台，直接使用 `docker build -t next-site:local .`，可生成并运行本机 ARM 镜像。
-
-#### 2. 运行容器
-
-**基础运行：**
-
-```bash
-docker run -d \
-  --name next-site \
-  -p 3000:3000 \
-  next-site:latest
-```
-
-**带数据持久化（推荐）：**
-
-```bash
-docker run -d \
-  --name next-site \
-  -p 3000:3000 \
-  -v $(pwd)/blog:/app/blog \
-  -v $(pwd)/game:/app/game \
-  -v $(pwd)/db:/app/db \
-  next-site:latest
-```
-
-**完整配置（包含环境变量）：**
-
-```bash
-docker run -d \
-  --name next-site \
-  -p 3000:3000 \
-  -v $(pwd)/blog:/app/blog \
-  -v $(pwd)/game:/app/game \
-  -v $(pwd)/db:/app/db \
-  -e NODE_ENV=production \
-  -e PORT=3000 \
-  --restart unless-stopped \
-  next-site:latest
-```
-
-#### 3. 查看运行状态
-
-```bash
-# 查看容器状态
-docker ps
-
-# 查看日志
-docker logs next-site
-
-# 实时查看日志
-docker logs -f next-site
-```
-
-#### 4. 停止和删除容器
-
-```bash
-# 停止容器
-docker stop next-site
-
-# 启动已停止的容器
-docker start next-site
-
-# 删除容器
-docker rm next-site
-
-# 强制删除运行中的容器
-docker rm -f next-site
-```
-
-#### 5. 更新部署
-
-```bash
-# 停止并删除旧容器
-docker stop next-site
-docker rm next-site
-
-# 重新构建镜像（如果有代码更新）
-docker build -t next-site:latest .
-
-# 运行新容器
-docker run -d \
-  --name next-site \
-  -p 3000:3000 \
-  -v $(pwd)/blog:/app/blog \
-  -v $(pwd)/game:/app/game \
-  -v $(pwd)/db:/app/db \
-  --restart unless-stopped \
-  next-site:latest
-```
-
-### 数据持久化说明
-
-**重要：** 为了确保数据不丢失，建议使用数据卷挂载：
-
-- `blog` 目录：博客 JSON、Markdown 和文章附件
-- `game` 目录：游戏文件；`games.json` 维护游戏列表。首次访问游戏页会自动创建空列表。
-- `db` 目录：SQLite 数据库文件
-
-如果不使用数据卷，容器删除后所有数据（包括数据库）都会丢失。
-
-### 端口配置
-
-- 默认端口：`3000`
-- 如需修改端口，更改 `-p` 参数，例如：`-p 8080:3000`（将容器的 3000 端口映射到主机的 8080 端口）
-
-### 环境变量
-
-| 变量名     | 说明     | 默认值       |
-| ---------- | -------- | ------------ |
-| `NODE_ENV` | 运行环境 | `production` |
-| `PORT`     | 服务端口 | `3000`       |
-| `HOSTNAME` | 监听地址 | `0.0.0.0`    |
-
-### 访问应用
-
-部署成功后，在浏览器中访问：
-
-- 本地访问：`http://localhost:3000`
-- 服务器访问：`http://your-server-ip:3000`
-
-### 常用命令总结
-
-```bash
-# 构建镜像
-docker build --platform linux/amd64 -t next-site:latest .
-
-# 运行容器（基础）
-docker run -d --name next-site -p 3000:3000 next-site:latest
-
-# 运行容器（带数据持久化）
-docker run -d --name next-site -p 3000:3000 \
-  -v $(pwd)/blog:/app/blog -v $(pwd)/game:/app/game -v $(pwd)/db:/app/db \
-  next-site:latest
-
-# 查看日志
-docker logs -f next-site
-
-# 停止容器
-docker stop next-site
-
-# 启动容器
-docker start next-site
-
-# 重启容器
-docker restart next-site
-
-# 删除容器
-docker rm next-site
-
-# 删除镜像
-docker rmi next-site:latest
-
-# 进入容器（调试用）
-docker exec -it next-site sh
-```
-
-### 故障排查
-
-#### 1. 容器无法启动
-
-```bash
-# 查看详细日志
-docker logs next-site
-
-# 检查端口是否被占用
-lsof -i :3000
-# 或
-netstat -tuln | grep 3000
-```
-
-#### 2. 数据库问题
-
-确保 `blog`、`game` 和 `db` 目录有正确的权限：
-
-```bash
-chmod -R 755 blog game db
-```
-
-### 生产环境建议
-
-1. **使用反向代理**：建议使用 Nginx 或 Traefik 作为反向代理
-2. **HTTPS**：配置 SSL 证书
-3. **数据备份**：定期备份 `blog`、`game` 和 `db` 目录
-4. **监控**：配置容器健康检查和监控
-5. **资源限制**：为容器设置 CPU 和内存限制
-
-### Nginx 反向代理配置示例
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
+SQLite 只保存登录账号；博客内容保存在 `blog` 目录的 JSON 与 Markdown 文件中。
 
 ## 本地开发
 
+项目使用 pnpm。`pnpm dev` 会读取项目根目录的 `.env.local`；首次运行时复制并填写该文件，并创建 `blog`、`game`、`db` 三个数据目录，分别用于博客、游戏和 SQLite 数据。
+
 ```bash
-# 安装依赖
-npm install
-
-# 启动开发服务器
-npm run dev
-
-# 构建生产版本
-npm run build
-
-# 启动生产服务器
-npm start
+cp .env.example .env.local
+mkdir -p blog game db
+pnpm install
+pnpm dev
 ```
 
-## 项目结构
-
-```
-next_site/
-├── migrations/        # 按版本排序的 SQLite SQL 文件
-├── src/
-│   ├── app/           # 页面和 HTTP 路由
-│   ├── components/    # 可复用界面组件
-│   ├── lib/           # 认证、数据访问、Git 与路径工具
-│   └── store/         # 客户端 UI、认证状态
-├── public/            # 静态资源
-├── deploy.sh          # Git 拉取、构建、切换、健康检查与回退
-├── Dockerfile         # 生产镜像构建
-└── package.json       # 本地开发命令与依赖
-```
-
-运行时数据不在仓库内：本地开发时它们位于项目根目录的 `blog`、`game`、`db`；生产环境由 `deploy.sh` 挂载代码目录同级的三个目录。
-
-### 代码约定
-
-- 改动 SQLite 结构时只新增一个 `migrations/序号_说明.sql` 文件，不修改已执行的迁移。
-- `src/lib` 中的服务不处理 HTTP；路由负责请求校验、鉴权和响应，服务负责业务与文件操作。
-- 所有来自 URL 或表单的文件名、分类和文章 ID 都必须经 `runtimePaths.ts` 校验后才能拼入路径。
-
-## 许可证
-
-MIT
+开发服务器默认监听 `http://localhost:3000`。如需修改端口，执行 `pnpm dev -- --port 8080`。

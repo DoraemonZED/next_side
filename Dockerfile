@@ -6,8 +6,8 @@ WORKDIR /app
 RUN apk add --no-cache libc6-compat python3 make g++
 
 # 复制依赖文件并安装
-COPY package.json package-lock.json* ./
-RUN npm ci
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable && pnpm install --frozen-lockfile
 
 # 复制源代码
 COPY . .
@@ -15,7 +15,7 @@ COPY . .
 # Disable telemetry during build
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN mkdir -p blog game db && npm run build
+RUN mkdir -p blog game db && pnpm build
 
 # Stage 2: Runner
 FROM node:24-alpine AS runner

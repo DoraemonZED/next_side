@@ -6,9 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "docker:local:start": "docker build -t next-site:local . && docker run --rm --name next-site-local -p 3000:3000 next-site:local",
-    "docker:package:linux": "docker build --platform linux/amd64 -t next-site:linux-amd64 . && docker save -o next-site-linux-amd64.tar next-site:linux-amd64 && docker image rm next-site:linux-amd64"
+    "lint": "eslint"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
