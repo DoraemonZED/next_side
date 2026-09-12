@@ -137,6 +137,7 @@ const capabilities = [
   { icon: Radio, no: "02", title: "高并发与异步任务", text: "设计削峰填谷、任务编排与可靠消费链路，覆盖实时推送、幂等控制、重试补偿与背压治理。", tags: ["RabbitMQ", "Kafka", "WebSocket", "SSE"] },
   { icon: Layers3, no: "03", title: "数据性能与可观测性", text: "从数据模型、索引与缓存策略到日志、指标和链路定位，持续优化复杂业务系统的响应与稳定性。", tags: ["MySQL", "PostgreSQL", "Tracing", "Metrics"] },
   { icon: CloudCog, no: "04", title: "多端产品与工程底座", text: "复用领域模型和状态逻辑，将 Web、桌面与移动端纳入统一工程体系，并理解渲染、通信与打包链路。", tags: ["React", "Vue 3", "Electron", "React Native"] },
+  { icon: ShieldCheck, no: "05", title: "安全与稳定性治理", text: "将鉴权边界、权限模型、限流降级与优雅停机纳入服务设计，兼顾业务迭代速度与生产环境的可控性。", tags: ["JWT", "RBAC", "Rate Limit", "Graceful Shutdown"] },
 ]
 
 const skillLabels: Record<keyof Skills, string> = {
