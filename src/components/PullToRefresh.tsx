@@ -127,7 +127,7 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
     <div ref={containerRef} className="relative">
       {/* 下拉刷新指示器 */}
       <div
-        className="fixed left-1/2 z-50 flex items-center justify-center transition-[transform,opacity] duration-200 pointer-events-none will-change-transform"
+        className="fixed left-1/2 z-[200] flex items-center justify-center transition-[transform,opacity] duration-200 pointer-events-none will-change-transform"
         style={{
           // 仅合成层中的提示器跟随手势移动，避免每帧平移整页长内容导致拖拽卡顿。
           transform: `translate3d(-50%, ${Math.max(pullDistance - 50, -50)}px, 0)`,

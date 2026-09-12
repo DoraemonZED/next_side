@@ -26,7 +26,7 @@ export function GlobalUI() {
     <>
       {/* 全屏 Loading - 使用 rem 实现响应式缩放 */}
       {isLoading && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/60 backdrop-blur-sm transition-all duration-300 animate-in fade-in">
+        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-background/60 backdrop-blur-sm transition-all duration-300 animate-in fade-in">
           <div className="flex flex-col items-center gap-[1rem]">
             <Loader2 className="h-[3rem] w-[3rem] animate-spin text-primary" />
             <p className="text-[0.875rem] font-medium text-primary animate-pulse">正在处理中...</p>
@@ -66,7 +66,7 @@ export function GlobalUI() {
       {/* 轻量级提示 Toast - 使用 rem 实现响应式缩放 */}
       {toast && (
         <div className={cn(
-          "fixed top-[2rem] left-1/2 -translate-x-1/2 z-[110] flex items-center gap-[0.75rem] px-[1.5rem] py-[0.75rem] rounded-full shadow-2xl border transition-all duration-500 animate-in slide-in-from-top-4 max-w-[calc(100vw-2rem)]",
+          "fixed top-[2rem] left-1/2 -translate-x-1/2 z-[300] flex items-center gap-[0.75rem] px-[1.5rem] py-[0.75rem] rounded-full shadow-2xl border transition-all duration-500 animate-in slide-in-from-top-4 max-w-[calc(100vw-2rem)]",
           toast.type === 'success' && "bg-primary/10 border-primary/30 text-primary",
           toast.type === 'error' && "bg-destructive/10 border-destructive/30 text-destructive",
           toast.type === 'info' && "bg-accent border-border text-foreground"
