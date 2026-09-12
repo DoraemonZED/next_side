@@ -38,6 +38,8 @@ DEPLOY_ENV_FILE=/etc/next-site.env bash deploy.sh
 
 首次部署还必须在 `.env.local` 填写 `INITIAL_ADMIN_PASSWORD`；可选的 `INITIAL_ADMIN_USERNAME` 默认是 `admin`。应用只会在 `users` 表为空时创建该账号，并将密码以 bcrypt 哈希保存。以后修改这两个配置不会改写已有管理员账号。
 
+SQLite 只保存登录和简历数据。应用启动时会执行 `src/lib/migrations/index.ts` 中尚未执行的版本；以后改动 SQLite 表结构时，在该文件末尾添加一个新版本。博客 JSON 不使用数据库迁移。
+
 博客使用 `blog/categories.json` 保存分类，文章目录中的 `post.json` 保存元数据，`index.md` 保存正文。若设置了 `BLOG_GIT_REPO`、`BLOG_GIT_USERNAME` 和 `BLOG_GIT_TOKEN`，首次部署会将博客仓库克隆到 `blog` 目录；Token 应为仅有博客仓库 Contents 读写权限的 GitHub Personal Access Token。`BLOG_GIT_AUTO_SYNC=true` 会在每次博客写入前拉取远程内容；管理员菜单中的“GitHub 同步”按钮会以 `blog update` 为提交信息推送本地修改。无法自动合并时，服务器博客目录会恢复为远程版本。
 
 ### 前置要求
