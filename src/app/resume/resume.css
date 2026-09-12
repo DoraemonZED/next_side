@@ -428,7 +428,7 @@
 }
 
 @media print {
-  .resume-nav, .resume-hero__actions, .resume-profile__buttons, .resume-edit, .resume-carousel-hint, .resume-contact__form { display: none !important; }
+  .resume-nav, .resume-hero__actions, .resume-profile__buttons, .resume-carousel-hint, .resume-contact__form { display: none !important; }
   .resume-wrap { width: 100%; padding: 0; }
   .resume-shell { background: white; }
   .resume-hero { min-height: 600px; border-radius: 0; }

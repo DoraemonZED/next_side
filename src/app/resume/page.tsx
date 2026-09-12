@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, type FormEvent } from "react"
+import { useState, type FormEvent } from "react"
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -13,7 +13,6 @@ import {
   CloudCog,
   Cpu,
   Download,
-  Edit3,
   Eye,
   Fingerprint,
   GraduationCap,
@@ -38,12 +37,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
-import { useAuthStore } from "@/store/useAuthStore"
 import { useUIStore } from "@/store/useUIStore"
+import { resumeData } from "./data"
 import "./resume.css"
 
 type Skill = { name: string; level: number }
@@ -59,60 +57,6 @@ type HistoryItem = {
   description: string
   type: string
 }
-
-const fallbackSkills: Skills = {
-  basics: [
-    { name: "TypeScript", level: 92 },
-    { name: "Node.js", level: 90 },
-    { name: "Python", level: 78 },
-  ],
-  expand: [
-    { name: "NestJS / 微服务", level: 90 },
-    { name: "Redis / RabbitMQ", level: 86 },
-    { name: "Docker / Nginx", level: 84 },
-  ],
-  frameworks: [
-    { name: "React / Next.js", level: 88 },
-    { name: "Vue 3", level: 88 },
-    { name: "Spring Boot", level: 74 },
-  ],
-  crossPlatform: [
-    { name: "Electron", level: 85 },
-    { name: "React Native", level: 76 },
-    { name: "Three.js / Cesium", level: 72 },
-  ],
-}
-
-const fallbackHistory: HistoryItem[] = [
-  {
-    title: "容联云 · 全栈开发工程师",
-    date: "2025.10 — 至今",
-    type: "work",
-    description:
-      "参与企业通信云产品的全栈研发，使用 Node.js 与 Spring Boot 交付业务服务和接口；使用 React 构建管理端，完成状态管理、组件封装、联调与版本迭代。",
-  },
-  {
-    title: "中国电子科技十所（外协）· 高级 Web / 全栈开发工程师",
-    date: "2022.11 — 2025.09",
-    type: "work",
-    description:
-      "负责算法训练、实时数据与可视化场景的服务端及前端研发。以 NestJS、gRPC、RabbitMQ、Redis 构建模块化服务，处理大模型 SSE 流式响应与 WebSocket 高频数据渲染。",
-  },
-  {
-    title: "不知其鸣科技 · 前后端开发负责人",
-    date: "2021.04 — 2022.11",
-    type: "work",
-    description:
-      "负责海外 ACG 内容平台及企业业务系统，推进 Node.js 服务、鉴权与资源管理、视频处理链路、Vue 3 PC/H5 页面及 Docker 化上线交付。",
-  },
-  {
-    title: "中国通行服务有限公司 · 前端开发工程师",
-    date: "2020.09 — 2021.04",
-    type: "work",
-    description:
-      "参与通信基础设施共建共享与智慧交通管理平台，交付动态路由、RBAC 权限、复杂表单、GIS 场景及 ECharts 数据大屏。",
-  },
-]
 
 const projects = [
   {
@@ -259,59 +203,14 @@ function ProjectCard({ project, index, onOpen }: { project: Project; index: numb
 }
 
 export default function ResumePage() {
-  const [skills, setSkills] = useState<Skills>(fallbackSkills)
-  const [otherSkills, setOtherSkills] = useState([
-    "PostgreSQL", "MinIO", "gRPC", "Nacos", "Linux", "Git", "Codex", "Cursor",
-  ])
-  const [history, setHistory] = useState<HistoryItem[]>(fallbackHistory)
-  const [editOpen, setEditOpen] = useState(false)
-  const [editJson, setEditJson] = useState("")
-  const [saving, setSaving] = useState(false)
+  const skills: Skills = resumeData.skills
+  const otherSkills = resumeData.otherSkills
+  const history: HistoryItem[] = resumeData.history
   const [contactEmail, setContactEmail] = useState("")
   const [contactMessage, setContactMessage] = useState("")
   const [contactTouched, setContactTouched] = useState(false)
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
-  const { isAuthenticated } = useAuthStore()
   const { showToast } = useUIStore()
-
-  useEffect(() => {
-    fetch("/api/resume")
-      .then(async (response) => {
-        if (!response.ok) return
-        const data = await response.json()
-        if (data.skills) setSkills(data.skills)
-        if (data.otherSkills) setOtherSkills(data.otherSkills)
-        if (data.history) setHistory(data.history)
-      })
-      .catch(() => undefined)
-  }, [])
-
-  const openEditor = () => {
-    setEditJson(JSON.stringify({ skills, otherSkills, history }, null, 2))
-    setEditOpen(true)
-  }
-
-  const save = async () => {
-    try {
-      const data = JSON.parse(editJson)
-      setSaving(true)
-      const response = await fetch("/api/resume", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      })
-      if (!response.ok) throw new Error((await response.json()).message)
-      if (data.skills) setSkills(data.skills)
-      if (data.otherSkills) setOtherSkills(data.otherSkills)
-      if (data.history) setHistory(data.history)
-      setEditOpen(false)
-      showToast("简历内容已更新", "success")
-    } catch (error) {
-      showToast(error instanceof Error ? error.message : "保存失败，请检查 JSON", "error")
-    } finally {
-      setSaving(false)
-    }
-  }
 
   const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(contactEmail.trim())
   const messageIsValid = contactMessage.trim().length >= 10
@@ -411,30 +310,6 @@ export default function ResumePage() {
                 <a href="mailto:2433255732@qq.com">联系我 <ArrowUpRight /></a>
                 <button onClick={() => window.print()} aria-label="打印简历"><Download /></button>
               </div>
-              {isAuthenticated && (
-                <Dialog open={editOpen} onOpenChange={setEditOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="resume-edit" variant="ghost" onClick={openEditor}>
-                      <Edit3 />编辑内容
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-h-[90vh] max-w-3xl">
-                    <DialogHeader>
-                      <DialogTitle>编辑简历内容</DialogTitle>
-                      <DialogDescription>保存后会立即更新技能和工作经历。</DialogDescription>
-                    </DialogHeader>
-                    <Textarea
-                      className="min-h-[50vh] font-mono text-xs"
-                      onChange={(event) => setEditJson(event.target.value)}
-                      value={editJson}
-                    />
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setEditOpen(false)}>取消</Button>
-                      <Button disabled={saving} onClick={save}>{saving ? "保存中…" : "保存"}</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              )}
             </div>
             <div className="resume-profile__status">
               <span><i />当前状态</span>
