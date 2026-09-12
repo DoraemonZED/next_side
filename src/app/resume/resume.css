@@ -110,7 +110,7 @@ body:has(.resume-shell) { overscroll-behavior-y: none; }
 .resume-profile__status span { display: flex; align-items: center; gap: 8px; color: #6a8582; font-size: 9px; font-weight: 700; letter-spacing: .1em; }
 .resume-profile__status i { display: block; flex: 0 0 auto; }
 .resume-profile__status strong { display: block; margin-top: 13px; font-size: 12px; }
-.resume-profile__status small { display: block; margin-top: 5px; color: var(--resume-muted); font-size: 10px; }
+.resume-profile__status small { display: block; margin-top: 5px; color: var(--resume-muted); font-size: 10px; text-align: right; }
 .resume-main { min-width: 0; }
 .resume-section { scroll-margin-top: 88px; margin-bottom: 110px; }
 .resume-section-head { display: grid; grid-template-columns: 58px minmax(0,1fr) auto; align-items: end; margin-bottom: 38px; padding-bottom: 22px; border-bottom: 1px solid var(--resume-line); }
