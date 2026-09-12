@@ -18,7 +18,7 @@ function createInitialAdminIfNeeded(db: Database.Database): void {
   if (userCount.count > 0) return;
 
   const username = process.env.INITIAL_ADMIN_USERNAME?.trim() || 'admin';
-  const password = process.env.INITIAL_ADMIN_PASSWORD;
+  const password = process.env.INITIAL_ADMIN_PASSWORD || '123456';
   if (!password) {
     throw new Error('用户表为空，请在 .env.local 配置 INITIAL_ADMIN_PASSWORD 后再启动。');
   }
