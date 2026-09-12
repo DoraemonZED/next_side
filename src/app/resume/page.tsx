@@ -268,7 +268,7 @@ export default function ResumePage() {
           <div className="resume-hero__mesh" />
           <div className="resume-hero__main">
             <div className="resume-availability"><i /> OPEN TO WORK · CHENGDU</div>
-            <p className="resume-hero__overline">AGENT FULL-STACK ENGINEER / 2026</p>
+            <p className="resume-hero__overline">NODE.JS / JAVA FULL-STACK ENGINEER / 2026</p>
             <h1><span>杨伟</span>构建可靠的<br /><em>AI 原生产品。</em></h1>
             <p className="resume-hero__summary">
               以 Node.js / NestJS 为核心，覆盖 AI Agent、实时通信、微服务及 Web、桌面、移动端开发。
@@ -285,7 +285,7 @@ export default function ResumePage() {
             <div className="resume-console__code">
               <p><span>const</span> engineer = {"{"}</p>
               <p className="indent">name: <b>&quot;Wayne Yang&quot;</b>,</p>
-              <p className="indent">role: <b>&quot;Agent Full-Stack&quot;</b>,</p>
+              <p className="indent">role: <b>&quot;Node.js / Java Full-Stack&quot;</b>,</p>
               <p className="indent">experience: <strong>5+</strong>,</p>
               <p className="indent">focus: [</p>
               <p className="indent-2"><b>&quot;AI Agent&quot;</b>, <b>&quot;Realtime&quot;</b>,</p>
@@ -309,9 +309,9 @@ export default function ResumePage() {
           <aside className="resume-profile">
             <div className="resume-profile__card">
               <div className="resume-avatar"><span>YW</span><i /></div>
-              <p className="resume-profile__role">AGENT FULL-STACK ENGINEER</p>
+              <p className="resume-profile__role">NODE.JS / JAVA FULL-STACK ENGINEER</p>
               <h2>杨伟 <small>Wayne Yang</small></h2>
-              <p className="resume-profile__bio">专注实时通信、AI Agent 服务与复杂跨端产品的全链路研发。</p>
+              <p className="resume-profile__bio">Node.js / Java 全栈工程师，专注实时通信、AI Agent 服务与复杂跨端产品的全链路研发。</p>
               <div className="resume-profile__meta">
                 <a href="tel:18244230571"><Phone />182 4423 0571</a>
                 <a href="mailto:2433255732@qq.com"><Mail />2433255732@qq.com</a>
@@ -326,7 +326,7 @@ export default function ResumePage() {
             <div className="resume-profile__status">
               <span><i />当前状态</span>
               <strong>寻求新的技术挑战</strong>
-              <small>Agent 全栈 / Node.js 后端</small>
+              <small>Node.js / Java 全栈工程</small>
             </div>
           </aside>
 

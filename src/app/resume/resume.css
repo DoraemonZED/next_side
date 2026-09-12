@@ -16,7 +16,7 @@
 .dark .resume-shell { --resume-ink: #e9efe7; --resume-paper: #071317; --resume-muted: #91a09e; --resume-line: rgba(211,235,224,.1); }
 .resume-noise { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .18; background-image: linear-gradient(rgba(15,35,39,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(15,35,39,.025) 1px, transparent 1px); background-size: 36px 36px; mask-image: linear-gradient(to bottom, black, transparent 70%); }
 .resume-wrap { position: relative; z-index: 1; width: min(1440px, calc(100% - 40px)); margin: 0 auto; padding: 22px 0 80px; }
-.resume-nav { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 58px; margin-bottom: 16px; padding: 0 8px; }
+.resume-nav { position: sticky; top: 12px; z-index: 30; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 58px; margin-bottom: 16px; padding: 0 8px; }
 .resume-brand { display: inline-flex; align-items: center; gap: 11px; width: fit-content; color: inherit; text-decoration: none; }
 .resume-brand > span { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 11px; color: #081418; background: var(--resume-acid); font: 900 12px/1 ui-monospace, monospace; transform: rotate(-5deg); }
 .resume-brand b { font: 900 12px/1 ui-monospace, monospace; letter-spacing: .05em; }
@@ -73,8 +73,8 @@
 @keyframes resume-pulse { 50% { opacity: .5; box-shadow: 0 0 0 8px rgba(185,218,99,0); } }
 
 .resume-content { display: grid; grid-template-columns: 300px minmax(0,1fr); gap: 54px; margin-top: 74px; }
-.resume-profile { position: relative; }
-.resume-profile__card { position: sticky; top: 90px; padding: 25px; border: 1px solid var(--resume-line); border-radius: 26px; background: rgba(255,255,255,.58); box-shadow: 0 22px 55px -40px rgba(10,37,41,.42); backdrop-filter: blur(18px); }
+.resume-profile { position: sticky; top: 86px; align-self: start; }
+.resume-profile__card { padding: 25px; border: 1px solid var(--resume-line); border-radius: 26px; background: rgba(255,255,255,.58); box-shadow: 0 22px 55px -40px rgba(10,37,41,.42); backdrop-filter: blur(18px); }
 .dark .resume-profile__card { background: rgba(17,39,45,.72); }
 .resume-avatar { position: relative; display: grid; width: 82px; height: 82px; place-items: center; overflow: hidden; border: 1px solid rgba(112,211,204,.32); border-radius: 23px; color: var(--resume-cyan); background: linear-gradient(145deg,#122c32,#07171c); font: 900 26px/1 ui-monospace, monospace; }
 .resume-avatar::before { position: absolute; inset: 8px; content: ""; border: 1px solid rgba(112,211,204,.12); border-radius: 16px; }
@@ -397,8 +397,7 @@
   .resume-hero__console { width: calc(100% - 88px); margin: 0 44px 45px; transform: none; }
   .resume-hero__stats > div { min-height: 80px; }
   .resume-content { grid-template-columns: 1fr; margin-top: 46px; }
-  .resume-profile { display: grid; grid-template-columns: 1fr .8fr; gap: 12px; }
-  .resume-profile__card { position: static; }
+  .resume-profile { position: static; display: grid; grid-template-columns: 1fr .8fr; gap: 12px; }
   .resume-profile__status { margin-top: 0; align-self: end; }
   .resume-section { margin-bottom: 82px; }
   .resume-contact { grid-template-columns: 1fr; gap: 32px; padding: 38px; }
@@ -459,7 +458,8 @@
   .resume-work-detail { grid-template-columns: 1fr; gap: 22px; }
   .resume-work-detail > section + section { padding: 20px 0 0; border-top: 1px solid rgba(92,151,147,.16); border-left: 0; }
   .resume-work-projects > div { grid-template-columns: 1fr; }
-  .resume-engineering article { min-height: 210px; }
+  .resume-engineering article { min-height: 0; padding: 24px 20px; }
+  .resume-engineering article > div { position: static; margin-top: 20px; }
   .resume-contact { gap: 27px; padding: 27px 20px; border-radius: 24px; }
   .resume-contact__intro { padding: 4px 3px 0; }
   .resume-contact__intro h2 { font-size: 34px; }
