@@ -196,19 +196,37 @@
 @media (max-width: 640px) {
   .carousel-3d__stage {
     height: 348px;
-    overflow: visible;
-    perspective: none;
+    overflow: hidden;
+    perspective: 900px;
   }
 
   .carousel-3d__slide {
     top: 43%;
-    width: 100%;
+    width: 86%;
     height: 272px;
-    transform: translate(-50%, -50%) scale(.94);
+    transform: translate(-50%, -50%) translateZ(-100px) scale(.72);
+  }
+
+  .carousel-3d__slide[data-position="0"] {
+    transform: translate(-50%, -50%) translateZ(30px) scale(1);
   }
 
   .carousel-3d__slide[data-position="-1"],
-  .carousel-3d__slide[data-position="1"],
+  .carousel-3d__slide[data-position="1"] {
+    z-index: 12;
+    opacity: .42;
+    pointer-events: auto;
+    filter: brightness(.75) saturate(.78);
+  }
+
+  .carousel-3d__slide[data-position="-1"] {
+    transform: translate(-50%, -50%) translateX(-88%) translateZ(-90px) scale(.72) rotateY(10deg);
+  }
+
+  .carousel-3d__slide[data-position="1"] {
+    transform: translate(-50%, -50%) translateX(88%) translateZ(-90px) scale(.72) rotateY(-10deg);
+  }
+
   .carousel-3d__slide[data-position="-2"],
   .carousel-3d__slide[data-position="2"] {
     opacity: 0;
