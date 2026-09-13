@@ -36,11 +36,14 @@ const fragment = `
 precision mediump float;
 varying float vAlpha;
 varying float vSeed;
+uniform float uDark;
 void main() {
   float d = length(gl_PointCoord - .5) * 2.0;
   if (d > 1.0) discard;
-  vec3 color = mix(vec3(.19, .65, .49), vec3(.72, 1.0, .82), vSeed);
-  gl_FragColor = vec4(color, (1.0 - d * d) * vAlpha);
+  vec3 lightColor = mix(vec3(.02, .20, .12), vec3(.10, .52, .31), vSeed);
+  vec3 darkColor = mix(vec3(.19, .65, .49), vec3(.72, 1.0, .82), vSeed);
+  vec3 color = mix(lightColor, darkColor, uDark);
+  gl_FragColor = vec4(color, (1.0 - d * d) * vAlpha * mix(2.35, 1.0, uDark));
 }`
 
 export function ParticleField({ mode, paused }: { mode: number; paused: boolean }) {
@@ -90,9 +93,8 @@ export function ParticleField({ mode, paused }: { mode: number; paused: boolean 
     gl.vertexAttribPointer(position, 3, gl.FLOAT, false, 16, 0)
     gl.enableVertexAttribArray(seed)
     gl.vertexAttribPointer(seed, 1, gl.FLOAT, false, 16, 12)
-    const uniforms = Object.fromEntries(['uTime', 'uMode', 'uPointer', 'uAspect', 'uPixelRatio'].map(key => [key, gl.getUniformLocation(program, key)]))
+    const uniforms = Object.fromEntries(['uTime', 'uMode', 'uPointer', 'uAspect', 'uPixelRatio', 'uDark'].map(key => [key, gl.getUniformLocation(program, key)]))
     gl.enable(gl.BLEND)
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE)
     const resize = () => {
       const bounds = canvas.getBoundingClientRect()
       const dpr = Math.min(window.devicePixelRatio, 1.5)
@@ -113,10 +115,16 @@ export function ParticleField({ mode, paused }: { mode: number; paused: boolean 
     }
     window.addEventListener('pointermove', onPointer, { passive: true })
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+    let isDark = document.documentElement.classList.contains('dark')
+    const themeObserver = new MutationObserver(() => {
+      isDark = document.documentElement.classList.contains('dark')
+    })
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
     let visible = true
     const intersection = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting })
     intersection.observe(canvas)
     let frame = 0, time = 0, last = 0, currentMode = 0, px = 0, py = 0
+    let blendForDark: boolean | null = null
     const draw = (now: number) => {
       const delta = Math.min((now - last) / 1000, .05)
       last = now
@@ -127,9 +135,14 @@ export function ParticleField({ mode, paused }: { mode: number; paused: boolean 
         px += ((frozen ? 0 : pointer.x) - px) * .04
         py += ((frozen ? 0 : pointer.y) - py) * .04
         gl.clear(gl.COLOR_BUFFER_BIT)
+        if (blendForDark !== isDark) {
+          gl.blendFunc(gl.SRC_ALPHA, isDark ? gl.ONE : gl.ONE_MINUS_SRC_ALPHA)
+          blendForDark = isDark
+        }
         gl.uniform1f(uniforms.uTime, time)
         gl.uniform1f(uniforms.uMode, currentMode)
         gl.uniform2f(uniforms.uPointer, px, py)
+        gl.uniform1f(uniforms.uDark, isDark ? 1 : 0)
         gl.drawArrays(gl.POINTS, 0, count)
       }
       frame = requestAnimationFrame(draw)
@@ -139,6 +152,7 @@ export function ParticleField({ mode, paused }: { mode: number; paused: boolean 
       cancelAnimationFrame(frame)
       observer.disconnect()
       intersection.disconnect()
+      themeObserver.disconnect()
       window.removeEventListener('pointermove', onPointer)
       gl.deleteBuffer(buffer)
       shaders.forEach(s => gl.deleteShader(s))

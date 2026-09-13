@@ -802,6 +802,208 @@ body:has(.lab-home) footer p,body:has(.lab-home) footer a {
   color:#708075
 }
 
+/* Light mode turns the digital lab into an editorial, paper-like workspace. */
+html:not(.dark) .lab-home {
+  --mint:#176c49;
+  --dim:#637168;
+  background:#eef1e9;
+  color:#102118
+}
+
+html:not(.dark) .lab-home .hero-grid {
+  background-image:linear-gradient(#193c260a 1px,transparent 1px),linear-gradient(90deg,#193c260a 1px,transparent 1px)
+}
+
+html:not(.dark) .lab-home .lab-topline,
+html:not(.dark) .lab-home .hero-description,
+html:not(.dark) .lab-home .section-subtitle,
+html:not(.dark) .lab-home .portal-content p {
+  color:#5c6d63
+}
+
+html:not(.dark) .lab-home .outlined-word {
+  -webkit-text-stroke:1px #486153
+}
+
+html:not(.dark) .lab-home .hero-stack,
+html:not(.dark) .lab-home .art-coordinate,
+html:not(.dark) .lab-home .section-aside,
+html:not(.dark) .lab-home .manifesto-bottom {
+  color:#5e7165
+}
+
+html:not(.dark) .lab-home .hero-stack span+span,
+html:not(.dark) .lab-home .hero-bottom,
+html:not(.dark) .lab-home .manifesto-bottom {
+  border-color:#183c261c
+}
+
+html:not(.dark) .lab-home .lab-button {
+  background:#163e2b;
+  color:#f2f7f0;
+  box-shadow:0 12px 35px #193b2422
+}
+
+html:not(.dark) .lab-home .lab-button:hover {
+  box-shadow:0 15px 45px #193b2435
+}
+
+html:not(.dark) .lab-home .lab-text-link,
+html:not(.dark) .lab-home .scroll-cue {
+  color:#263c30
+}
+
+html:not(.dark) .lab-home .scroll-cue small,
+html:not(.dark) .lab-home .coordinate-left span {
+  color:#718178
+}
+
+html:not(.dark) .lab-home .orb-halo {
+  background:radial-gradient(ellipse,#20845718,transparent 66%);
+  box-shadow:inset 0 0 80px #176c490b,0 0 110px #176c490d
+}
+
+html:not(.dark) .lab-home .orb-orbit {
+  border-color:#176c4926
+}
+
+html:not(.dark) .lab-home .orbit-two {
+  border-color:#176c4914
+}
+
+html:not(.dark) .lab-home .object-caption {
+  color:#496859
+}
+
+html:not(.dark) .lab-home .object-caption>span:last-child,
+html:not(.dark) .lab-home .scene-controls button[aria-pressed=true]:not(.pause-control) {
+  border-color:#176c4960
+}
+
+html:not(.dark) .lab-home .scene-controls button {
+  color:#5f7066
+}
+
+html:not(.dark) .lab-home .scene-controls button[aria-pressed=true]:not(.pause-control) {
+  background:#176c4910;
+  color:#125c3e
+}
+
+html:not(.dark) .lab-home .scene-controls .pause-control {
+  border-left-color:#173d2525
+}
+
+html:not(.dark) .lab-home .lab-marquee {
+  border-color:#173d2522;
+  background:#e3e9de
+}
+
+html:not(.dark) .lab-home .lab-marquee span {
+  color:#355c47
+}
+
+html:not(.dark) .lab-home .portal-card {
+  border-color:#173d2520;
+  background:#f7f8f3;
+  box-shadow:0 20px 55px #2945340a
+}
+
+html:not(.dark) .lab-home .portal-card:hover {
+  border-color:#176c4966;
+  box-shadow:0 24px 65px #2945341c
+}
+
+html:not(.dark) .lab-home .portal-top,
+html:not(.dark) .lab-home .portal-tag {
+  color:#527060
+}
+
+html:not(.dark) .lab-home .code-visual {
+  background:radial-gradient(ellipse at 45% 65%,#24875b18,transparent 70%)
+}
+
+html:not(.dark) .lab-home .code-window {
+  border-color:#315e4140;
+  background:#173526;
+  box-shadow:15px 20px 35px #18392422
+}
+
+html:not(.dark) .lab-home .game-visual {
+  background:radial-gradient(ellipse,#725bb61c,transparent 70%)
+}
+
+html:not(.dark) .lab-home .game-grid {
+  background-image:linear-gradient(#6e58a91e 1px,transparent 1px),linear-gradient(90deg,#6e58a91e 1px,transparent 1px)
+}
+
+html:not(.dark) .lab-home .game-controller {
+  color:#7259ad;
+  filter:drop-shadow(0 0 22px #765eb945)
+}
+
+html:not(.dark) .lab-home .game-ring {
+  border-color:#7259ad32;
+  box-shadow:0 0 0 19px #7259ad08,0 0 0 39px #7259ad05
+}
+
+html:not(.dark) .lab-home .game-plus,
+html:not(.dark) .lab-home .game-label {
+  color:#675390
+}
+
+html:not(.dark) .lab-home .profile-visual {
+  background:radial-gradient(ellipse,#8a774c12,transparent 70%)
+}
+
+html:not(.dark) .lab-home .profile-monogram {
+  color:#2d412f
+}
+
+html:not(.dark) .lab-home .profile-monogram>span,
+html:not(.dark) .lab-home .profile-orbit:after {
+  color:#637d28;
+  background:#637d28
+}
+
+html:not(.dark) .lab-home .profile-orbit {
+  border-color:#526b3638
+}
+
+html:not(.dark) .lab-home .profile-label {
+  color:#5f7154
+}
+
+html:not(.dark) .lab-home .lab-manifesto {
+  border-color:#173d2520;
+  background:radial-gradient(ellipse at 50% 100%,#176c490d,transparent 65%)
+}
+
+html:not(.dark) .lab-home .lab-manifesto h2 span {
+  color:#66766c
+}
+
+html:not(.dark) body:has(.lab-home) header {
+  background:#eef1e9e8;
+  border-color:#173d2520;
+  color:#102118;
+  --primary:#176c49;
+  --foreground:#102118;
+  --muted-foreground:#5e6e64;
+  --accent:#dde6dc;
+  --accent-foreground:#176c49
+}
+
+html:not(.dark) body:has(.lab-home) footer {
+  background:#eef1e9;
+  border-color:#173d2518;
+  color:#596b60
+}
+
+html:not(.dark) body:has(.lab-home) footer p,
+html:not(.dark) body:has(.lab-home) footer a {
+  color:#596b60
+}
+
 @keyframes marquee {
   to {
     transform:translateX(-50%)
@@ -1083,4 +1285,3 @@ body:has(.lab-home) footer p,body:has(.lab-home) footer a {
     scroll-behavior:auto!important
   }
 }
-
