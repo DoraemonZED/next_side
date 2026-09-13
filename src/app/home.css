@@ -4,7 +4,9 @@
   background:#080c0b;
   color:#edf1ed;
   overflow:hidden;
-  font-family:Arial,"PingFang SC","Microsoft YaHei",sans-serif
+  font-family:Arial,"PingFang SC","Microsoft YaHei",sans-serif;
+  position:relative;
+  isolation:isolate
 }
 
 .lab-home ::selection {
@@ -193,11 +195,26 @@
 }
 
 .particle-canvas {
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  z-index:2
+  position:fixed;
+  inset:64px 0 0;
+  width:100vw;
+  height:calc(100svh - 64px);
+  z-index:0;
+  pointer-events:none;
+  opacity:.92
+}
+
+.field-vignette {
+  position:fixed;
+  inset:64px 0 0;
+  z-index:0;
+  pointer-events:none;
+  background:linear-gradient(90deg,#080c0b 0%,#080c0be8 31%,transparent 63%),radial-gradient(circle at 72% 48%,transparent 0 26%,#080c0b00 43%,#080c0b99 100%)
+}
+
+.lab-hero,.lab-marquee,.lab-explore,.lab-manifesto {
+  position:relative;
+  z-index:1
 }
 
 .orb-halo {
@@ -814,6 +831,10 @@ html:not(.dark) .lab-home .hero-grid {
   background-image:linear-gradient(#193c260a 1px,transparent 1px),linear-gradient(90deg,#193c260a 1px,transparent 1px)
 }
 
+html:not(.dark) .lab-home .field-vignette {
+  background:linear-gradient(90deg,#eef1e9 0%,#eef1e9e8 31%,transparent 63%),radial-gradient(circle at 72% 48%,transparent 0 26%,#eef1e900 43%,#eef1e999 100%)
+}
+
 html:not(.dark) .lab-home .lab-topline,
 html:not(.dark) .lab-home .hero-description,
 html:not(.dark) .lab-home .section-subtitle,
@@ -904,7 +925,7 @@ html:not(.dark) .lab-home .lab-marquee span {
 
 html:not(.dark) .lab-home .portal-card {
   border-color:#173d2520;
-  background:#f7f8f3;
+  background:#f7f8f3ed;
   box-shadow:0 20px 55px #2945340a
 }
 
@@ -1094,6 +1115,12 @@ html:not(.dark) body:has(.lab-home) footer a {
 }
 
 @media(max-width:767px) {
+  .field-vignette {
+    background:linear-gradient(180deg,#080c0b 0%,#080c0bf2 37%,transparent 62%,#080c0b66 100%)
+  }
+  html:not(.dark) .lab-home .field-vignette {
+    background:linear-gradient(180deg,#eef1e9 0%,#eef1e9f2 37%,transparent 62%,#eef1e966 100%)
+  }
   .lab-hero {
     height:auto;
     min-height:1020px;

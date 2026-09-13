@@ -14,6 +14,8 @@ export default function Home() {
 
   return (
     <div className="lab-home">
+      <ParticleField mode={mode} paused={paused} />
+      <div className="field-vignette" aria-hidden="true" />
       <section className="lab-hero" aria-labelledby="hero-title">
         <div className="hero-grid" aria-hidden="true" />
         <div className="lab-topline"><span><i /> PERSONAL DIGITAL SPACE</span><span>DESIGNED TO EXPLORE · EST. 2026</span></div>
@@ -32,7 +34,6 @@ export default function Home() {
           <div className="orb-halo" aria-hidden="true" />
           <div className="orb-orbit orbit-one" aria-hidden="true" />
           <div className="orb-orbit orbit-two" aria-hidden="true" />
-          <ParticleField mode={mode} paused={paused} />
           <div className="art-coordinate coordinate-top"><span className="tiny-cross">+</span> GENERATIVE OBJECT — 001</div>
           <div className="art-coordinate coordinate-left">探索无界<br /><span>INFINITE POSSIBILITIES</span></div>
           <div className="art-coordinate coordinate-right"><span className="tiny-cross">+</span><br />X / Y / Z</div>

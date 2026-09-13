@@ -10,8 +10,14 @@ uniform float uMode;
 uniform vec2 uPointer;
 uniform float uAspect;
 uniform float uPixelRatio;
+uniform vec2 uOffset;
+uniform float uScale;
+uniform float uScroll;
+uniform float uPointerActive;
 varying float vAlpha;
 varying float vSeed;
+varying float vInfluence;
+float hash(float n) { return fract(sin(n) * 43758.5453123); }
 void main() {
   float t = uTime * .16;
   vec3 p = aPosition;
@@ -22,20 +28,38 @@ void main() {
   vec3 flow = vec3(p.x * 1.15, p.y * .55 + sin(p.x * 4.0 + t * 2.0) * .3, p.z * .6);
   p = mix(p, ring, clamp(uMode, 0.0, 1.0));
   p = mix(p, flow, clamp(uMode - 1.0, 0.0, 1.0));
-  float ry = t + uPointer.x * .3;
+  float ry = t + uPointer.x * .14 + uScroll * .12;
   p.xz = mat2(cos(ry), -sin(ry), sin(ry), cos(ry)) * p.xz;
   float rx = -.24 + uPointer.y * .22;
   p.yz = mat2(cos(rx), -sin(rx), sin(rx), cos(rx)) * p.yz;
   float perspective = 2.9 / (2.9 - p.z);
-  gl_Position = vec4(p.x * perspective * .82 / uAspect, p.y * perspective * .82, 0.0, 1.0);
-  gl_PointSize = (1.0 + aSeed * 1.1) * uPixelRatio * perspective;
-  vAlpha = (.18 + smoothstep(-1.0, 1.0, p.z) * .72) * (.55 + .45 * sin(aSeed * 30.0 + t));
+  vec2 orb = vec2(p.x * perspective * .88 / max(uAspect, 1.1), p.y * perspective * .82);
+  orb = orb * uScale + uOffset;
+
+  float isField = step(.91, aSeed);
+  vec2 dust = vec2(hash(aSeed * 813.7), hash(aSeed * 2137.1)) * 2.0 - 1.0;
+  dust += vec2(sin(t + aSeed * 80.0), cos(t * .7 + aSeed * 53.0)) * .008;
+  vec2 clipPosition = mix(orb, dust, isField);
+
+  vec2 cursor = vec2(uPointer.x, -uPointer.y);
+  vec2 fromCursor = clipPosition - cursor;
+  float cursorDistance = length(fromCursor);
+  float influence = smoothstep(.34, .0, cursorDistance) * uPointerActive;
+  float ripple = sin(cursorDistance * 42.0 - uTime * 3.4) * .014;
+  clipPosition += normalize(fromCursor + vec2(.0001)) * influence * (.07 + ripple);
+  clipPosition.y += sin(uScroll * .8 + aSeed * 4.0) * .012 * (1.0 - isField);
+
+  gl_Position = vec4(clipPosition, 0.0, 1.0);
+  gl_PointSize = (1.0 + aSeed * 1.15 + influence * 2.2) * uPixelRatio * mix(perspective, 1.0, isField);
+  vAlpha = mix((.18 + smoothstep(-1.0, 1.0, p.z) * .72) * (.55 + .45 * sin(aSeed * 30.0 + t)), .18, isField);
   vSeed = aSeed;
+  vInfluence = influence;
 }`
 const fragment = `
 precision mediump float;
 varying float vAlpha;
 varying float vSeed;
+varying float vInfluence;
 uniform float uDark;
 void main() {
   float d = length(gl_PointCoord - .5) * 2.0;
@@ -43,7 +67,8 @@ void main() {
   vec3 lightColor = mix(vec3(.02, .20, .12), vec3(.10, .52, .31), vSeed);
   vec3 darkColor = mix(vec3(.19, .65, .49), vec3(.72, 1.0, .82), vSeed);
   vec3 color = mix(lightColor, darkColor, uDark);
-  gl_FragColor = vec4(color, (1.0 - d * d) * vAlpha * mix(2.35, 1.0, uDark));
+  color = mix(color, mix(vec3(.06, .48, .28), vec3(.82, 1.0, .88), uDark), vInfluence);
+  gl_FragColor = vec4(color, (1.0 - d * d) * (vAlpha + vInfluence * .55) * mix(2.35, 1.0, uDark));
 }`
 
 export function ParticleField({ mode, paused }: { mode: number; paused: boolean }) {
@@ -93,7 +118,7 @@ export function ParticleField({ mode, paused }: { mode: number; paused: boolean 
     gl.vertexAttribPointer(position, 3, gl.FLOAT, false, 16, 0)
     gl.enableVertexAttribArray(seed)
     gl.vertexAttribPointer(seed, 1, gl.FLOAT, false, 16, 12)
-    const uniforms = Object.fromEntries(['uTime', 'uMode', 'uPointer', 'uAspect', 'uPixelRatio', 'uDark'].map(key => [key, gl.getUniformLocation(program, key)]))
+    const uniforms = Object.fromEntries(['uTime', 'uMode', 'uPointer', 'uAspect', 'uPixelRatio', 'uOffset', 'uScale', 'uScroll', 'uPointerActive', 'uDark'].map(key => [key, gl.getUniformLocation(program, key)]))
     gl.enable(gl.BLEND)
     const resize = () => {
       const bounds = canvas.getBoundingClientRect()
@@ -103,17 +128,23 @@ export function ParticleField({ mode, paused }: { mode: number; paused: boolean 
       gl.viewport(0, 0, canvas.width, canvas.height)
       gl.uniform1f(uniforms.uAspect, canvas.width / canvas.height)
       gl.uniform1f(uniforms.uPixelRatio, dpr)
+      const mobile = bounds.width < 768
+      gl.uniform2f(uniforms.uOffset, mobile ? 0 : .39, mobile ? -.34 : .02)
+      gl.uniform1f(uniforms.uScale, mobile ? 1.06 : 1.12)
     }
     const observer = new ResizeObserver(resize)
     observer.observe(canvas)
     resize()
-    const pointer = { x: 0, y: 0 }
+    const pointer = { x: 0, y: 0, active: 0 }
     const onPointer = (event: PointerEvent) => {
       const bounds = canvas.getBoundingClientRect()
       pointer.x = (event.clientX - bounds.left) / bounds.width * 2 - 1
       pointer.y = (event.clientY - bounds.top) / bounds.height * 2 - 1
+      pointer.active = 1
     }
+    const onPointerLeave = () => { pointer.active = 0 }
     window.addEventListener('pointermove', onPointer, { passive: true })
+    document.documentElement.addEventListener('mouseleave', onPointerLeave)
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
     let isDark = document.documentElement.classList.contains('dark')
     const themeObserver = new MutationObserver(() => {
@@ -123,7 +154,7 @@ export function ParticleField({ mode, paused }: { mode: number; paused: boolean 
     let visible = true
     const intersection = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting })
     intersection.observe(canvas)
-    let frame = 0, time = 0, last = 0, currentMode = 0, px = 0, py = 0
+    let frame = 0, time = 0, last = 0, currentMode = 0, px = 0, py = 0, pointerActive = 0
     let blendForDark: boolean | null = null
     const draw = (now: number) => {
       const delta = Math.min((now - last) / 1000, .05)
@@ -134,6 +165,7 @@ export function ParticleField({ mode, paused }: { mode: number; paused: boolean 
         currentMode += (controls.current.mode - currentMode) * (frozen ? 1 : .045)
         px += ((frozen ? 0 : pointer.x) - px) * .04
         py += ((frozen ? 0 : pointer.y) - py) * .04
+        pointerActive += ((frozen ? 0 : pointer.active) - pointerActive) * .08
         gl.clear(gl.COLOR_BUFFER_BIT)
         if (blendForDark !== isDark) {
           gl.blendFunc(gl.SRC_ALPHA, isDark ? gl.ONE : gl.ONE_MINUS_SRC_ALPHA)
@@ -142,6 +174,8 @@ export function ParticleField({ mode, paused }: { mode: number; paused: boolean 
         gl.uniform1f(uniforms.uTime, time)
         gl.uniform1f(uniforms.uMode, currentMode)
         gl.uniform2f(uniforms.uPointer, px, py)
+        gl.uniform1f(uniforms.uPointerActive, pointerActive)
+        gl.uniform1f(uniforms.uScroll, window.scrollY / Math.max(window.innerHeight, 1))
         gl.uniform1f(uniforms.uDark, isDark ? 1 : 0)
         gl.drawArrays(gl.POINTS, 0, count)
       }
@@ -154,6 +188,7 @@ export function ParticleField({ mode, paused }: { mode: number; paused: boolean 
       intersection.disconnect()
       themeObserver.disconnect()
       window.removeEventListener('pointermove', onPointer)
+      document.documentElement.removeEventListener('mouseleave', onPointerLeave)
       gl.deleteBuffer(buffer)
       shaders.forEach(s => gl.deleteShader(s))
       gl.deleteProgram(program)
