@@ -194,6 +194,29 @@
   pointer-events:none
 }
 
+.particle-arena {
+  position:absolute;
+  top:100px;
+  right:5.5%;
+  bottom:130px;
+  width:43%;
+  pointer-events:none
+}
+
+.lab-home:has(.particle-canvas[data-game-state="active"]) .hero-art,
+.lab-home:has(.particle-canvas[data-game-state="recovering"]) .hero-art {
+  opacity:0;
+  transition:opacity 1.5s ease
+}
+
+.hero-art {
+  transition:opacity 2.5s ease
+}
+
+@media(max-width:767px) {
+  .particle-arena { display:none }
+}
+
 .particle-canvas {
   position:fixed;
   inset:64px 0 0;

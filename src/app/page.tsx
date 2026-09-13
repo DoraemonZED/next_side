@@ -1,22 +1,17 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowDown, ArrowRight, ArrowUpRight, Asterisk, AudioLines, Braces, Command, Gamepad2, Pause, Play } from 'lucide-react'
+import { ArrowDown, ArrowRight, ArrowUpRight, Asterisk, AudioLines, Braces, Command, Gamepad2 } from 'lucide-react'
 import { ParticleField } from '@/components/home/ParticleField'
 import './home.css'
 
-const modes = ['SPHERE', 'ORBIT', 'WAVE']
-
 export default function Home() {
-  const [mode, setMode] = useState(0)
-  const [paused, setPaused] = useState(false)
-
   return (
     <div className="lab-home">
-      <ParticleField mode={mode} paused={paused} />
+      <ParticleField />
       <div className="field-vignette" aria-hidden="true" />
       <section className="lab-hero" aria-labelledby="hero-title">
+        <div className="particle-arena" aria-hidden="true" />
         <div className="hero-grid" aria-hidden="true" />
         <div className="lab-topline"><span><i /> PERSONAL DIGITAL SPACE</span><span>DESIGNED TO EXPLORE · EST. 2026</span></div>
         <div className="hero-copy">
@@ -37,14 +32,10 @@ export default function Home() {
           <div className="art-coordinate coordinate-top"><span className="tiny-cross">+</span> GENERATIVE OBJECT — 001</div>
           <div className="art-coordinate coordinate-left">探索无界<br /><span>INFINITE POSSIBILITIES</span></div>
           <div className="art-coordinate coordinate-right"><span className="tiny-cross">+</span><br />X / Y / Z</div>
-          <div className="object-caption"><span className="live-dot" /> {paused ? 'MOTION PAUSED' : 'LIVE GENERATIVE ART'}<span>WEBGL</span></div>
+          <div className="object-caption"><span className="live-dot" /> LIVE GENERATIVE ART<span>WEBGL</span></div>
         </div>
         <div className="hero-bottom">
           <a href="#explore" className="scroll-cue"><ArrowDown size={16} /><span>向下探索 <small>SCROLL TO DISCOVER</small></span></a>
-          <div className="scene-controls" aria-label="粒子形态">
-            {modes.map((label, index) => <button key={label} aria-pressed={mode === index} onClick={() => setMode(index)}><span>0{index + 1}</span> {label}</button>)}
-            <button className="pause-control" onClick={() => setPaused(!paused)} aria-label={paused ? '播放粒子动画' : '暂停粒子动画'} aria-pressed={paused}>{paused ? <Play size={14} /> : <Pause size={14} />}</button>
-          </div>
         </div>
       </section>
 
