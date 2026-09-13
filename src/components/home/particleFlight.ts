@@ -129,13 +129,23 @@ export function flightTargets(game: ParticleFlight, output: Float32Array) {
     for (let i = 0; i <= steps; i++) dot(x1 + (x2 - x1) * i / steps, y1 + (y2 - y1) * i / steps, hostile ? -size : size)
   }
   const plane = (x: number, y: number, hostile = false) => {
-    const outline = [[0, -23], [4, -13], [18, -5], [8, -3], [5, 15], [0, 11], [-5, 15], [-8, -3], [-18, -5], [-4, -13], [0, -23]]
+    // F/A-18-style planform: pointed nose, leading-edge extensions, twin wings and tail fins.
+    const outline = [[0, -29], [5, -19], [11, -14], [32, -5], [39, 3], [22, 1], [13, 8], [12, 21], [24, 27], [13, 27], [7, 18], [5, 31], [0, 35], [-5, 31], [-7, 18], [-13, 27], [-24, 27], [-12, 21], [-13, 8], [-22, 1], [-39, 3], [-32, -5], [-11, -14], [-5, -19], [0, -29]]
     for (let i = 1; i < outline.length; i++) {
       const [ax, ay] = outline[i - 1], [bx, by] = outline[i]
       line(x + ax, y + ay * (hostile ? -1 : 1), x + bx, y + by * (hostile ? -1 : 1), hostile)
     }
-    line(x, y - 14 * (hostile ? -1 : 1), x, y + 10 * (hostile ? -1 : 1), hostile)
-    line(x - 5, y - 2 * (hostile ? -1 : 1), x + 5, y - 2 * (hostile ? -1 : 1), hostile)
+    const flip = hostile ? -1 : 1
+    line(x, y - 20 * flip, x, y + 26 * flip, hostile)
+    // Two wing-mounted missiles, short horizontal stabilizers and twin vertical tails.
+    line(x + 25, y - 1 * flip, x + 48, y + 5 * flip, hostile, 1.35)
+    line(x + 48, y + 5 * flip, x + 42, y + 8 * flip, hostile, 1.35)
+    line(x - 25, y - 1 * flip, x - 48, y + 5 * flip, hostile, 1.35)
+    line(x - 48, y + 5 * flip, x - 42, y + 8 * flip, hostile, 1.35)
+    line(x + 7, y + 18 * flip, x + 18, y + 26 * flip, hostile, 1.35)
+    line(x - 7, y + 18 * flip, x - 18, y + 26 * flip, hostile, 1.35)
+    line(x + 6, y + 19 * flip, x + 13, y + 7 * flip, hostile, 1.35)
+    line(x - 6, y + 19 * flip, x - 13, y + 7 * flip, hostile, 1.35)
   }
   const score = String(game.score).padStart(5, '0')
   for (let d = 0; d < score.length; d++) {

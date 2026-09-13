@@ -1146,8 +1146,9 @@ html:not(.dark) body:has(.lab-home) footer a {
   }
   .lab-hero {
     height:auto;
-    min-height:860px;
-    padding-inline:6%
+    min-height:0;
+    padding-inline:6%;
+    padding-bottom:72px
   }
   .lab-topline {
     padding-top:23px;
@@ -1158,7 +1159,11 @@ html:not(.dark) body:has(.lab-home) footer a {
   }
   .hero-copy {
     padding-top:48px;
-    width:100%
+    width:100%;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center
   }
   .lab-eyebrow {
     font-size:8px;
@@ -1180,7 +1185,8 @@ html:not(.dark) body:has(.lab-home) footer a {
   }
   .hero-actions {
     margin-top:23px;
-    gap:25px
+    gap:25px;
+    justify-content:center
   }
   .lab-button {
     font-size:11px;
@@ -1189,15 +1195,10 @@ html:not(.dark) body:has(.lab-home) footer a {
   }
   .hero-stack {
     margin-top:25px;
-    font-size:6px
+    font-size:6px;
+    justify-content:center
   }
-  .hero-art {
-    width:110%;
-    right:-5%;
-    top:460px;
-    height:440px;
-    opacity:1
-  }
+  .hero-art { display:none }
   .coordinate-top {
     top:5%;
     font-size:7px
