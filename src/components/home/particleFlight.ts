@@ -105,7 +105,7 @@ export class ParticleFlight {
 }
 
 export const FLIGHT_PARTICLES = 2400
-export const BORDER_PARTICLES = 240
+export const BORDER_PARTICLES = 520
 const digits = ['111101101101111', '010110010010111', '111001111100111', '111001111001111', '101101111001001', '111100111001111', '111100111101111', '111001001001001', '111101111101111', '111101111001111']
 
 // The same points that form the background become borders, planes, shots and digits.
@@ -117,20 +117,25 @@ export function flightTargets(game: ParticleFlight, output: Float32Array) {
     output.set([x / game.width, 1 - y / game.height, size, alpha], index++ * 4)
   }
   for (let i = 0; i < BORDER_PARTICLES; i++) {
-    const side = Math.floor(i / 60), t = (i % 60) / 59
-    dot(side === 0 ? t * game.width : side === 1 ? game.width : side === 2 ? (1 - t) * game.width : 0,
-      side === 0 ? 0 : side === 1 ? t * game.height : side === 2 ? game.height : (1 - t) * game.height, 1.3, .34)
+    const side = Math.floor(i / 130), t = (i % 130) / 129
+    const wobble = Math.sin(t * 19 + side * 3.7) * 4 + Math.sin(t * 47 + side) * 2
+    const spread = ((i * 17) % 7 - 3) * .72
+    const x = side === 0 ? t * game.width : side === 1 ? game.width + wobble : side === 2 ? (1 - t) * game.width : wobble
+    const y = side === 0 ? wobble : side === 1 ? t * game.height : side === 2 ? game.height + wobble : (1 - t) * game.height
+    dot(x + (side % 2 ? spread : 0), y + (side % 2 ? 0 : spread), 1.4 + (i % 5) * .16, .26 + (i % 6) * .025)
   }
-  const line = (x1: number, y1: number, x2: number, y2: number, hostile = false) => {
+  const line = (x1: number, y1: number, x2: number, y2: number, hostile = false, size = 1.6) => {
     const steps = Math.ceil(Math.hypot(x2 - x1, y2 - y1) / 2)
-    for (let i = 0; i <= steps; i++) dot(x1 + (x2 - x1) * i / steps, y1 + (y2 - y1) * i / steps, hostile ? -1.6 : 1.6)
+    for (let i = 0; i <= steps; i++) dot(x1 + (x2 - x1) * i / steps, y1 + (y2 - y1) * i / steps, hostile ? -size : size)
   }
   const plane = (x: number, y: number, hostile = false) => {
-    const outline = [[0, -18], [5, -3], [17, 8], [5, 5], [5, 12], [0, 9], [-5, 12], [-5, 5], [-17, 8], [-5, -3], [0, -18]]
+    const outline = [[0, -23], [4, -13], [18, -5], [8, -3], [5, 15], [0, 11], [-5, 15], [-8, -3], [-18, -5], [-4, -13], [0, -23]]
     for (let i = 1; i < outline.length; i++) {
       const [ax, ay] = outline[i - 1], [bx, by] = outline[i]
       line(x + ax, y + ay * (hostile ? -1 : 1), x + bx, y + by * (hostile ? -1 : 1), hostile)
     }
+    line(x, y - 14 * (hostile ? -1 : 1), x, y + 10 * (hostile ? -1 : 1), hostile)
+    line(x - 5, y - 2 * (hostile ? -1 : 1), x + 5, y - 2 * (hostile ? -1 : 1), hostile)
   }
   const score = String(game.score).padStart(5, '0')
   for (let d = 0; d < score.length; d++) {
@@ -141,6 +146,6 @@ export function flightTargets(game: ParticleFlight, output: Float32Array) {
   }
   if (game.running) plane(game.player.x, game.player.y)
   game.enemies.forEach(enemy => plane(enemy.x, enemy.y, true))
-  game.shots.forEach(shot => line(shot.x, shot.y, shot.x - shot.vx * .018, shot.y - shot.vy * .018, shot.hostile))
+  game.shots.forEach(shot => line(shot.x, shot.y, shot.x - shot.vx * .03, shot.y - shot.vy * .03, shot.hostile, 3.5))
   game.sparks.forEach(spark => dot(spark.x, spark.y, 2, spark.life))
 }

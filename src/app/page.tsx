@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowDown, ArrowRight, ArrowUpRight, Asterisk, AudioLines, Braces, Command, Gamepad2 } from 'lucide-react'
+import { ArrowDown, ArrowRight, ArrowUpRight, AudioLines, Braces, Command, Gamepad2 } from 'lucide-react'
 import { ParticleField } from '@/components/home/ParticleField'
 import './home.css'
 
@@ -34,12 +34,7 @@ export default function Home() {
           <div className="art-coordinate coordinate-right"><span className="tiny-cross">+</span><br />X / Y / Z</div>
           <div className="object-caption"><span className="live-dot" /> LIVE GENERATIVE ART<span>WEBGL</span></div>
         </div>
-        <div className="hero-bottom">
-          <a href="#explore" className="scroll-cue"><ArrowDown size={16} /><span>向下探索 <small>SCROLL TO DISCOVER</small></span></a>
-        </div>
       </section>
-
-      <div className="lab-marquee" aria-hidden="true"><div>{[0, 1].map(i => <span key={i}>CREATIVE DEVELOPMENT <Asterisk /> AI AGENTS <Asterisk /> INTERACTIVE EXPERIENCES <Asterisk /> ALWAYS EXPLORING <Asterisk /></span>)}</div></div>
 
       <section id="explore" className="lab-explore" aria-labelledby="explore-title">
         <div className="section-heading"><div><p className="lab-eyebrow">01 / EXPLORE MY UNIVERSE</p><h2 id="explore-title">不止于代码<span>，</span></h2><p className="section-subtitle">一些思考，一些创造，以及无限的好奇心。</p></div><span className="section-aside">THREE PORTALS.<br />ENDLESS POSSIBILITIES. <ArrowDown size={18} /></span></div>

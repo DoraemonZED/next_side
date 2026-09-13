@@ -26,9 +26,9 @@
 .lab-hero {
   max-width:1800px;
   margin:auto;
-  min-height:810px;
-  height:calc(100svh - 64px);
-  max-height:1100px;
+  min-height:650px;
+  height:min(810px,calc(100svh - 64px));
+  max-height:810px;
   position:relative;
   padding:0 5.5%;
   isolation:isolate
@@ -214,7 +214,7 @@
 }
 
 @media(max-width:767px) {
-  .particle-arena { display:none }
+  .particle-arena,.hero-art { display:none }
 }
 
 .particle-canvas {
@@ -1146,7 +1146,7 @@ html:not(.dark) body:has(.lab-home) footer a {
   }
   .lab-hero {
     height:auto;
-    min-height:1020px;
+    min-height:860px;
     padding-inline:6%
   }
   .lab-topline {

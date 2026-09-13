@@ -27,7 +27,7 @@ varying float vInfluence;
 varying float vEnemy;
 float hash(float n) { return fract(sin(n) * 43758.5453123); }
 void main() {
-  float t = uTime * .16;
+  float t = uTime * .10;
   vec3 p = aPosition;
   float wave = sin(p.y * 11.0 + t * 3.0 + aSeed * 2.0) * .065;
   p *= 1.0 + wave;
@@ -44,9 +44,9 @@ void main() {
   vec2 orb = vec2(p.x * perspective * .88 / max(uAspect, 1.1), p.y * perspective * .82);
   orb = orb * uScale + uOffset;
 
-  float isField = step(.91, aSeed);
+  float isField = step(.975, aSeed);
   vec2 dust = vec2(hash(aSeed * 813.7), hash(aSeed * 2137.1)) * 2.0 - 1.0;
-  dust += vec2(sin(t + aSeed * 80.0), cos(t * .7 + aSeed * 53.0)) * .008;
+  dust += vec2(sin(t + aSeed * 80.0), cos(t * .7 + aSeed * 53.0)) * .003;
   vec2 clipPosition = mix(orb, dust, isField);
 
   vec2 cursor = vec2(uPointer.x, -uPointer.y);
@@ -72,7 +72,7 @@ void main() {
   vec2 target = mix(rock, aGame.xy, step(0.0, aGame.w));
   // Preserve the sparse ambient dust while the main particle object transforms.
   float ambient = isField * step(2400.0, aIndex);
-  float blend = max(uGameMix * (1.0 - ambient), (1.0 - step(240.0, aIndex)) * uBoundary);
+  float blend = max(uGameMix * (1.0 - ambient), (1.0 - step(520.0, aIndex)) * uBoundary);
   gl_Position.xy = mix(clipPosition, uArena.xy + target * uArena.zw, blend);
   float targetAlpha = aGame.w < 0.0 ? .22 : aGame.w;
   targetAlpha *= step(0.0, target.x) * step(target.x, 1.0) * step(0.0, target.y) * step(target.y, 1.0);
@@ -237,8 +237,8 @@ export function ParticleField() {
       if (visible && !document.hidden) {
         const frozen = reducedMotion.matches
         if (!frozen) time += delta
-        // Dwell for 12 seconds, then morph for 12 seconds. Complete loop: 72s.
-        const phase = time / 24
+        // Dwell and morph over a restrained 108 second cycle.
+        const phase = time / 36
         const forms = [0, 1, 2]
         const from = Math.floor(phase) % 3
         const progress = Math.max(0, (phase % 1 - .5) * 2)
@@ -270,7 +270,7 @@ export function ParticleField() {
         gl.uniform1f(uniforms.uScroll, window.scrollY / Math.max(window.innerHeight, 1))
         gl.uniform1f(uniforms.uDark, isDark ? 1 : 0)
         gl.uniform1f(uniforms.uGameMix, gameMix)
-        gl.uniform1f(uniforms.uBoundary, isDark && finePointer.matches && canvasBounds.width >= 768 && !frozen ? 1 : 0)
+        gl.uniform1f(uniforms.uBoundary, gameMix)
         gl.uniform1f(uniforms.uGameTime, gameTime)
         gl.drawArrays(gl.POINTS, 0, count)
       }
