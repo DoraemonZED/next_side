@@ -4,7 +4,7 @@ import path from 'path';
 import { runtimeDataDirectory, safePathSegment } from '@/lib/runtimePaths';
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ gameName: string }> }
 ) {
   const { gameName } = await params;

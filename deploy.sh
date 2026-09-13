@@ -93,6 +93,29 @@ git_with_blog_credentials() {
   return "$exit_status"
 }
 
+git_with_game_credentials() {
+  local username token askpass exit_status
+  username="$(env_value GAME_GIT_USERNAME)"
+  token="$(env_value GAME_GIT_TOKEN)"
+
+  [[ -n "$username" && -n "$token" ]] || {
+    echo '配置 GAME_GIT_REPO 时必须同时设置 GAME_GIT_USERNAME 和 GAME_GIT_TOKEN。' >&2
+    return 1
+  }
+
+  askpass="$(mktemp)"
+  chmod 700 "$askpass"
+  printf '%s\n' '#!/bin/sh' 'case "$1" in' '  *Username*|*username*) printf "%s\\n" "$GAME_GIT_USERNAME" ;;' '  *) printf "%s\\n" "$GAME_GIT_TOKEN" ;;' 'esac' > "$askpass"
+
+  if GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0 GAME_GIT_USERNAME="$username" GAME_GIT_TOKEN="$token" git "$@"; then
+    exit_status=0
+  else
+    exit_status=$?
+  fi
+  rm -f "$askpass"
+  return "$exit_status"
+}
+
 # 首次部署可选地初始化博客 Git 仓库；已有 Git 仓库或无仓库配置时不做覆盖。
 initialize_blog_repository() {
   local repository
@@ -110,6 +133,25 @@ initialize_blog_repository() {
   rmdir "$BLOG_DIR" 2>/dev/null || true
   echo '初始化博客 Git 仓库……'
   git_with_blog_credentials clone "$repository" "$BLOG_DIR"
+}
+
+# 首次部署可选地初始化游戏 Git 仓库；已有 Git 仓库或无仓库配置时不做覆盖。
+initialize_game_repository() {
+  local repository
+  repository="$(env_value GAME_GIT_REPO)"
+
+  [[ -n "$repository" ]] || { mkdir -p "$GAME_DIR"; return; }
+  [[ "$repository" == https://* ]] || { echo 'GAME_GIT_REPO 必须是 HTTPS 地址。' >&2; return 1; }
+  [[ -d "$GAME_DIR/.git" ]] && return
+
+  if [[ -d "$GAME_DIR" ]] && [[ -n "$(find "$GAME_DIR" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
+    echo "游戏目录 $GAME_DIR 已存在且不是 Git 仓库；为保护本地数据，未自动覆盖。" >&2
+    return 1
+  fi
+
+  rmdir "$GAME_DIR" 2>/dev/null || true
+  echo '初始化游戏 Git 仓库……'
+  git_with_game_credentials clone "$repository" "$GAME_DIR"
 }
 
 # 使用容器内的 HTTP 请求检查 Next.js 已经就绪。
@@ -193,8 +235,9 @@ main() {
     grep -Eq "^${key}=.+" "$ENV_FILE" || { echo "配置文件缺少非空的 $key。" >&2; exit 1; }
   done
 
-  # ----- 5. 准备持久化目录，并按需克隆博客仓库。 -----
+  # ----- 5. 准备持久化目录，并按需克隆内容仓库。 -----
   initialize_blog_repository
+  initialize_game_repository
   mkdir -p "$BLOG_DIR" "$GAME_DIR" "$DB_DIR"
   BLOG_DIR="$(cd "$BLOG_DIR" && pwd)"
   GAME_DIR="$(cd "$GAME_DIR" && pwd)"

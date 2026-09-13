@@ -60,8 +60,12 @@
    | `BLOG_GIT_USERNAME` | 博客仓库的 GitHub 用户名；配置仓库时必填。 |
    | `BLOG_GIT_TOKEN` | 有该仓库 Contents 读写权限的 GitHub Personal Access Token；切勿提交。 |
    | `BLOG_GIT_AUTO_SYNC` | 设为 `true` 时，每次写博客前先拉取远程更新；默认 `false`。 |
+   | `GAME_GIT_REPO` | 游戏内容 Git 仓库 HTTPS 地址；配置后首次部署会克隆到 `game` 目录。 |
+   | `GAME_GIT_BRANCH` | 游戏仓库分支，默认 `main`。 |
+   | `GAME_GIT_USERNAME` | 游戏仓库 GitHub 用户名；配置仓库时必填。 |
+   | `GAME_GIT_TOKEN` | 有游戏仓库 Contents 读写权限的 GitHub Personal Access Token；切勿提交。 |
 
-   首次部署至少填写 `JWT_SECRET`、`QQ_EMAIL_USER`、`QQ_EMAIL_PASS` 和 `INITIAL_ADMIN_PASSWORD`。不使用博客 Git 同步时，保留所有 `BLOG_GIT_*` 为空即可。
+   首次部署至少填写 `JWT_SECRET`、`QQ_EMAIL_USER`、`QQ_EMAIL_PASS` 和 `INITIAL_ADMIN_PASSWORD`。不使用内容 Git 同步时，可保留相应的 `BLOG_GIT_*` 或 `GAME_GIT_*` 为空。
 
 5. 部署：
 
@@ -87,6 +91,10 @@ bash deploy.sh
 先在 `.env.local` 配置完整的 `BLOG_GIT_REPO`、`BLOG_GIT_USERNAME` 和 `BLOG_GIT_TOKEN`，然后重新执行一次 `bash deploy.sh`，首次会克隆博客仓库到 `blog` 目录。之后在网站后台编辑博客，点击管理员菜单中的“GitHub 同步”，即可将本地博客内容提交并推送到该仓库（提交信息为 `blog update`）。
 
 SQLite 只保存登录账号；博客内容保存在 `blog` 目录的 JSON 与 Markdown 文件中。
+
+### 将游戏上传并同步到 Git
+
+在 `.env.local` 配置 `GAME_GIT_REPO`、`GAME_GIT_USERNAME` 和 `GAME_GIT_TOKEN` 后重新执行一次 `bash deploy.sh`。若博客和游戏仓库共用同一 GitHub PAT，可省略游戏用户名与 Token，系统会复用 `BLOG_GIT_USERNAME`、`BLOG_GIT_TOKEN`。登录后进入“游戏”页面，可上传包含 `index.html` 的 ZIP；系统会保留 `game/<名称>.zip`，并解压到 `game/<名称>/`。点击“同步到 Git”会提交并推送游戏目录、ZIP 与 `games.json`。如遇合并冲突，同步会停止并保留冲突现场，不会丢弃任一版本。
 
 ## 本地开发
 
