@@ -518,6 +518,10 @@
   color:#879b8e
 }
 
+.portal-blog .portal-top>span {
+  margin-left:7px
+}
+
 .portal-top>svg {
   width:16px;
   transition:transform .3s
