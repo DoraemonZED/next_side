@@ -73,13 +73,10 @@ env_value() {
 git_with_blog_credentials() {
   local username token askpass exit_status
   username="$(env_value BLOG_GIT_USERNAME)"
-  [[ -n "$username" ]] || username="$(env_value GITHUB_USERNAME)"
   token="$(env_value BLOG_GIT_TOKEN)"
-  [[ -n "$token" ]] || token="$(env_value GITHUB_PAT)"
-  [[ -n "$username" || -z "$token" ]] || username='x-access-token'
 
   [[ -n "$username" && -n "$token" ]] || {
-    echo '配置 BLOG_GIT_REPO 时必须设置 GITHUB_PAT（也可使用 BLOG_GIT_USERNAME 和 BLOG_GIT_TOKEN）。' >&2
+    echo '配置 BLOG_GIT_REPO 时必须同时设置 BLOG_GIT_USERNAME 和 BLOG_GIT_TOKEN。' >&2
     return 1
   }
 
@@ -99,15 +96,10 @@ git_with_blog_credentials() {
 git_with_game_credentials() {
   local username token askpass exit_status
   username="$(env_value GAME_GIT_USERNAME)"
-  [[ -n "$username" ]] || username="$(env_value GITHUB_USERNAME)"
-  [[ -n "$username" ]] || username="$(env_value BLOG_GIT_USERNAME)"
   token="$(env_value GAME_GIT_TOKEN)"
-  [[ -n "$token" ]] || token="$(env_value GITHUB_PAT)"
-  [[ -n "$token" ]] || token="$(env_value BLOG_GIT_TOKEN)"
-  [[ -n "$username" || -z "$token" ]] || username='x-access-token'
 
   [[ -n "$username" && -n "$token" ]] || {
-    echo '配置 GAME_GIT_REPO 时必须设置 GITHUB_PAT（也可使用 GAME_GIT_USERNAME 和 GAME_GIT_TOKEN）。' >&2
+    echo '配置 GAME_GIT_REPO 时必须同时设置 GAME_GIT_USERNAME 和 GAME_GIT_TOKEN。' >&2
     return 1
   }
 
