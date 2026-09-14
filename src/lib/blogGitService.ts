@@ -20,11 +20,12 @@ function errorDetail(error: unknown): string {
 }
 
 function config() {
+  const token = process.env.BLOG_GIT_TOKEN || process.env.GITHUB_PAT || '';
   return {
     autoSync: process.env.BLOG_GIT_AUTO_SYNC === 'true',
     branch: process.env.BLOG_GIT_BRANCH || 'main',
-    username: process.env.BLOG_GIT_USERNAME || '',
-    token: process.env.BLOG_GIT_TOKEN || '',
+    username: process.env.BLOG_GIT_USERNAME || process.env.GITHUB_USERNAME || (token ? 'x-access-token' : ''),
+    token,
   };
 }
 
@@ -34,7 +35,7 @@ async function hasRepository(): Promise<boolean> {
 
 async function withCredentials<T>(work: (env: NodeJS.ProcessEnv) => Promise<T>): Promise<T> {
   const { username, token } = config();
-  if (!username || !token) throw new BlogGitError('缺少 BLOG_GIT_USERNAME 或 BLOG_GIT_TOKEN 配置');
+  if (!username || !token) throw new BlogGitError('缺少 GITHUB_PAT（或 BLOG_GIT_TOKEN）配置');
 
   const directory = await mkdtemp(path.join(os.tmpdir(), 'blog-git-'));
   const askPass = path.join(directory, 'askpass');

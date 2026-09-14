@@ -20,11 +20,12 @@ function errorDetail(error: unknown): string {
 }
 
 function config() {
+  const token = process.env.GAME_GIT_TOKEN || process.env.GITHUB_PAT || process.env.BLOG_GIT_TOKEN || '';
   return {
     branch: process.env.GAME_GIT_BRANCH || 'main',
     // A single GitHub PAT can manage both content repositories; GAME_GIT_* overrides it when separation is preferred.
-    username: process.env.GAME_GIT_USERNAME || process.env.BLOG_GIT_USERNAME || '',
-    token: process.env.GAME_GIT_TOKEN || process.env.BLOG_GIT_TOKEN || '',
+    username: process.env.GAME_GIT_USERNAME || process.env.GITHUB_USERNAME || process.env.BLOG_GIT_USERNAME || (token ? 'x-access-token' : ''),
+    token,
   };
 }
 
@@ -34,7 +35,7 @@ async function hasRepository(): Promise<boolean> {
 
 async function withCredentials<T>(work: (env: NodeJS.ProcessEnv) => Promise<T>): Promise<T> {
   const { username, token } = config();
-  if (!username || !token) throw new GameGitError('缺少 GAME_GIT_USERNAME / GAME_GIT_TOKEN（可复用 BLOG_GIT_USERNAME / BLOG_GIT_TOKEN）配置');
+  if (!username || !token) throw new GameGitError('缺少 GITHUB_PAT（或 GAME_GIT_TOKEN / BLOG_GIT_TOKEN）配置');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'game-git-'));
   const askPass = path.join(directory, 'askpass');
   await writeFile(askPass, `#!/bin/sh\ncase "$1" in\n  *Username*|*username*) printf '%s\\n' "$GAME_GIT_USERNAME" ;;\n  *) printf '%s\\n' "$GAME_GIT_TOKEN" ;;\nesac\n`, { mode: 0o700 });

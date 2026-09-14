@@ -58,12 +58,14 @@
    | `BLOG_GIT_REPO` | 博客内容 Git 仓库 HTTPS 地址；配置后首次部署会克隆到 `blog` 目录。 |
    | `BLOG_GIT_BRANCH` | 博客仓库分支，默认 `main`。 |
    | `BLOG_GIT_USERNAME` | 博客仓库的 GitHub 用户名；配置仓库时必填。 |
-   | `BLOG_GIT_TOKEN` | 有该仓库 Contents 读写权限的 GitHub Personal Access Token；切勿提交。 |
+   | `GITHUB_PAT` | 博客与游戏仓库共用的 GitHub Personal Access Token；切勿提交。 |
+   | `GITHUB_USERNAME` | 可选的 GitHub 用户名；仅配置 PAT 时会自动使用 `x-access-token`。 |
+   | `BLOG_GIT_TOKEN` | 可选的博客仓库专用 Token，优先于 `GITHUB_PAT`。 |
    | `BLOG_GIT_AUTO_SYNC` | 设为 `true` 时，每次写博客前先拉取远程更新；默认 `false`。 |
    | `GAME_GIT_REPO` | 游戏内容 Git 仓库 HTTPS 地址；配置后首次部署会克隆到 `game` 目录。 |
    | `GAME_GIT_BRANCH` | 游戏仓库分支，默认 `main`。 |
    | `GAME_GIT_USERNAME` | 游戏仓库 GitHub 用户名；配置仓库时必填。 |
-   | `GAME_GIT_TOKEN` | 有游戏仓库 Contents 读写权限的 GitHub Personal Access Token；切勿提交。 |
+   | `GAME_GIT_TOKEN` | 可选的游戏仓库专用 Token，优先于 `GITHUB_PAT`。 |
 
    首次部署至少填写 `JWT_SECRET`、`QQ_EMAIL_USER`、`QQ_EMAIL_PASS` 和 `INITIAL_ADMIN_PASSWORD`。不使用内容 Git 同步时，可保留相应的 `BLOG_GIT_*` 或 `GAME_GIT_*` 为空。
 
