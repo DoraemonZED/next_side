@@ -81,7 +81,7 @@ importers:
         specifier: ^3.4.0
         version: 3.6.0
       vditor:
-        specifier: ^3.11.2
+        specifier: 3.11.3
         version: 3.11.3
       zustand:
         specifier: ^5.0.10
