@@ -72,19 +72,19 @@ env_value() {
 # 为 Git HTTPS 操作临时提供用户名和 PAT；令牌不会写入 Git 远程地址或日志。
 git_with_blog_credentials() {
   local username token askpass exit_status
-  username="$(env_value BLOG_GIT_USERNAME)"
-  token="$(env_value BLOG_GIT_TOKEN)"
+  username='x-access-token'
+  token="$(env_value GITHUB_PAT)"
 
-  [[ -n "$username" && -n "$token" ]] || {
-    echo '配置 BLOG_GIT_REPO 时必须同时设置 BLOG_GIT_USERNAME 和 BLOG_GIT_TOKEN。' >&2
+  [[ -n "$token" ]] || {
+    echo '配置 BLOG_REPO 时必须设置 GITHUB_PAT。' >&2
     return 1
   }
 
   askpass="$(mktemp)"
   chmod 700 "$askpass"
-  printf '%s\n' '#!/bin/sh' 'case "$1" in' '  *Username*|*username*) printf "%s\\n" "$BLOG_GIT_USERNAME" ;;' '  *) printf "%s\\n" "$BLOG_GIT_TOKEN" ;;' 'esac' > "$askpass"
+  printf '%s\n' '#!/bin/sh' 'case "$1" in' '  *Username*|*username*) printf "%s\\n" "$GIT_USERNAME" ;;' '  *) printf "%s\\n" "$GITHUB_PAT" ;;' 'esac' > "$askpass"
 
-  if GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0 BLOG_GIT_USERNAME="$username" BLOG_GIT_TOKEN="$token" git "$@"; then
+  if GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0 GIT_USERNAME="$username" GITHUB_PAT="$token" git "$@"; then
     exit_status=0
   else
     exit_status=$?
@@ -95,19 +95,19 @@ git_with_blog_credentials() {
 
 git_with_game_credentials() {
   local username token askpass exit_status
-  username="$(env_value GAME_GIT_USERNAME)"
-  token="$(env_value GAME_GIT_TOKEN)"
+  username='x-access-token'
+  token="$(env_value GITHUB_PAT)"
 
-  [[ -n "$username" && -n "$token" ]] || {
-    echo '配置 GAME_GIT_REPO 时必须同时设置 GAME_GIT_USERNAME 和 GAME_GIT_TOKEN。' >&2
+  [[ -n "$token" ]] || {
+    echo '配置 GAME_REPO 时必须设置 GITHUB_PAT。' >&2
     return 1
   }
 
   askpass="$(mktemp)"
   chmod 700 "$askpass"
-  printf '%s\n' '#!/bin/sh' 'case "$1" in' '  *Username*|*username*) printf "%s\\n" "$GAME_GIT_USERNAME" ;;' '  *) printf "%s\\n" "$GAME_GIT_TOKEN" ;;' 'esac' > "$askpass"
+  printf '%s\n' '#!/bin/sh' 'case "$1" in' '  *Username*|*username*) printf "%s\\n" "$GIT_USERNAME" ;;' '  *) printf "%s\\n" "$GITHUB_PAT" ;;' 'esac' > "$askpass"
 
-  if GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0 GAME_GIT_USERNAME="$username" GAME_GIT_TOKEN="$token" git "$@"; then
+  if GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0 GIT_USERNAME="$username" GITHUB_PAT="$token" git "$@"; then
     exit_status=0
   else
     exit_status=$?
@@ -119,10 +119,10 @@ git_with_game_credentials() {
 # 首次部署可选地初始化博客 Git 仓库；已有 Git 仓库或无仓库配置时不做覆盖。
 initialize_blog_repository() {
   local repository
-  repository="$(env_value BLOG_GIT_REPO)"
+  repository="$(env_value BLOG_REPO)"
 
   [[ -n "$repository" ]] || { mkdir -p "$BLOG_DIR"; return; }
-  [[ "$repository" == https://* ]] || { echo 'BLOG_GIT_REPO 必须是 HTTPS 地址。' >&2; return 1; }
+  [[ "$repository" == https://* ]] || { echo 'BLOG_REPO 必须是 HTTPS 地址。' >&2; return 1; }
   [[ -d "$BLOG_DIR/.git" ]] && return
 
   if [[ -d "$BLOG_DIR" ]] && [[ -n "$(find "$BLOG_DIR" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
@@ -138,10 +138,10 @@ initialize_blog_repository() {
 # 首次部署可选地初始化游戏 Git 仓库；已有 Git 仓库或无仓库配置时不做覆盖。
 initialize_game_repository() {
   local repository
-  repository="$(env_value GAME_GIT_REPO)"
+  repository="$(env_value GAME_REPO)"
 
   [[ -n "$repository" ]] || { mkdir -p "$GAME_DIR"; return; }
-  [[ "$repository" == https://* ]] || { echo 'GAME_GIT_REPO 必须是 HTTPS 地址。' >&2; return 1; }
+  [[ "$repository" == https://* ]] || { echo 'GAME_REPO 必须是 HTTPS 地址。' >&2; return 1; }
   [[ -d "$GAME_DIR/.git" ]] && return
 
   if [[ -d "$GAME_DIR" ]] && [[ -n "$(find "$GAME_DIR" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then

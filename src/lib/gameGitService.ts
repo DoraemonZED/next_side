@@ -20,11 +20,11 @@ function errorDetail(error: unknown): string {
 }
 
 function config() {
+  const token = process.env.GITHUB_PAT || '';
   return {
     branch: process.env.GAME_GIT_BRANCH || 'main',
-    // A single GitHub PAT can manage both content repositories; GAME_GIT_* overrides it when separation is preferred.
-    username: process.env.GAME_GIT_USERNAME || process.env.BLOG_GIT_USERNAME || '',
-    token: process.env.GAME_GIT_TOKEN || process.env.BLOG_GIT_TOKEN || '',
+    username: token ? 'x-access-token' : '',
+    token,
   };
 }
 
@@ -34,7 +34,7 @@ async function hasRepository(): Promise<boolean> {
 
 async function withCredentials<T>(work: (env: NodeJS.ProcessEnv) => Promise<T>): Promise<T> {
   const { username, token } = config();
-  if (!username || !token) throw new GameGitError('缺少 GAME_GIT_USERNAME / GAME_GIT_TOKEN（可复用 BLOG_GIT_USERNAME / BLOG_GIT_TOKEN）配置');
+  if (!username || !token) throw new GameGitError('缺少 GITHUB_PAT 配置');
   const directory = await mkdtemp(path.join(os.tmpdir(), 'game-git-'));
   const askPass = path.join(directory, 'askpass');
   await writeFile(askPass, `#!/bin/sh\ncase "$1" in\n  *Username*|*username*) printf '%s\\n' "$GAME_GIT_USERNAME" ;;\n  *) printf '%s\\n' "$GAME_GIT_TOKEN" ;;\nesac\n`, { mode: 0o700 });
@@ -73,7 +73,7 @@ async function commitIfNeeded(): Promise<boolean> {
 export const gameGitService = {
   async sync(): Promise<{ message: string; changed: boolean }> {
     const { branch } = config();
-    if (!(await hasRepository())) throw new GameGitError('游戏 Git 仓库尚未初始化，请先配置 GAME_GIT_REPO 后重新部署');
+    if (!(await hasRepository())) throw new GameGitError('游戏 Git 仓库尚未初始化，请先配置 GAME_REPO 后重新部署');
     if (await hasMergeConflict()) throw new GameGitError('游戏仓库存在未解决的合并冲突；请先在服务器处理冲突后再同步');
     const changed = await commitIfNeeded();
     await git(['fetch', 'origin', branch]);
