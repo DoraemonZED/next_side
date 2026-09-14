@@ -40,7 +40,7 @@ export default function Home() {
         <div className="section-heading"><div><p className="lab-eyebrow">01 / EXPLORE MY UNIVERSE</p><h2 id="explore-title">不止于代码<span>，</span></h2><p className="section-subtitle">一些思考，一些创造，以及无限的好奇心。</p></div><span className="section-aside">THREE PORTALS.<br />ENDLESS POSSIBILITIES. <ArrowDown size={18} /></span></div>
         <div className="portal-grid">
           <Link href="/blog" className="portal-card portal-blog">
-            <div className="portal-top"><span>01 / KNOWLEDGE</span><ArrowUpRight /></div>
+            <div className="portal-top"><span>KNOWLEDGE</span><span>01</span></div>
             <div className="portal-visual code-visual" aria-hidden="true"><div className="code-window"><div className="window-dots"><i /><i /><i /><span>thoughts.ts</span></div><pre><span>const</span> curiosity = <b>Infinity</b>;{'\n\n'}<span>while</span> (curiosity) {'{'}{'\n'}  <b>explore</b>();{'\n'}  <b>build</b>();{'\n'}  <b>share</b>();{'\n'}{'}'}<i className="code-cursor" /></pre></div><Braces className="floating-code" /></div>
             <div className="portal-content"><span className="portal-tag">IDEAS WORTH SHARING</span><h3>思考，持续生长 <ArrowRight size={22} /></h3><p>全栈开发、实时通信与 AI Agent 的实践手记。<br />把走过的路，变成下一次出发的地图。</p><span className="portal-link">阅读博客 <ArrowUpRight size={15} /></span></div>
           </Link>
