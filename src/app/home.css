@@ -95,8 +95,10 @@
 }
 
 .hero-copy h1 {
+  font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
   font-size:clamp(58px,6.5vw,106px);
-  font-weight:650;
+  font-weight:600;
+  font-synthesis:none;
   line-height:1.25;
   letter-spacing:-5px;
   margin:24px 0 18px
@@ -104,7 +106,10 @@
 
 .outlined-word {
   color:transparent;
-  -webkit-text-stroke:1px #ccdfd2
+  -webkit-text-fill-color:transparent;
+  -webkit-text-stroke:1px #ccdfd2;
+  paint-order:stroke fill;
+  text-rendering:geometricPrecision
 }
 
 .mint-period {
@@ -420,6 +425,30 @@
   scroll-margin-top:90px
 }
 
+.lab-explore::before {
+  content:"";
+  position:absolute;
+  top:0;
+  left:5.5%;
+  right:5.5%;
+  height:1px;
+  background:linear-gradient(90deg,transparent 0,#93dbb11a 7%,#93dbb15c 31%,#b2f4cc9c 50%,#93dbb15c 69%,#93dbb11a 93%,transparent 100%);
+  box-shadow:0 0 16px #75e3a51b
+}
+
+.lab-explore::after {
+  content:"";
+  position:absolute;
+  top:-4px;
+  left:50%;
+  width:9px;
+  height:9px;
+  border:1px solid #a4eec47a;
+  background:#0d1813;
+  box-shadow:0 0 0 5px #74dca30a,0 0 22px #7ce4aa45;
+  transform:translateX(-50%) rotate(45deg)
+}
+
 .section-heading {
   display:flex;
   justify-content:space-between;
@@ -695,12 +724,19 @@
   z-index:1
 }
 
-.profile-monogram>span {
-  font-size:40px;
+.profile-monogram>.profile-asterisk {
+  width:40px;
+  height:40px;
   color:#d8e6a4;
   position:absolute;
   right:-24px;
   top:0;
+  overflow:visible;
+  stroke:currentColor;
+  stroke-width:2;
+  stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+  transform-origin:center;
   animation:asterisk-spin 25s linear infinite
 }
 
@@ -854,6 +890,17 @@ html:not(.dark) .lab-home .hero-grid {
   background-image:linear-gradient(#193c260a 1px,transparent 1px),linear-gradient(90deg,#193c260a 1px,transparent 1px)
 }
 
+html:not(.dark) .lab-home .lab-explore::before {
+  background:linear-gradient(90deg,transparent 0,#174b2c14 7%,#174b2c45 31%,#176c4975 50%,#174b2c45 69%,#174b2c14 93%,transparent 100%);
+  box-shadow:0 0 14px #176c4914
+}
+
+html:not(.dark) .lab-home .lab-explore::after {
+  border-color:#176c4966;
+  background:#eef1e9;
+  box-shadow:0 0 0 5px #176c4908,0 0 18px #176c4926
+}
+
 html:not(.dark) .lab-home .field-vignette {
   background:linear-gradient(90deg,#eef1e9 0%,#eef1e9e8 31%,transparent 63%),radial-gradient(circle at 72% 48%,transparent 0 26%,#eef1e900 43%,#eef1e999 100%)
 }
@@ -1003,9 +1050,11 @@ html:not(.dark) .lab-home .profile-monogram {
   color:#2d412f
 }
 
-html:not(.dark) .lab-home .profile-monogram>span,
+html:not(.dark) .lab-home .profile-monogram>.profile-asterisk {
+  color:#637d28
+}
+
 html:not(.dark) .lab-home .profile-orbit:after {
-  color:#637d28;
   background:#637d28
 }
 
@@ -1255,6 +1304,10 @@ html:not(.dark) body:has(.lab-home) footer a {
   }
   .lab-explore {
     padding:66px 6%
+  }
+  .lab-explore::before {
+    left:6%;
+    right:6%
   }
   .section-heading {
     margin-bottom:26px

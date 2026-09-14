@@ -51,7 +51,7 @@ export default function Home() {
           </Link>
           <Link href="/resume" className="portal-card portal-about">
             <div className="portal-top"><span>03 / ABOUT ME</span><ArrowUpRight /></div>
-            <div className="portal-visual profile-visual" aria-hidden="true"><div className="profile-orbit" /><span className="profile-monogram">YW<span>✳</span></span><span className="profile-label"><i /> ALWAYS BUILDING</span></div>
+            <div className="portal-visual profile-visual" aria-hidden="true"><div className="profile-orbit" /><span className="profile-monogram">YW<svg className="profile-asterisk" viewBox="0 0 40 40" fill="none"><path d="M20 3V37M3 20H37M8 8L32 32M32 8L8 32" /></svg></span><span className="profile-label"><i /> ALWAYS BUILDING</span></div>
             <div className="portal-content"><span className="portal-tag">THE HUMAN BEHIND THE CODE</span><h3>技术有边界，好奇没有 <ArrowRight size={22} /></h3><p>从后端架构到 AI 应用，从想法到真实交付。<br />认识代码背后的我，以及我的下一站。</p><span className="portal-link">查看简历 <ArrowUpRight size={15} /></span></div>
           </Link>
         </div>

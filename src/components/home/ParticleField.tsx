@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { BORDER_PARTICLES, FLIGHT_PARTICLES, ParticleFlight, flightTargets } from './particleFlight'
+import { FLIGHT_PARTICLES, ParticleFlight, flightTargets } from './particleFlight'
 
 const vertex = `
 attribute vec3 aPosition;
@@ -18,7 +18,6 @@ uniform float uScale;
 uniform float uScroll;
 uniform float uPointerActive;
 uniform float uGameMix;
-uniform float uBoundary;
 uniform vec4 uArena;
 uniform float uGameTime;
 varying float vAlpha;
@@ -62,21 +61,25 @@ void main() {
   vAlpha = mix((.18 + smoothstep(-1.0, 1.0, p.z) * .72) * (.55 + .45 * sin(aSeed * 30.0 + t)), .18, isField);
   vSeed = aSeed;
   vInfluence = influence;
-  // Unreserved points collect into drifting asteroid contours within the arena.
-  float group = floor((aIndex - 2400.0) / 330.0);
-  float angleRock = aIndex * 2.399963;
-  vec2 rock = vec2(fract(hash(group * 8.3) + sin(uGameTime * .12 + group) * .06),
-    1.12 - fract(hash(group * 9.7) + uGameTime * (.017 + hash(group) * .012)) * 1.24);
-  float radius = (.013 + hash(group * 5.7) * .024) * (.85 + sin(angleRock * 5.0 + group) * .15);
-  rock += vec2(cos(angleRock), sin(angleRock)) * radius * (.45 + .55 * hash(aIndex));
+  // Unreserved particles become independent depth-layered stars drifting down the arena.
+  float particleIndex = max(0.0, aIndex - 2400.0);
+  float sizeSeed = hash(particleIndex * 5.73 + 2.1);
+  float depth = sizeSeed * sizeSeed;
+  float fallSpeed = .004 + depth * .038;
+  float sideSpeed = (hash(particleIndex * 3.91 + 8.4) - .5) * (.003 + depth * .018);
+  vec2 rock = vec2(
+    fract(hash(particleIndex * 11.3) + uGameTime * sideSpeed),
+    1.06 - fract(hash(particleIndex * 17.7) + uGameTime * fallSpeed) * 1.12
+  );
+  float sizePulse = .86 + (sin(uGameTime * (.7 + depth) + aSeed * 31.0) * .5 + .5) * .14;
+  float rockSize = (.68 + depth * 3.12) * sizePulse;
+  float rockAlpha = .045 + depth * .39;
   vec2 target = mix(rock, aGame.xy, step(0.0, aGame.w));
-  // Preserve the sparse ambient dust while the main particle object transforms.
-  float ambient = isField * step(2400.0, aIndex);
-  float blend = max(uGameMix * (1.0 - ambient), (1.0 - step(520.0, aIndex)) * uBoundary);
+  float blend = uGameMix;
   gl_Position.xy = mix(clipPosition, uArena.xy + target * uArena.zw, blend);
-  float targetAlpha = aGame.w < 0.0 ? .22 : aGame.w;
+  float targetAlpha = aGame.w < 0.0 ? rockAlpha : aGame.w;
   targetAlpha *= step(0.0, target.x) * step(target.x, 1.0) * step(0.0, target.y) * step(target.y, 1.0);
-  gl_PointSize = mix(gl_PointSize, (aGame.w < 0.0 ? 1.1 : abs(aGame.z)) * uPixelRatio, blend);
+  gl_PointSize = mix(gl_PointSize, (aGame.w < 0.0 ? rockSize : abs(aGame.z)) * uPixelRatio, blend);
   vAlpha = mix(vAlpha, targetAlpha, blend);
   vEnemy = step(aGame.z, -.1) * uGameMix;
 }`
@@ -158,7 +161,7 @@ export function ParticleField() {
     const gameAttribute = gl.getAttribLocation(program, 'aGame')
     gl.enableVertexAttribArray(gameAttribute)
     gl.vertexAttribPointer(gameAttribute, 4, gl.FLOAT, false, 16, 0)
-    const uniforms = Object.fromEntries(['uTime', 'uMode', 'uPointer', 'uAspect', 'uPixelRatio', 'uOffset', 'uScale', 'uScroll', 'uPointerActive', 'uDark', 'uArena', 'uGameMix', 'uBoundary', 'uGameTime'].map(key => [key, gl.getUniformLocation(program, key)]))
+    const uniforms = Object.fromEntries(['uTime', 'uMode', 'uPointer', 'uAspect', 'uPixelRatio', 'uOffset', 'uScale', 'uScroll', 'uPointerActive', 'uDark', 'uArena', 'uGameMix', 'uGameTime'].map(key => [key, gl.getUniformLocation(program, key)]))
     gl.enable(gl.BLEND)
     let canvasBounds = canvas.getBoundingClientRect()
     let arenaBounds = arena.getBoundingClientRect()
@@ -198,10 +201,10 @@ export function ParticleField() {
     const pointer = { x: 0, y: 0, active: 0 }
     const onPointer = (event: PointerEvent) => {
       if (event.pointerType !== 'mouse') { pointer.active = 0; stop(); return }
-      pointer.x = isDark ? 0 : (event.clientX - canvasBounds.left) / canvasBounds.width * 2 - 1
-      pointer.y = isDark ? 0 : (event.clientY - canvasBounds.top) / canvasBounds.height * 2 - 1
-      pointer.active = isDark ? 0 : 1
-      const eligible = isDark && finePointer.matches && !reducedMotion.matches && canvasBounds.width >= 768
+      pointer.x = (event.clientX - canvasBounds.left) / canvasBounds.width * 2 - 1
+      pointer.y = (event.clientY - canvasBounds.top) / canvasBounds.height * 2 - 1
+      pointer.active = 1
+      const eligible = finePointer.matches && !reducedMotion.matches && canvasBounds.width >= 768
       const within = eligible && event.clientX >= arenaBounds.left && event.clientX <= arenaBounds.right
         && event.clientY >= Math.max(canvasBounds.top, arenaBounds.top) && event.clientY <= Math.min(window.innerHeight, arenaBounds.bottom)
         && !(event.target instanceof Element && event.target.closest('a, button, [role="dialog"], [role="menu"]'))
@@ -222,7 +225,6 @@ export function ParticleField() {
     document.documentElement.addEventListener('mouseleave', onPointerLeave)
     const themeObserver = new MutationObserver(() => {
       isDark = document.documentElement.classList.contains('dark')
-      onPointerLeave()
     })
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
     let visible = true
@@ -246,13 +248,13 @@ export function ParticleField() {
         const currentMode = forms[from] + (forms[(from + 1) % 3] - forms[from]) * eased
         if (frozen) game.stop()
         game.update(frozen ? 0 : delta)
-        const targetMix = game.running && isDark ? 1 : 0
+        const targetMix = game.running ? 1 : 0
         gameMix += (targetMix - gameMix) * (1 - Math.exp(-delta * (targetMix ? 1.7 : .9)))
-        if (!isDark || frozen) gameMix = 0
+        if (frozen) gameMix = 0
         if (gameMix > .001) gameTime += delta
         flightTargets(game, targetData)
         gl.bindBuffer(gl.ARRAY_BUFFER, gameBuffer)
-        gl.bufferSubData(gl.ARRAY_BUFFER, 0, gameMix > .001 ? targetData : targetData.subarray(0, BORDER_PARTICLES * 4))
+        if (gameMix > .001) gl.bufferSubData(gl.ARRAY_BUFFER, 0, targetData)
         const gameState = game.running ? 'active' : gameMix > .02 ? 'recovering' : 'idle'
         if (gameState !== lastState) { canvas.dataset.gameState = gameState; lastState = gameState }
         px += ((frozen ? 0 : pointer.x) - px) * .04
@@ -270,7 +272,6 @@ export function ParticleField() {
         gl.uniform1f(uniforms.uScroll, window.scrollY / Math.max(window.innerHeight, 1))
         gl.uniform1f(uniforms.uDark, isDark ? 1 : 0)
         gl.uniform1f(uniforms.uGameMix, gameMix)
-        gl.uniform1f(uniforms.uBoundary, gameMix)
         gl.uniform1f(uniforms.uGameTime, gameTime)
         gl.drawArrays(gl.POINTS, 0, count)
       }

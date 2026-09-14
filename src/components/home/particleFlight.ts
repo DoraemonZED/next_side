@@ -105,10 +105,9 @@ export class ParticleFlight {
 }
 
 export const FLIGHT_PARTICLES = 2400
-export const BORDER_PARTICLES = 520
 const digits = ['111101101101111', '010110010010111', '111001111100111', '111001111001111', '101101111001001', '111100111001111', '111100111101111', '111001001001001', '111101111101111', '111101111001111']
 
-// The same points that form the background become borders, planes, shots and digits.
+// The same points that form the background become planes, shots and score digits.
 export function flightTargets(game: ParticleFlight, output: Float32Array) {
   output.fill(0)
   let index = 0
@@ -116,23 +115,23 @@ export function flightTargets(game: ParticleFlight, output: Float32Array) {
     if (index >= FLIGHT_PARTICLES) return
     output.set([x / game.width, 1 - y / game.height, size, alpha], index++ * 4)
   }
-  for (let i = 0; i < BORDER_PARTICLES; i++) {
-    const side = Math.floor(i / 130), t = (i % 130) / 129
-    const wobble = Math.sin(t * 19 + side * 3.7) * 4 + Math.sin(t * 47 + side) * 2
-    const spread = ((i * 17) % 7 - 3) * .72
-    const x = side === 0 ? t * game.width : side === 1 ? game.width + wobble : side === 2 ? (1 - t) * game.width : wobble
-    const y = side === 0 ? wobble : side === 1 ? t * game.height : side === 2 ? game.height + wobble : (1 - t) * game.height
-    dot(x + (side % 2 ? spread : 0), y + (side % 2 ? 0 : spread), 1.4 + (i % 5) * .16, .26 + (i % 6) * .025)
-  }
   const line = (x1: number, y1: number, x2: number, y2: number, hostile = false) => {
     const steps = Math.ceil(Math.hypot(x2 - x1, y2 - y1) / 2)
     for (let i = 0; i <= steps; i++) dot(x1 + (x2 - x1) * i / steps, y1 + (y2 - y1) * i / steps, hostile ? -1.6 : 1.6)
   }
   const plane = (x: number, y: number, hostile = false) => {
+    if (hostile) {
+      const triangle = [[0, 17], [-15, -11], [15, -11], [0, 17]]
+      for (let i = 1; i < triangle.length; i++) {
+        const [ax, ay] = triangle[i - 1], [bx, by] = triangle[i]
+        line(x + ax, y + ay, x + bx, y + by, true)
+      }
+      return
+    }
     const outline = [[0, -18], [5, -3], [17, 8], [5, 5], [5, 12], [0, 9], [-5, 12], [-5, 5], [-17, 8], [-5, -3], [0, -18]]
     for (let i = 1; i < outline.length; i++) {
       const [ax, ay] = outline[i - 1], [bx, by] = outline[i]
-      line(x + ax, y + ay * (hostile ? -1 : 1), x + bx, y + by * (hostile ? -1 : 1), hostile)
+      line(x + ax, y + ay, x + bx, y + by)
     }
   }
   const score = String(game.score).padStart(5, '0')
