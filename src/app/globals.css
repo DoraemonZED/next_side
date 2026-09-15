@@ -446,6 +446,8 @@
     /* 增强滚动惯性效果 */
     overscroll-behavior-y: auto;
     -webkit-overflow-scrolling: touch;
+    /* Decorative full-bleed layers must not create a second, horizontal page. */
+    overflow-x: clip;
   }
   html {
     /* 响应式根字体：使用 clamp() 实现大小屏平滑缩放
@@ -455,6 +457,7 @@
     /* 优化滚动性能 */
     scroll-behavior: smooth;
     overscroll-behavior-y: none;
+    overflow-x: clip;
   }
 }
 
@@ -895,6 +898,8 @@ html.lenis, html.lenis body {
 .blog-page {
   width: min(100% - 2rem, 1480px);
   padding: clamp(26px, 4.5vw, 72px) 0 clamp(62px, 8vw, 128px);
+  /* Its ambient layers intentionally extend beyond the content box. */
+  overflow-x: clip;
 }
 .blog-page::before { inset: 0 -8vw; opacity: .18; background-size: auto, 64px 64px, 64px 64px; }
 .blog-page::after { inset: 2% -8% 15%; opacity: .56; filter: blur(48px); }
