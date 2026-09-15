@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useUIStore } from "@/store/useUIStore";
 import {
   Dialog,
@@ -21,18 +21,88 @@ export function GlobalUI() {
     confirm, 
     hideConfirm
   } = useUIStore();
+  const [maskPhase, setMaskPhase] = useState<"hidden" | "visible" | "leaving">("hidden");
+  const maskPhaseRef = useRef(maskPhase);
+  const showTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const removeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const visibleSinceRef = useRef(0);
 
-  // All browser-side API calls share this counter, so concurrent requests cannot
-  // prematurely hide the global mask. Existing explicit loading calls compose with it.
-  useLayoutEffect(() => {
-    const nativeFetch = window.fetch;
-    const trackedFetch: typeof window.fetch = async (...args) => {
-      useUIStore.getState().beginLoading();
-      try {
-        return await nativeFetch.apply(window, args);
-      } finally {
-        useUIStore.getState().endLoading();
+  useEffect(() => () => {
+    if (showTimerRef.current) clearTimeout(showTimerRef.current);
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    if (removeTimerRef.current) clearTimeout(removeTimerRef.current);
+  }, []);
+
+  // Avoid a flashing mask for short requests. Once it has appeared, keep it on
+  // screen long enough for the transition to read as intentional, then fade out.
+  useEffect(() => {
+    const showDelay = 180;
+    const minimumVisibleTime = 900;
+    const exitDuration = 620;
+
+    if (isLoading) {
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+      if (removeTimerRef.current) clearTimeout(removeTimerRef.current);
+      hideTimerRef.current = null;
+      removeTimerRef.current = null;
+
+      if (maskPhaseRef.current === "leaving") {
+        maskPhaseRef.current = "visible";
+        setMaskPhase("visible");
       }
+
+      if (maskPhaseRef.current === "hidden" && !showTimerRef.current) {
+        showTimerRef.current = setTimeout(() => {
+          showTimerRef.current = null;
+          visibleSinceRef.current = Date.now();
+          maskPhaseRef.current = "visible";
+          setMaskPhase("visible");
+        }, showDelay);
+      }
+      return;
+    }
+
+    if (showTimerRef.current) {
+      clearTimeout(showTimerRef.current);
+      showTimerRef.current = null;
+    }
+    if (maskPhaseRef.current !== "visible" || hideTimerRef.current) return;
+
+    const remaining = Math.max(0, minimumVisibleTime - (Date.now() - visibleSinceRef.current));
+    hideTimerRef.current = setTimeout(() => {
+      hideTimerRef.current = null;
+      maskPhaseRef.current = "leaving";
+      setMaskPhase("leaving");
+      removeTimerRef.current = setTimeout(() => {
+        removeTimerRef.current = null;
+        maskPhaseRef.current = "hidden";
+        setMaskPhase("hidden");
+      }, exitDuration);
+    }, remaining);
+  }, [isLoading]);
+
+  // Next.js prefetches links as they enter the viewport. Those background RSC
+  // requests should never trigger a blocking request mask while the user scrolls.
+  useEffect(() => {
+    const nativeFetch = window.fetch;
+    const trackedFetch: typeof window.fetch = (...args) => {
+      const [input, init] = args;
+      const request = input instanceof Request ? input : null;
+      const headers = new Headers(init?.headers ?? request?.headers);
+      const url = request?.url ?? (typeof input === "string" ? input : input.toString());
+      const isNextBackgroundRequest =
+        headers.has("RSC") ||
+        headers.has("Next-Router-Prefetch") ||
+        headers.has("Next-Router-State-Tree") ||
+        new URL(url, window.location.href).searchParams.has("_rsc");
+
+      if (isNextBackgroundRequest || new URL(url, window.location.href).pathname === "/api/auth/me") {
+        return nativeFetch.apply(window, args);
+      }
+
+      useUIStore.getState().beginLoading();
+      return nativeFetch.apply(window, args).finally(() => useUIStore.getState().endLoading());
     };
     window.fetch = trackedFetch;
     return () => {
@@ -43,8 +113,8 @@ export function GlobalUI() {
   return (
     <>
       {/* 全屏 Loading - 使用 rem 实现响应式缩放 */}
-      {isLoading && (
-        <div className="request-mask" role="status" aria-live="polite" aria-label="请求处理中">
+      {maskPhase !== "hidden" && (
+        <div className={`request-mask ${maskPhase === "leaving" ? "is-leaving" : ""}`} role="status" aria-live="polite" aria-label="请求处理中">
           <div className="request-mask__glow" aria-hidden="true" />
           <div className="request-mask__panel">
             <div className="request-mask__mark" aria-hidden="true"><i /><i /><i /></div>

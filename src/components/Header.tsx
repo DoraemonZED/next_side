@@ -67,6 +67,10 @@ export function Header({ initialAuthState }: HeaderProps) {
   // 首次渲染时使用 initialAuthState 确保 SSR 和客户端一致
   const displayUser = isMounted ? user : (initialAuthState?.user || user)
   const displayIsAuthenticated = isMounted ? isAuthenticated : (initialAuthState?.isAuthenticated ?? isAuthenticated)
+  // Keep the first client render identical to the server. next-themes restores
+  // the saved preference before hydration, so reading it too early causes a
+  // hydration mismatch on the theme controls.
+  const activeTheme = isMounted ? (theme || 'dark') : 'dark'
 
   // 组件挂载后标记为已挂载，之后完全使用 store 状态
   React.useEffect(() => {
@@ -189,14 +193,14 @@ export function Header({ initialAuthState }: HeaderProps) {
 
         {/* Actions */}
         <div className="flex items-center gap-2 sm:gap-4">
-          <div className="theme-switch" data-theme={theme || 'dark'} role="radiogroup" aria-label="主题选择">
-            <button type="button" role="radio" aria-checked={theme === 'dark' || !theme} title="深色" onClick={() => setTheme('dark')}>
+          <div className="theme-switch" data-theme={activeTheme} role="radiogroup" aria-label="主题选择">
+            <button type="button" role="radio" aria-checked={activeTheme === 'dark'} title="深色" onClick={() => setTheme('dark')}>
               <Moon className="h-3.5 w-3.5" /><span className="sr-only">深色</span>
             </button>
-            <button type="button" role="radio" aria-checked={theme === 'system'} title="自动" onClick={() => setTheme('system')}>
+            <button type="button" role="radio" aria-checked={activeTheme === 'system'} title="自动" onClick={() => setTheme('system')}>
               <Monitor className="h-3.5 w-3.5" /><span className="sr-only">自动跟随系统</span>
             </button>
-            <button type="button" role="radio" aria-checked={theme === 'light'} title="浅色" onClick={() => setTheme('light')}>
+            <button type="button" role="radio" aria-checked={activeTheme === 'light'} title="浅色" onClick={() => setTheme('light')}>
               <Sun className="h-3.5 w-3.5" /><span className="sr-only">浅色</span>
             </button>
           </div>
