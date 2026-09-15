@@ -11,7 +11,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle2, AlertCircle, Info } from "lucide-react";
+import { CheckCircle2, AlertCircle, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function GlobalUI() {
@@ -44,10 +44,14 @@ export function GlobalUI() {
     <>
       {/* 全屏 Loading - 使用 rem 实现响应式缩放 */}
       {isLoading && (
-        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-background/60 backdrop-blur-sm transition-all duration-300 animate-in fade-in">
-          <div className="flex flex-col items-center gap-[1rem]">
-            <Loader2 className="h-[3rem] w-[3rem] animate-spin text-primary" />
-            <p className="text-[0.875rem] font-medium text-primary animate-pulse">正在处理中...</p>
+        <div className="request-mask" role="status" aria-live="polite" aria-label="请求处理中">
+          <div className="request-mask__glow" aria-hidden="true" />
+          <div className="request-mask__panel">
+            <div className="request-mask__mark" aria-hidden="true"><i /><i /><i /></div>
+            <div>
+              <p>REQUEST IN PROGRESS</p>
+              <strong>正在安全处理请求</strong>
+            </div>
           </div>
         </div>
       )}

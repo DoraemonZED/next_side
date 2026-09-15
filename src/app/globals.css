@@ -79,6 +79,8 @@
   --color-info-soft: var(--info-soft);
   --color-violet: var(--violet);
   --color-violet-soft: var(--violet-soft);
+  --color-coral: var(--coral);
+  --color-coral-soft: var(--coral-soft);
   --shadow-card: var(--elevation-card);
   --shadow-float: var(--elevation-float);
 
@@ -153,6 +155,8 @@
   --info-soft: color-mix(in srgb, var(--info) 13%, transparent);
   --violet: #ad8ded;
   --violet-soft: color-mix(in srgb, var(--violet) 12%, transparent);
+  --coral: #ee8d7a;
+  --coral-soft: color-mix(in srgb, var(--coral) 12%, transparent);
   --elevation-card: 0 22px 55px -40px color-mix(in srgb, var(--background) 86%, transparent);
   --elevation-float: 0 34px 80px -48px color-mix(in srgb, var(--background) 92%, transparent);
 }
@@ -198,6 +202,8 @@
   --info-soft: color-mix(in srgb, var(--info) 13%, transparent);
   --violet: #ad8ded;
   --violet-soft: color-mix(in srgb, var(--violet) 12%, transparent);
+  --coral: #ee8d7a;
+  --coral-soft: color-mix(in srgb, var(--coral) 12%, transparent);
   --elevation-card: 0 22px 55px -40px color-mix(in srgb, var(--background) 86%, transparent);
   --elevation-float: 0 34px 80px -48px color-mix(in srgb, var(--background) 92%, transparent);
 }
@@ -946,6 +952,7 @@ html:not(.dark) {
   --primary-900: #04291a;
   --info: #3f8db3;
   --violet: #8067bd;
+  --coral: #b75f4f;
   --secondary: #cbd7c9;
   --secondary-foreground: #263d2d;
   --muted: #cbd7c9;
@@ -973,6 +980,58 @@ html:not(.dark) .game-card { border-color: var(--line); background: linear-gradi
 html:not(.dark) .game-card::before { background-image: linear-gradient(var(--primary-subtle) 1px,transparent 1px),linear-gradient(90deg,var(--primary-subtle) 1px,transparent 1px); }
 html:not(.dark) .game-card:hover { border-color: var(--line-strong); }
 html:not(.dark) .post-detail__head, html:not(.dark) .post-detail__tags { border-color: var(--line); }
+
+/* Colour roles: green signals a committed action; blue carries information,
+   violet structure and coral / amber reserve emphasis.  Pages opt into these
+   roles instead of repainting every component with the brand colour. */
+.site-page { --page-accent: var(--info); --page-accent-soft: var(--info-soft); --page-support: var(--violet); --page-support-soft: var(--violet-soft); }
+.games-page { position: relative; isolation: isolate; }
+.games-page::before { position: absolute; inset: 0; z-index: -1; content: ""; pointer-events: none; opacity: .72; background: radial-gradient(circle at 12% 20%, var(--info-soft), transparent 23%), radial-gradient(circle at 84% 14%, var(--violet-soft), transparent 25%), radial-gradient(circle at 55% 86%, var(--warning-soft), transparent 26%); filter: blur(20px); animation: page-colour-drift 14s ease-in-out infinite alternate; }
+.games-page .site-page__hero { border-color: color-mix(in srgb, var(--info) 26%, var(--line)); }
+.games-page .site-page__hero::after { background: linear-gradient(90deg, var(--info), var(--violet)); }
+.games-page .site-page__eyebrow, .games-page .site-page__title span { color: var(--info); }
+.games-page .site-page__icon { border-color: color-mix(in srgb, var(--info) 46%, var(--line)); color: var(--info); background: radial-gradient(circle, var(--info-soft), transparent 70%); box-shadow: 0 0 52px color-mix(in srgb, var(--info) 15%, transparent); }
+.games-page .game-card { border-color: color-mix(in srgb, var(--info) 24%, var(--line)) !important; background: linear-gradient(145deg, color-mix(in srgb, var(--info-soft) 75%, var(--surface-glass)), color-mix(in srgb, var(--violet-soft) 46%, var(--surface-glass)) 100%) !important; }
+.games-page .game-card:nth-child(3n + 2) { border-color: color-mix(in srgb, var(--violet) 30%, var(--line)) !important; }
+.games-page .game-card:nth-child(3n + 3) { border-color: color-mix(in srgb, var(--warning) 30%, var(--line)) !important; }
+.games-page .game-card::before { background-image: linear-gradient(color-mix(in srgb, var(--info) 14%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--violet) 14%, transparent) 1px, transparent 1px); }
+.games-page .game-card:hover { border-color: var(--info) !important; box-shadow: 0 28px 68px -44px color-mix(in srgb, var(--info) 70%, transparent); }
+.games-page .game-card:nth-child(3n + 2):hover { border-color: var(--violet) !important; box-shadow: 0 28px 68px -44px color-mix(in srgb, var(--violet) 70%, transparent); }
+.games-page .game-card:nth-child(3n + 3):hover { border-color: var(--warning) !important; box-shadow: 0 28px 68px -44px color-mix(in srgb, var(--warning) 70%, transparent); }
+.games-page .game-card [data-slot="button"] { border-color: color-mix(in srgb, var(--info) 34%, var(--line)); background: var(--info-soft); color: var(--info); transition: transform .28s cubic-bezier(.2,.8,.2,1), background .28s ease, color .28s ease, box-shadow .28s ease; }
+.games-page .game-card:nth-child(3n + 2) [data-slot="button"] { border-color: color-mix(in srgb, var(--violet) 34%, var(--line)); background: var(--violet-soft); color: var(--violet); }
+.games-page .game-card:nth-child(3n + 3) [data-slot="button"] { border-color: color-mix(in srgb, var(--warning) 34%, var(--line)); background: var(--warning-soft); color: var(--warning); }
+.games-page .game-card [data-slot="button"]:hover { color: var(--primary-foreground); background: var(--info); box-shadow: 0 10px 24px -13px color-mix(in srgb, var(--info) 78%, transparent); transform: translateY(-2px); }
+
+.blog-sidebar__protocol { border-color: color-mix(in srgb, var(--violet) 30%, var(--line)) !important; background: linear-gradient(145deg, var(--violet-soft), var(--surface-glass)) !important; }
+.blog-sidebar__protocol > svg, .blog-sidebar__protocol > span { color: var(--violet) !important; }
+.blog-sidebar__protocol::after { border-color: color-mix(in srgb, var(--violet) 36%, var(--line)) !important; }
+.blog-category-list__title svg, .blog-category-list__item.is-active [data-slot="button"] > span:last-child { color: var(--info) !important; }
+.blog-category-list__item.is-active [data-slot="button"] { background: var(--info-soft) !important; }
+.blog-category-list__item.is-active [data-slot="button"] > span:last-child { border-color: color-mix(in srgb, var(--info) 34%, var(--line)) !important; background: color-mix(in srgb, var(--info-soft) 72%, transparent) !important; }
+.blog-feed__masthead::after { background: linear-gradient(90deg, var(--info), var(--violet), var(--warning)) !important; }
+.blog-feed__masthead small, .blog-post-card__read, .blog-post-card__meta svg { color: var(--info) !important; }
+.blog-post-card:nth-child(3n + 2)::before { background: linear-gradient(105deg, var(--violet-soft), transparent 58%) !important; }
+.blog-post-card:nth-child(3n + 3)::before { background: linear-gradient(105deg, var(--warning-soft), transparent 58%) !important; }
+.blog-post-card:nth-child(3n + 2):hover { border-color: color-mix(in srgb, var(--violet) 42%, var(--line)) !important; }
+.blog-post-card:nth-child(3n + 3):hover { border-color: color-mix(in srgb, var(--warning) 42%, var(--line)) !important; }
+.blog-post-card:nth-child(3n + 2) .blog-post-card__index strong, .blog-post-card:nth-child(3n + 2) .blog-post-card__title a:hover { color: var(--violet) !important; }
+.blog-post-card:nth-child(3n + 3) .blog-post-card__index strong, .blog-post-card:nth-child(3n + 3) .blog-post-card__title a:hover { color: var(--warning) !important; }
+
+.resume-shell { --resume-acid: var(--warning); --resume-cyan: var(--info); --resume-soft: var(--info-soft); --resume-subtle: var(--violet-soft); background: radial-gradient(circle at 6% 5%, var(--info-soft), transparent 26%), radial-gradient(circle at 91% 12%, var(--violet-soft), transparent 25%), radial-gradient(circle at 64% 76%, var(--warning-soft), transparent 30%), var(--resume-paper); }
+.resume-hero__console .resume-console__code span { color: var(--violet); }.resume-hero__console .resume-console__code b { color: var(--info); }.resume-hero__console .resume-console__code strong { color: var(--warning); }
+.resume-capabilities article:nth-child(3n + 2) .resume-capability__icon { color: var(--violet); background: var(--violet-soft); }.resume-capabilities article:nth-child(3n + 3) .resume-capability__icon { color: var(--warning); background: var(--warning-soft); }
+.resume-capabilities article:nth-child(3n + 2):hover { border-color: color-mix(in srgb, var(--violet) 58%, var(--line)); }.resume-capabilities article:nth-child(3n + 3):hover { border-color: color-mix(in srgb, var(--warning) 58%, var(--line)); }
+
+.request-mask { position: fixed; inset: 0; z-index: 250; display: grid; place-items: center; overflow: hidden; background: color-mix(in srgb, var(--background) 76%, transparent); backdrop-filter: blur(12px) saturate(1.15); animation: request-mask-in .28s cubic-bezier(.2,.8,.2,1) both; }
+.request-mask__glow { position: absolute; width: min(58vw, 720px); aspect-ratio: 1; border-radius: 50%; background: conic-gradient(from 45deg, var(--info-soft), var(--violet-soft), var(--warning-soft), var(--primary-soft), var(--info-soft)); filter: blur(44px); animation: request-glow-spin 5s linear infinite; }
+.request-mask__panel { position: relative; display: flex; align-items: center; gap: 16px; min-width: min(310px, calc(100vw - 36px)); padding: 17px 21px; border: 1px solid color-mix(in srgb, var(--info) 31%, var(--line)); border-radius: 16px; background: color-mix(in srgb, var(--surface-raised) 90%, transparent); box-shadow: 0 30px 90px -42px color-mix(in srgb, var(--info) 52%, transparent); animation: request-panel-in .42s cubic-bezier(.2,.8,.2,1) both; }
+.request-mask__mark { position: relative; display: grid; width: 38px; height: 38px; flex: none; place-items: center; border: 1px solid color-mix(in srgb, var(--violet) 42%, var(--line)); border-radius: 12px; background: linear-gradient(135deg, var(--info-soft), var(--violet-soft)); }.request-mask__mark::before { width: 13px; height: 13px; border: 2px solid var(--info); border-right-color: var(--warning); border-bottom-color: var(--violet); border-radius: 50%; content: ""; animation: request-spinner .86s linear infinite; }.request-mask__mark i { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: var(--warning); opacity: .85; }.request-mask__mark i:nth-child(1) { top: 6px; right: 6px; }.request-mask__mark i:nth-child(2) { bottom: 7px; left: 7px; background: var(--info); }.request-mask__mark i:nth-child(3) { right: 7px; bottom: 7px; background: var(--violet); }
+.request-mask__panel p { margin: 0 0 4px; color: var(--info); font: 700 8px/1 var(--font-geist-mono); letter-spacing: .14em; }.request-mask__panel strong { color: var(--foreground); font-size: 13px; font-weight: 650; }
+@keyframes page-colour-drift { from { transform: translate3d(-1%, -1%, 0) scale(1); } to { transform: translate3d(1%, 1%, 0) scale(1.035); } }
+@keyframes request-mask-in { from { opacity: 0; } to { opacity: 1; } } @keyframes request-panel-in { from { opacity: 0; transform: translateY(10px) scale(.96); } to { opacity: 1; transform: none; } } @keyframes request-glow-spin { to { transform: rotate(1turn); } } @keyframes request-spinner { to { transform: rotate(1turn); } }
+
+@media (prefers-reduced-motion: reduce) { .games-page::before, .request-mask__glow, .request-mask__mark::before { animation: none; } }
 
 @media (max-width: 640px) {
   .site-header__brand i { display: none; }

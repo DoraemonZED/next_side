@@ -1,5 +1,8 @@
 .lab-home {
-  --mint:#b7f7cf;
+  --mint:var(--primary);
+  --portal-blue:var(--info);
+  --portal-violet:var(--violet);
+  --portal-amber:var(--warning);
   --dim:#8d9691;
   background:#080c0b;
   color:#edf1ed;
@@ -1313,3 +1316,21 @@ html:not(.dark) .lab-home .lab-manifesto h2 span {
     scroll-behavior:auto!important
   }
 }
+
+/* Keep the colour role overrides after responsive legacy rules. */
+.portal-card { --portal-accent:var(--mint); --portal-soft:var(--primary-subtle); }
+.portal-blog { --portal-accent:var(--portal-blue); --portal-soft:var(--info-soft); }
+.portal-games { --portal-accent:var(--portal-violet); --portal-soft:var(--violet-soft); }
+.portal-about { --portal-accent:var(--portal-amber); --portal-soft:var(--warning-soft); }
+.portal-card { border-color:color-mix(in srgb,var(--portal-accent) 22%,rgba(255,255,255,.11)); background:linear-gradient(155deg,color-mix(in srgb,var(--portal-soft) 68%,#0e1411),#0e1411 64%); }
+.portal-card::before { position:absolute; inset:0; pointer-events:none; content:""; opacity:.68; background:radial-gradient(circle at 84% 9%,color-mix(in srgb,var(--portal-accent) 20%,transparent),transparent 29%); transition:opacity .42s ease; }
+.portal-card:hover { border-color:color-mix(in srgb,var(--portal-accent) 58%,transparent); box-shadow:0 24px 70px -44px color-mix(in srgb,var(--portal-accent) 85%,transparent); }
+.portal-card:hover::before { opacity:1; }
+.portal-card .portal-top>svg,.portal-card .portal-tag,.portal-card .portal-link { color:var(--portal-accent); }
+.portal-card .portal-link { border-bottom-color:color-mix(in srgb,var(--portal-accent) 42%,transparent); }
+.portal-card .portal-content h3 svg { color:var(--portal-accent); }
+.portal-blog .code-window { border-color:color-mix(in srgb,var(--portal-blue) 38%,transparent); box-shadow:0 18px 60px -42px color-mix(in srgb,var(--portal-blue) 85%,transparent); }
+.portal-games .game-ring { border-color:color-mix(in srgb,var(--portal-violet) 48%,transparent); box-shadow:0 0 0 18px color-mix(in srgb,var(--portal-violet) 7%,transparent),0 0 45px color-mix(in srgb,var(--portal-violet) 30%,transparent); }.portal-games .game-controller,.portal-games .game-plus { color:var(--portal-violet); }.portal-games .game-label { color:var(--portal-amber); }
+.portal-about .profile-monogram,.portal-about .profile-label { color:var(--portal-amber); }.portal-about .profile-orbit { border-color:color-mix(in srgb,var(--portal-amber) 43%,transparent); box-shadow:0 0 45px color-mix(in srgb,var(--portal-amber) 18%,transparent); }
+.lab-manifesto { background:radial-gradient(ellipse at 22% 100%,var(--info-soft),transparent 39%),radial-gradient(ellipse at 78% 0%,var(--violet-soft),transparent 36%),radial-gradient(ellipse at 50% 100%,var(--warning-soft),transparent 54%) !important; }.lab-manifesto h2 span { color:var(--portal-violet) !important; }.manifesto-symbol { color:var(--portal-amber) !important; }
+html:not(.dark) .portal-card { background:linear-gradient(155deg,color-mix(in srgb,var(--portal-soft) 72%,var(--surface-raised)),var(--surface-raised) 70%); }
