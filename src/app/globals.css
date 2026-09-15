@@ -1011,12 +1011,16 @@ html:not(.dark) .post-detail__head, html:not(.dark) .post-detail__tags { border-
 .blog-category-list__item.is-active [data-slot="button"] > span:last-child { border-color: color-mix(in srgb, var(--info) 34%, var(--line)) !important; background: color-mix(in srgb, var(--info-soft) 72%, transparent) !important; }
 .blog-feed__masthead::after { background: linear-gradient(90deg, var(--info), var(--violet), var(--warning)) !important; }
 .blog-feed__masthead small, .blog-post-card__read, .blog-post-card__meta svg { color: var(--info) !important; }
-.blog-post-card:nth-child(3n + 2)::before { background: linear-gradient(105deg, var(--violet-soft), transparent 58%) !important; }
-.blog-post-card:nth-child(3n + 3)::before { background: linear-gradient(105deg, var(--warning-soft), transparent 58%) !important; }
-.blog-post-card:nth-child(3n + 2):hover { border-color: color-mix(in srgb, var(--violet) 42%, var(--line)) !important; }
-.blog-post-card:nth-child(3n + 3):hover { border-color: color-mix(in srgb, var(--warning) 42%, var(--line)) !important; }
-.blog-post-card:nth-child(3n + 2) .blog-post-card__index strong, .blog-post-card:nth-child(3n + 2) .blog-post-card__title a:hover { color: var(--violet) !important; }
-.blog-post-card:nth-child(3n + 3) .blog-post-card__index strong, .blog-post-card:nth-child(3n + 3) .blog-post-card__title a:hover { color: var(--warning) !important; }
+.blog-post-card::before { background: linear-gradient(105deg, color-mix(in srgb, var(--info-soft) 76%, var(--violet-soft)), transparent 58%) !important; }
+.blog-post-card:hover { border-color: color-mix(in srgb, var(--info) 34%, var(--line)) !important; }
+.blog-post-card__index strong, .blog-post-card__title a:hover { color: var(--info) !important; }
+.blog-filters { border-color: color-mix(in srgb, var(--info) 20%, var(--line)); background: linear-gradient(110deg, color-mix(in srgb, var(--info-soft) 38%, var(--surface-raised)), color-mix(in srgb, var(--violet-soft) 24%, var(--surface-raised))); }
+.blog-filters__search:focus-visible { border-color: color-mix(in srgb, var(--info) 45%, var(--line)) !important; background: color-mix(in srgb, var(--info-soft) 58%, transparent) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--info) 10%, transparent) !important; }
+.blog-filters__control { color: var(--ink-muted) !important; transition: color .22s ease, background .22s ease, border-color .22s ease, transform .22s cubic-bezier(.2,.8,.2,1) !important; }
+.blog-filters__control[data-sort="date"] { color: var(--info) !important; }.blog-filters__control[data-sort="views"] { color: var(--violet) !important; }.blog-filters__control[data-sort="likes"] { color: var(--warning) !important; }.blog-filters__control[data-sort-order="asc"] { color: var(--coral) !important; }.blog-filters__control[data-sort-order="desc"] { color: var(--info) !important; }
+.blog-filters__control:hover { border-color: color-mix(in srgb, var(--violet) 38%, var(--line)) !important; background: var(--violet-soft) !important; color: var(--violet) !important; transform: translateY(-1px); }
+[data-slot="dropdown-menu-content"] [data-sort="date"] { color: var(--info); } [data-slot="dropdown-menu-content"] [data-sort="views"] { color: var(--violet); } [data-slot="dropdown-menu-content"] [data-sort="likes"] { color: var(--warning); }
+.blog-post-card__meta span:first-child { color: var(--info); }.blog-post-card__meta span:first-child svg { color: var(--info) !important; }.blog-post-card__meta span:last-child { color: var(--ink-subtle); }.blog-post-card__meta span:last-child svg { color: var(--violet) !important; }
 
 .resume-shell { --resume-acid: var(--warning); --resume-cyan: var(--info); --resume-soft: var(--info-soft); --resume-subtle: var(--violet-soft); background: radial-gradient(circle at 6% 5%, var(--info-soft), transparent 26%), radial-gradient(circle at 91% 12%, var(--violet-soft), transparent 25%), radial-gradient(circle at 64% 76%, var(--warning-soft), transparent 30%), var(--resume-paper); }
 .resume-hero__console .resume-console__code span { color: var(--violet); }.resume-hero__console .resume-console__code b { color: var(--info); }.resume-hero__console .resume-console__code strong { color: var(--warning); }

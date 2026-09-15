@@ -73,7 +73,7 @@ export function PostFilters() {
       <div className="flex items-center gap-2 w-full sm:w-auto">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="blog-filters__control h-10 gap-2 min-w-[140px] justify-between">
+            <Button variant="outline" data-sort={currentSortBy} className="blog-filters__control h-10 gap-2 min-w-[140px] justify-between">
               <span className="flex items-center gap-2">
                 <currentSortOption.icon className="h-4 w-4" />
                 {currentSortOption.label}
@@ -84,6 +84,7 @@ export function PostFilters() {
             {sortOptions.map((option) => (
               <DropdownMenuItem
                 key={option.value}
+                data-sort={option.value}
                 onClick={() => updateFilters({ sortBy: option.value })}
                 className={currentSortBy === option.value ? "bg-accent" : ""}
               >
@@ -98,6 +99,7 @@ export function PostFilters() {
           variant="outline"
           size="icon"
           className="blog-filters__control h-10 w-10 shrink-0"
+          data-sort-order={currentSortOrder}
           onClick={() => updateFilters({ sortOrder: currentSortOrder === "asc" ? "desc" : "asc" })}
           title={currentSortOrder === "asc" ? "正序" : "倒序"}
         >

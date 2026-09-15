@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { useState, type CSSProperties, type FormEvent } from "react"
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -428,14 +428,14 @@ export default function ResumePage() {
                     </div>
                     <div className="resume-stack__items">
                       {items.map((skill) => (
-                        <div key={skill.name}>
+                        <div key={skill.name} style={{ "--skill-level": `${skill.level}%` } as CSSProperties}>
                           <div className="resume-stack__skill-copy">
                             <p><strong>{skill.name}</strong></p>
                             <small>{skill.note}</small>
                           </div>
                           <div className="resume-stack__skill-progress">
                             <span>{skill.level}%</span>
-                            <div><i style={{ width: skill.level + "%" }} /></div>
+                            <div><i /></div>
                           </div>
                         </div>
                       ))}
