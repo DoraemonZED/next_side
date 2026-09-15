@@ -1,178 +1,76 @@
 'use client'
 
-import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
-import Vditor from 'vditor'
-import 'vditor/dist/index.css'
-import { useTheme } from 'next-themes'
+import { useCallback, useMemo, useRef, useState } from 'react'
+import { MDXEditor, type MDXEditorMethods, BlockTypeSelect, BoldItalicUnderlineToggles, CodeToggle, CreateLink, InsertCodeBlock, InsertTable, ListsToggle, UndoRedo, codeBlockPlugin, codeMirrorPlugin, headingsPlugin, imagePlugin, linkPlugin, listsPlugin, markdownShortcutPlugin, quotePlugin, tablePlugin, thematicBreakPlugin, toolbarPlugin } from '@mdxeditor/editor'
+import '@mdxeditor/editor/style.css'
+import { FolderOpen, Save } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { BlogAssetManager, replaceRelativeAssetReferences } from '@/components/BlogAssetManager'
 
 interface BlogEditorProps {
   initialValue: string
-  onChange?: (value: string) => void
-  onSave?: () => void
+  onChange: (value: string) => void
+  onSave: () => void
   isSaving?: boolean
+  category: string
+  postId: string
 }
 
-export interface BlogEditorRef {
-  getValue: () => string
+const imagePreviewUrl = (source: string, category: string, postId: string) => {
+  if (!source.startsWith('./')) return source
+  const filename = source.slice(2)
+  if (!filename || filename.includes('/')) return source
+  return `/blog/${encodeURIComponent(category)}/${encodeURIComponent(postId)}/${filename}`
 }
 
-export const BlogEditor = forwardRef<BlogEditorRef, BlogEditorProps>(
-  function BlogEditor({ initialValue, onChange, onSave, isSaving }, ref) {
-  const editorRef = useRef<HTMLDivElement>(null)
-  const vditorRef = useRef<Vditor | null>(null)
-  const onSaveRef = useRef(onSave)
-  const { resolvedTheme } = useTheme()
+const editorPlugins = (openAssets: () => void, category: string, postId: string) => [
+  headingsPlugin(), listsPlugin(), quotePlugin(), linkPlugin(), tablePlugin(), thematicBreakPlugin(),
+  imagePlugin({ imagePreviewHandler: async (source) => imagePreviewUrl(source, category, postId) }),
+  codeBlockPlugin({ defaultCodeBlockLanguage: 'text' }),
+  codeMirrorPlugin({ codeBlockLanguages: { text: 'Plain text', javascript: 'JavaScript', typescript: 'TypeScript', java: 'Java', json: 'JSON', bash: 'Bash', css: 'CSS', html: 'HTML', sql: 'SQL' } }),
+  markdownShortcutPlugin(),
+  toolbarPlugin({
+    toolbarClassName: 'article-editor__toolbar',
+    toolbarContents: () => <>
+      <UndoRedo /> <BlockTypeSelect /> <BoldItalicUnderlineToggles /> <CodeToggle />
+      <CreateLink /> <ListsToggle /> <InsertCodeBlock /> <InsertTable />
+      <button type="button" className="article-editor__file-button" onClick={openAssets} title="管理文章文件" aria-label="管理文章文件"><FolderOpen className="h-4 w-4" /></button>
+    </>,
+  }),
+]
 
-  // 保持 onSave 回调最新
-  useEffect(() => {
-    onSaveRef.current = onSave
-  }, [onSave])
+export function BlogEditor({ initialValue, onChange, onSave, isSaving = false, category, postId }: BlogEditorProps) {
+  const editorRef = useRef<MDXEditorMethods>(null)
+  const latestMarkdown = useRef(initialValue)
+  const [assetsOpen, setAssetsOpen] = useState(false)
+  const handleChange = useCallback((markdown: string) => { latestMarkdown.current = markdown; onChange(markdown) }, [onChange])
+  const insertAssetReference = useCallback((markdown: string) => editorRef.current?.insertMarkdown(markdown), [])
+  const replaceAssetReferences = useCallback((from: string, to: string) => {
+    const next = replaceRelativeAssetReferences(latestMarkdown.current, from, to)
+    latestMarkdown.current = next
+    editorRef.current?.setMarkdown(next)
+    onChange(next)
+  }, [onChange])
+  const plugins = useMemo(() => editorPlugins(() => setAssetsOpen(true), category, postId), [category, postId])
 
-  // 暴露方法给父组件
-  useImperativeHandle(ref, () => ({
-    getValue: () => vditorRef.current?.getValue() || ''
-  }), [])
-
-  useEffect(() => {
-    if (editorRef.current && !vditorRef.current) {
-      // 检测是否为移动端小屏
-      const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-
-      // 自定义保存按钮
-      const saveButton = {
-        name: 'save',
-        tip: '保存 (Ctrl+S)',
-        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>',
-        click: () => {
-          onSaveRef.current?.()
-        },
-      }
-
-      const toolbar = isMobile
-        ? [
-            saveButton,
-            '|',
-            'emoji',
-            'headings',
-            'bold',
-            'italic',
-            'strike',
-            'link',
-            '|',
-            'check',
-            'list',
-            'ordered-list',
-            '|',
-            'undo',
-            'redo',
-            '|',
-            {
-              name: 'more',
-              toolbar: [
-                'outdent',
-                'indent',
-                'quote',
-                'line',
-                'code',
-                'inline-code',
-                'table',
-                'export',
-              ],
-            },
-          ]
-        : [
-            saveButton,
-            '|',
-            'emoji',
-            'headings',
-            'bold',
-            'italic',
-            'strike',
-            'link',
-            '|',
-            'list',
-            'ordered-list',
-            'check',
-            'outdent',
-            'indent',
-            '|',
-            'quote',
-            'line',
-            'code',
-            'inline-code',
-            '|',
-            'undo',
-            'redo',
-            '|',
-            'table',
-            'export',
-            'outline',
-          ]
-
-      const vditorInstance = new Vditor(editorRef.current, {
-        minHeight: 300,
-        value: initialValue,
-        mode: 'ir',
-        cdn: '/libs/vditor',
-        theme: resolvedTheme === 'dark' ? 'dark' : 'classic',
-        toolbar,
-        toolbarConfig: {
-          pin: true,
-        },
-        preview: {
-          theme: {
-            current: resolvedTheme === 'dark' ? 'dark' : 'light',
-          },
-          hljs: {
-            style: resolvedTheme === 'dark' ? 'github-dark' : 'github',
-          },
-        },
-        cache: {
-          enable: false,
-        },
-        input: (value) => {
-          onChange?.(value)
-        },
-      })
-      vditorRef.current = vditorInstance
-    }
-
-    return () => {
-      if (vditorRef.current) {
-        try {
-          if (vditorRef.current.vditor && vditorRef.current.vditor.element) {
-            vditorRef.current.destroy();
-          }
-        } catch (e) {
-          console.warn('Vditor destroy cleanup:', e);
-        }
-        vditorRef.current = null;
-      }
-    }
-  }, []) // 只在挂载时初始化
-
-  useEffect(() => {
-    // 确保 vditor 实例及其内部对象已初始化
-    if (vditorRef.current && (vditorRef.current as any).vditor) {
-      vditorRef.current.setTheme(
-        resolvedTheme === 'dark' ? 'dark' : 'classic',
-        resolvedTheme === 'dark' ? 'dark' : 'light',
-        resolvedTheme === 'dark' ? 'github-dark' : 'github'
-      );
-    }
-  }, [resolvedTheme]) // 当主题变化时仅更新主题，不重新创建实例
-
-  // 添加 Ctrl+S 快捷键保存
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault()
-        onSaveRef.current?.()
-      }
-    }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [])
-
-  return <div ref={editorRef} className="mt-4" />
-})
+  return (
+    <section className="article-editor" aria-label="Markdown 编辑器">
+      <MDXEditor
+        ref={editorRef}
+        markdown={initialValue}
+        onChange={handleChange}
+        plugins={plugins}
+        contentEditableClassName="article-editor__content article-markdown"
+        className="article-editor__root"
+      />
+      <div className="article-editor__footer">
+        <span>内容将保存为 Markdown</span>
+        <Button type="button" size="sm" onClick={onSave} disabled={isSaving} className="article-editor__save">
+          <Save className="h-3.5 w-3.5" />
+          {isSaving ? '保存中…' : '保存文章'}
+        </Button>
+      </div>
+      <BlogAssetManager category={category} postId={postId} markdown={initialValue} open={assetsOpen} onOpenChange={setAssetsOpen} onInsert={insertAssetReference} onReplaceReferences={replaceAssetReferences} />
+    </section>
+  )
+}

@@ -78,7 +78,9 @@ export function runDatabaseMigrations(db: Database.Database): void {
     const sql = fs.readFileSync(path.join(migrationsDirectory, filename), 'utf8');
     db.transaction(() => {
       db.exec(sql);
-      db.prepare('INSERT INTO _migrations (filename) VALUES (?)').run(filename);
+      // Parallel Next.js build workers can observe the same unapplied migration;
+      // the SQL is idempotent and the ledger only needs one winner.
+      db.prepare('INSERT OR IGNORE INTO _migrations (filename) VALUES (?)').run(filename);
     })();
     console.log(`[Database] 已执行迁移：${filename}`);
   }

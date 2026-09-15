@@ -1,21 +1,34 @@
 .resume-shell {
-  --resume-ink: #0c1a20;
-  --resume-panel: #10252b;
-  --resume-panel-2: #163239;
-  --resume-acid: #b9da63;
-  --resume-cyan: #70d3cc;
-  --resume-paper: #f1f3ed;
-  --resume-muted: #6e7d7f;
-  --resume-line: rgba(13, 42, 47, .14);
+  /* Bind the resume to the shared app theme — do not introduce a page palette. */
+  --resume-ink: var(--foreground);
+  --resume-panel: var(--surface);
+  --resume-panel-2: var(--surface-raised);
+  --resume-acid: var(--primary);
+  --resume-cyan: var(--primary);
+  --resume-paper: var(--background);
+  --resume-muted: var(--ink-muted);
+  --resume-line: var(--line);
+  --resume-line-strong: var(--line-strong);
+  --resume-soft: var(--primary-soft);
+  --resume-subtle: var(--primary-subtle);
+  --resume-glass: var(--surface-glass);
+  --resume-shadow-card: var(--elevation-card);
+  --resume-shadow-float: var(--elevation-float);
   position: relative;
   min-height: 100vh;
   /* clip 保留背景装饰的裁切，不创建会阻断 sticky 的滚动容器。 */
   overflow: clip;
   color: var(--resume-ink);
-  background: radial-gradient(circle at 6% 5%, rgba(112,211,204,.14), transparent 26%), radial-gradient(circle at 91% 12%, rgba(185,218,99,.13), transparent 25%), var(--resume-paper);
+  background: radial-gradient(circle at 6% 5%, var(--resume-soft), transparent 26%), radial-gradient(circle at 91% 12%, var(--resume-subtle), transparent 25%), var(--resume-paper);
 }
 body:has(.resume-shell) { overscroll-behavior-y: none; }
-.dark .resume-shell { --resume-ink: #e9efe7; --resume-paper: #071317; --resume-muted: #91a09e; --resume-line: rgba(211,235,224,.1); }
+.dark .resume-shell { --resume-ink: #edf1ed; --resume-paper: #080c0b; --resume-muted: #8d9691; --resume-line: rgba(183,247,207,.13); }
+.dark .resume-hero { border-color: rgba(183,247,207,.16); background: radial-gradient(circle at 78% 28%, rgba(183,247,207,.13), transparent 28%), radial-gradient(circle at 15% 85%, rgba(183,247,207,.09), transparent 24%), linear-gradient(135deg,#080c0b 0%,#102019 57%,#080c0b 100%); }
+.dark .resume-hero__mesh { background-image: linear-gradient(rgba(183,247,207,.055) 1px, transparent 1px), linear-gradient(90deg,rgba(183,247,207,.055) 1px,transparent 1px); }
+.dark .resume-hero__console { border-color: rgba(183,247,207,.2); background: rgba(8,12,11,.84); }
+.dark .resume-project { background: radial-gradient(circle at 85% 15%,rgba(183,247,207,.15),transparent 28%), linear-gradient(135deg,#102019,#080c0b); }
+.dark .resume-contact { border-color: rgba(183,247,207,.16); background: radial-gradient(circle at 8% 100%, rgba(183,247,207,.11), transparent 30%), radial-gradient(circle at 100% 0%, rgba(183,247,207,.12), transparent 29%), linear-gradient(135deg,#102019,#080c0b); }
+html:not(.dark) .resume-shell { --resume-ink: var(--foreground); --resume-paper: var(--background); --resume-muted: var(--ink-muted); --resume-line: var(--line); --resume-acid: var(--primary); --resume-cyan: var(--primary); }
 .resume-noise { position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .18; background-image: linear-gradient(rgba(15,35,39,.025) 1px, transparent 1px), linear-gradient(90deg, rgba(15,35,39,.025) 1px, transparent 1px); background-size: 36px 36px; mask-image: linear-gradient(to bottom, black, transparent 70%); }
 .resume-wrap { position: relative; z-index: 1; width: min(1440px, calc(100% - 40px)); margin: 0 auto; padding: 22px 0 80px; }
 .resume-nav { position: sticky; top: 12px; z-index: 30; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 58px; margin-bottom: 16px; padding: 0 8px; }
@@ -576,6 +589,187 @@ body:has(.resume-shell) { overscroll-behavior-y: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .resume-shell *, .resume-shell *::before, .resume-shell *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
+
+/* Shared theme bindings. These declarations deliberately come after the visual
+   layout rules above so the resume cannot drift into its own cyan/blue palette. */
+.resume-shell .resume-nav__links {
+  border-color: var(--resume-line);
+  background: var(--resume-glass);
+}
+.resume-shell .resume-nav__links a:hover,
+.resume-shell .resume-profile__buttons button,
+.resume-shell .resume-contact__form input:focus,
+.resume-shell .resume-contact__form textarea:focus {
+  background: var(--resume-soft);
+}
+.resume-shell .resume-hero,
+.resume-shell .resume-contact {
+  border-color: var(--resume-line-strong);
+  color: var(--resume-ink);
+  background:
+    radial-gradient(circle at 82% 18%, var(--resume-soft), transparent 30%),
+    linear-gradient(135deg, var(--resume-panel-2), var(--resume-paper));
+  box-shadow: var(--resume-shadow-float);
+}
+.resume-shell .resume-hero__mesh,
+.resume-shell .resume-contact::before {
+  background-image:
+    linear-gradient(var(--resume-subtle) 1px, transparent 1px),
+    linear-gradient(90deg, var(--resume-subtle) 1px, transparent 1px);
+}
+.resume-shell .resume-hero__overline,
+.resume-shell .resume-hero h1 > span,
+.resume-shell .resume-section-index,
+.resume-shell .resume-section-head p,
+.resume-shell .resume-section-head > span,
+.resume-shell .resume-profile__role,
+.resume-shell .resume-profile__meta svg,
+.resume-shell .resume-footer > span,
+.resume-shell .resume-footer a {
+  color: var(--ink-subtle);
+}
+.resume-shell .resume-hero__summary,
+.resume-shell .resume-profile__bio,
+.resume-shell .resume-profile__meta a,
+.resume-shell .resume-profile__meta span,
+.resume-shell .resume-section-head p,
+.resume-shell .resume-capabilities p,
+.resume-shell .resume-project__intro,
+.resume-shell .resume-timeline__card p,
+.resume-shell .resume-contact__intro > span,
+.resume-shell .resume-contact__rules p,
+.resume-shell .resume-contact__submit p {
+  color: var(--resume-muted);
+}
+.resume-shell .resume-hero__actions button,
+.resume-shell .resume-hero__console,
+.resume-shell .resume-profile__card,
+.resume-shell .resume-profile__status,
+.resume-shell .resume-capabilities article,
+.resume-shell .resume-timeline__card,
+.resume-shell .resume-contact__form,
+.resume-shell .carousel-3d__frame,
+.resume-shell .carousel-3d__arrows {
+  border-color: var(--resume-line);
+  background: var(--resume-glass);
+  box-shadow: var(--resume-shadow-card);
+}
+.resume-shell .resume-hero__stats,
+.resume-shell .resume-hero__stats > div,
+.resume-shell .resume-console__bar,
+.resume-shell .resume-console__footer {
+  border-color: var(--resume-line);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+}
+.resume-shell .resume-avatar {
+  border-color: var(--resume-line-strong);
+  color: var(--resume-acid);
+  background: var(--resume-panel-2);
+}
+.resume-shell .resume-avatar i { border-color: var(--resume-panel-2); }
+.resume-shell .resume-capabilities article:hover,
+.resume-shell .resume-timeline__card:hover,
+.resume-shell .carousel-3d__slide[data-position="0"] .carousel-3d__frame {
+  border-color: var(--resume-line-strong);
+  box-shadow: var(--resume-shadow-float);
+}
+.resume-shell .resume-capability__icon,
+.resume-shell .resume-capabilities small,
+.resume-shell .resume-timeline__card time,
+.resume-shell .resume-timeline__meta > span,
+.resume-shell .resume-work-stack span,
+.resume-shell .resume-work-projects article,
+.resume-shell .resume-work-projects article > span,
+.resume-shell .resume-toolbelt,
+.resume-shell .resume-toolbelt small {
+  border-color: var(--resume-line);
+  color: var(--resume-muted);
+  background: var(--resume-subtle);
+}
+.resume-shell .resume-stack article,
+.resume-shell .resume-stack article:nth-child(2),
+.resume-shell .resume-stack article:nth-child(3),
+.resume-shell .resume-stack article:nth-child(4) {
+  --stack-accent: var(--resume-acid);
+  --stack-soft: var(--resume-subtle);
+  border-color: var(--resume-line);
+  background: var(--resume-glass);
+  box-shadow: var(--resume-shadow-card);
+}
+.resume-shell .resume-project {
+  color: var(--resume-ink);
+  background:
+    radial-gradient(circle at 85% 15%, var(--resume-soft), transparent 28%),
+    linear-gradient(135deg, var(--resume-panel-2), var(--resume-paper));
+}
+.resume-shell .resume-project__topline,
+.resume-shell .resume-project__intro,
+.resume-shell .resume-project__metric span,
+.resume-shell .resume-project__metric small,
+.resume-shell .resume-project__points p,
+.resume-shell .resume-project__tags span {
+  border-color: var(--resume-line);
+  color: var(--resume-muted);
+}
+.resume-shell .resume-project__tags span,
+.resume-shell .resume-project__open {
+  background: var(--resume-subtle);
+}
+.resume-shell .resume-project__open {
+  border-color: var(--resume-line-strong);
+  color: var(--resume-acid);
+}
+.resume-shell .resume-project-dialog {
+  border-color: var(--resume-line);
+  color: var(--resume-ink);
+  background: var(--popover) !important;
+  box-shadow: var(--resume-shadow-float);
+}
+.resume-shell .resume-project-dialog__head {
+  border-color: var(--resume-line);
+  background:
+    radial-gradient(circle at 85% 0%, var(--resume-soft), transparent 30%),
+    linear-gradient(135deg, var(--resume-panel-2), var(--resume-paper));
+}
+.resume-shell .resume-project-dialog__head h2,
+.resume-shell .resume-project-dialog__points p,
+.resume-shell .resume-project-dialog__footer > span {
+  color: var(--resume-ink);
+}
+.resume-shell .resume-project-dialog__head p,
+.resume-shell .resume-project-dialog__role,
+.resume-shell .resume-project-dialog__architecture p {
+  color: var(--resume-muted);
+}
+.resume-shell .resume-project-dialog__points article,
+.resume-shell .resume-project-dialog__metric,
+.resume-shell .resume-project-dialog__tags span,
+.resume-shell .resume-project-dialog__footer {
+  border-color: var(--resume-line);
+  background: var(--resume-subtle);
+}
+.resume-shell .resume-engineering article,
+.resume-shell .resume-engineering article:nth-child(2),
+.resume-shell .resume-engineering article:nth-child(3) {
+  border-color: var(--resume-line);
+  color: var(--resume-ink);
+  background: var(--resume-subtle);
+}
+.resume-shell .resume-contact__form input,
+.resume-shell .resume-contact__form textarea {
+  border-color: var(--resume-line);
+  color: var(--resume-ink);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+}
+.resume-shell .resume-contact__form input::placeholder,
+.resume-shell .resume-contact__form textarea::placeholder {
+  color: var(--resume-muted);
+}
+.resume-shell .resume-contact__form input:focus,
+.resume-shell .resume-contact__form textarea:focus {
+  border-color: var(--resume-line-strong);
+  box-shadow: 0 0 0 3px var(--resume-subtle);
 }
 
 @media print {

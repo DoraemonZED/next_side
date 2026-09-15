@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs/promises';
-import path from 'path';
-import { runtimeDataDirectory, safePathSegment } from '@/lib/runtimePaths';
+import path from 'node:path';
+import { safePathSegment } from '@/lib/runtimePaths';
+import { blogService } from '@/lib/blogService';
 
 export async function GET(
   request: NextRequest,
@@ -12,23 +12,29 @@ export async function GET(
   const safeId = safePathSegment(id);
   const safeFilename = safePathSegment(filename);
   if (!safeCategory || !safeId || !safeFilename) return new NextResponse('Asset not found', { status: 404 });
-  
-  const filePath = path.join(runtimeDataDirectory('blog'), safeCategory, safeId, safeFilename);
+
+  const ext = path.extname(safeFilename).toLowerCase();
+  const contentTypeMap: Record<string, string> = {
+    '.png': 'image/png',
+    '.avif': 'image/avif',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.svg': 'image/svg+xml',
+    '.webp': 'image/webp',
+    '.pdf': 'application/pdf',
+    '.txt': 'text/plain; charset=utf-8',
+    '.mp3': 'audio/mpeg',
+    '.mp4': 'video/mp4',
+    '.webm': 'video/webm',
+    '.zip': 'application/zip',
+  };
+  const contentType = contentTypeMap[ext];
+  if (!contentType) return new NextResponse('Asset not found', { status: 404 });
 
   try {
-    const fileBuffer = await fs.readFile(filePath);
-    
-    const ext = path.extname(safeFilename).toLowerCase();
-    const contentTypeMap: Record<string, string> = {
-      '.png': 'image/png',
-      '.jpg': 'image/jpeg',
-      '.jpeg': 'image/jpeg',
-      '.gif': 'image/gif',
-      '.svg': 'image/svg+xml',
-      '.webp': 'image/webp',
-    };
-    
-    const contentType = contentTypeMap[ext] || 'application/octet-stream';
+    const fileBuffer = await blogService.readAsset(safeCategory, safeId, safeFilename);
+    if (!fileBuffer) return new NextResponse('Asset not found', { status: 404 });
 
     return new NextResponse(fileBuffer, {
       headers: {

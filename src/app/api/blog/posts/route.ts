@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { blogService } from '@/lib/blogService';
+import { blogService, isBlogDirectoryId } from '@/lib/blogService';
 
 export async function POST(request: NextRequest) {
   const session = await getSession();
@@ -9,18 +9,21 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { category, id, meta, content } = await request.json();
+    const { category, id, meta, content, directoryId } = await request.json();
     if (!category || !id) {
       return NextResponse.json({ message: '参数缺失' }, { status: 400 });
     }
 
-    const success = await blogService.savePost(category, id, meta || {}, content);
+    if (directoryId !== undefined && !isBlogDirectoryId(directoryId)) {
+      return NextResponse.json({ message: '目录 ID 只能包含小写英文字母和连字符' }, { status: 400 });
+    }
+    const success = await blogService.savePost(category, id, meta || {}, content, directoryId);
     if (success) {
       return NextResponse.json({ message: '文章保存成功' });
     } else {
       return NextResponse.json({ message: '文章保存失败' }, { status: 500 });
     }
-  } catch (error) {
+  } catch {
     return NextResponse.json({ message: '服务器错误' }, { status: 500 });
   }
 }
@@ -44,7 +47,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     return NextResponse.json({ message: '未知操作' }, { status: 400 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ message: '服务器错误' }, { status: 500 });
   }
 }
@@ -70,7 +73,7 @@ export async function DELETE(request: NextRequest) {
     } else {
       return NextResponse.json({ message: '文章删除失败' }, { status: 500 });
     }
-  } catch (error) {
+  } catch {
     return NextResponse.json({ message: '服务器错误' }, { status: 500 });
   }
 }

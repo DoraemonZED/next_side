@@ -59,12 +59,12 @@ export function PostFilters() {
   const currentSortOption = sortOptions.find(opt => opt.value === currentSortBy) || sortOptions[0];
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-4 mb-8">
+    <div className="blog-filters flex flex-col sm:flex-row items-center gap-4 mb-8">
       <div className="relative flex-1 w-full">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="搜索标题或标签..."
-          className="pl-9 h-10 bg-card/50"
+          className="blog-filters__search pl-9 h-10 bg-card/50"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
         />
@@ -73,7 +73,7 @@ export function PostFilters() {
       <div className="flex items-center gap-2 w-full sm:w-auto">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="h-10 gap-2 min-w-[140px] justify-between">
+            <Button variant="outline" className="blog-filters__control h-10 gap-2 min-w-[140px] justify-between">
               <span className="flex items-center gap-2">
                 <currentSortOption.icon className="h-4 w-4" />
                 {currentSortOption.label}
@@ -97,7 +97,7 @@ export function PostFilters() {
         <Button
           variant="outline"
           size="icon"
-          className="h-10 w-10 shrink-0"
+          className="blog-filters__control h-10 w-10 shrink-0"
           onClick={() => updateFilters({ sortOrder: currentSortOrder === "asc" ? "desc" : "asc" })}
           title={currentSortOrder === "asc" ? "正序" : "倒序"}
         >

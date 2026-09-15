@@ -1,5 +1,6 @@
 "use client";
 
+import { useLayoutEffect } from "react";
 import { useUIStore } from "@/store/useUIStore";
 import {
   Dialog,
@@ -18,9 +19,26 @@ export function GlobalUI() {
     isLoading, 
     toast, 
     confirm, 
-    hideConfirm, 
-    hideToast 
+    hideConfirm
   } = useUIStore();
+
+  // All browser-side API calls share this counter, so concurrent requests cannot
+  // prematurely hide the global mask. Existing explicit loading calls compose with it.
+  useLayoutEffect(() => {
+    const nativeFetch = window.fetch;
+    const trackedFetch: typeof window.fetch = async (...args) => {
+      useUIStore.getState().beginLoading();
+      try {
+        return await nativeFetch.apply(window, args);
+      } finally {
+        useUIStore.getState().endLoading();
+      }
+    };
+    window.fetch = trackedFetch;
+    return () => {
+      if (window.fetch === trackedFetch) window.fetch = nativeFetch;
+    };
+  }, []);
 
   return (
     <>

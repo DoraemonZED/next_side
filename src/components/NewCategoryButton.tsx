@@ -14,10 +14,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PlusCircle } from 'lucide-react';
+import { BlogGitSyncButton } from '@/components/BlogGitSyncButton';
 
 export function NewCategoryButton() {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
+  const [directoryId, setDirectoryId] = useState('');
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { isAuthenticated } = useAuthStore();
@@ -34,7 +36,7 @@ export function NewCategoryButton() {
       const res = await fetch('/api/blog/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug, name, description: '' }),
+        body: JSON.stringify({ slug, name, directoryId, description: '' }),
       });
       
       if (res.ok) {
@@ -45,7 +47,7 @@ export function NewCategoryButton() {
         const data = await res.json();
         showToast(data.message || '创建失败', 'error');
       }
-    } catch (err) {
+    } catch {
       showToast('网络错误', 'error');
     } finally {
       setLoading(false);
@@ -80,7 +82,7 @@ export function NewCategoryButton() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="slug">路径 (Slug)</Label>
+              <Label htmlFor="slug">页面路径 (Slug)</Label>
               <Input
                 id="slug"
                 value={slug}
@@ -89,12 +91,26 @@ export function NewCategoryButton() {
                 required
               />
             </div>
+            <div className="grid gap-2">
+              <Label htmlFor="category-directory-id">目录 ID</Label>
+              <Input
+                id="category-directory-id"
+                value={directoryId}
+                onChange={(e) => setDirectoryId(e.target.value.toLowerCase())}
+                placeholder="tech-notes"
+                pattern="[a-z]+(-[a-z]+)*"
+                title="只能包含小写英文字母和连字符"
+                required
+              />
+              <p className="text-xs text-muted-foreground">必填；仅用于服务器目录，只能包含小写英文字母和连字符。</p>
+            </div>
             <Button type="submit" disabled={loading}>
               {loading ? '创建中...' : '创建分类'}
             </Button>
           </form>
         </DialogContent>
       </Dialog>
+      <BlogGitSyncButton />
     </div>
   );
 }

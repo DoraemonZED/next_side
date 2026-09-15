@@ -830,60 +830,12 @@
   color:#b7f7cf70
 }
 
-/* The home art direction extends to the existing shared navigation only on this route. */
-body:has(.lab-home)>div header,body:has(.lab-home) header {
-  background:#080c0bea;
-  border-color:#ffffff12;
-  color:#e3eee6;
-  backdrop-filter:blur(18px);
-  --primary:#b7f7cf;
-  --foreground:#edf1ed;
-  --muted-foreground:#88988e;
-  --accent:#17241c;
-  --accent-foreground:#b7f7cf
-}
-
-body:has(.lab-home) header>div {
-  max-width:1800px;
-  padding-inline:5.5%
-}
-
-body:has(.lab-home) header nav {
-  margin-left:50px;
-  gap:32px
-}
-
-body:has(.lab-home) header nav a {
-  font-size:11px
-}
-
-body:has(.lab-home) header a>span {
-  font-size:18px;
-  letter-spacing:-.5px
-}
-
-body:has(.lab-home) footer {
-  background:#080c0b;
-  border-color:#ffffff0c;
-  color:#78877d
-}
-
-body:has(.lab-home) footer>div {
-  max-width:1800px;
-  padding:20px 5.5%
-}
-
-body:has(.lab-home) footer p,body:has(.lab-home) footer a {
-  font-size:9px;
-  color:#708075
-}
-
 /* Light mode turns the digital lab into an editorial, paper-like workspace. */
 html:not(.dark) .lab-home {
-  --mint:#176c49;
-  --dim:#637168;
-  background:#eef1e9;
-  color:#102118
+  --mint:var(--primary);
+  --dim:var(--muted-foreground);
+  background:var(--background);
+  color:var(--foreground)
 }
 
 html:not(.dark) .lab-home .hero-grid {
@@ -897,12 +849,12 @@ html:not(.dark) .lab-home .lab-explore::before {
 
 html:not(.dark) .lab-home .lab-explore::after {
   border-color:#176c4966;
-  background:#eef1e9;
+  background:var(--background);
   box-shadow:0 0 0 5px #176c4908,0 0 18px #176c4926
 }
 
 html:not(.dark) .lab-home .field-vignette {
-  background:linear-gradient(90deg,#eef1e9 0%,#eef1e9e8 31%,transparent 63%),radial-gradient(circle at 72% 48%,transparent 0 26%,#eef1e900 43%,#eef1e999 100%)
+  background:linear-gradient(90deg,var(--background) 0%,color-mix(in srgb,var(--background) 91%,transparent) 31%,transparent 63%),radial-gradient(circle at 72% 48%,transparent 0 26%,transparent 43%,color-mix(in srgb,var(--background) 60%,transparent) 100%)
 }
 
 html:not(.dark) .lab-home .lab-topline,
@@ -986,7 +938,7 @@ html:not(.dark) .lab-home .scene-controls .pause-control {
 
 html:not(.dark) .lab-home .lab-marquee {
   border-color:#173d2522;
-  background:#e3e9de
+  background:var(--secondary)
 }
 
 html:not(.dark) .lab-home .lab-marquee span {
@@ -995,7 +947,7 @@ html:not(.dark) .lab-home .lab-marquee span {
 
 html:not(.dark) .lab-home .portal-card {
   border-color:#173d2520;
-  background:#f7f8f3ed;
+  background:color-mix(in srgb,var(--card) 92%,transparent);
   box-shadow:0 20px 55px #2945340a
 }
 
@@ -1073,28 +1025,6 @@ html:not(.dark) .lab-home .lab-manifesto {
 
 html:not(.dark) .lab-home .lab-manifesto h2 span {
   color:#66766c
-}
-
-html:not(.dark) body:has(.lab-home) header {
-  background:#eef1e9e8;
-  border-color:#173d2520;
-  color:#102118;
-  --primary:#176c49;
-  --foreground:#102118;
-  --muted-foreground:#5e6e64;
-  --accent:#dde6dc;
-  --accent-foreground:#176c49
-}
-
-html:not(.dark) body:has(.lab-home) footer {
-  background:#eef1e9;
-  border-color:#173d2518;
-  color:#596b60
-}
-
-html:not(.dark) body:has(.lab-home) footer p,
-html:not(.dark) body:has(.lab-home) footer a {
-  color:#596b60
 }
 
 @keyframes marquee {
@@ -1191,7 +1121,7 @@ html:not(.dark) body:has(.lab-home) footer a {
     background:linear-gradient(180deg,#080c0b 0%,#080c0bf2 37%,transparent 62%,#080c0b66 100%)
   }
   html:not(.dark) .lab-home .field-vignette {
-    background:linear-gradient(180deg,#eef1e9 0%,#eef1e9f2 37%,transparent 62%,#eef1e966 100%)
+    background:linear-gradient(180deg,var(--background) 0%,color-mix(in srgb,var(--background) 95%,transparent) 37%,transparent 62%,color-mix(in srgb,var(--background) 40%,transparent) 100%)
   }
   .lab-hero {
     height:auto;
@@ -1373,12 +1303,6 @@ html:not(.dark) body:has(.lab-home) footer a {
     max-width:95px;
     text-align:right;
     line-height:1.7
-  }
-  body:has(.lab-home) footer>div {
-    padding-inline:6%
-  }
-  body:has(.lab-home) header>div {
-    padding-inline:4%
   }
 }
 

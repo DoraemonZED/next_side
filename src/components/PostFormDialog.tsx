@@ -33,23 +33,21 @@ export function PostFormDialog({
   const [title, setTitle] = useState(article?.title || "");
   const [tags, setTags] = useState(article?.tags || "");
   const [summary, setSummary] = useState(article?.summary || "");
+  const [directoryId, setDirectoryId] = useState(article?.directoryId || "");
   const { showToast, setLoading } = useUIStore();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mode === "create" && !/^[a-z]+(?:-[a-z]+)*$/.test(directoryId)) {
+      showToast("目录 ID 只能包含小写英文字母和连字符", "error");
+      return;
+    }
     setLoading(true);
 
     let id = article?.id;
     if (mode === "create") {
-      id = title
-        .toLowerCase()
-        .trim()
-        .replace(/[^\w\s-]/g, "")
-        .replace(/[\s_-]+/g, "-")
-        .replace(/^-+|-+$/g, "");
-      
-      if (!id) id = Date.now().toString();
+      id = directoryId;
     }
 
     try {
@@ -59,6 +57,7 @@ export function PostFormDialog({
         body: JSON.stringify({
           category,
           id,
+          ...(mode === "create" ? { directoryId } : {}),
           meta: { 
             title, 
             tags, 
@@ -86,7 +85,7 @@ export function PostFormDialog({
         const data = await res.json();
         showToast(data.message || "操作失败", "error");
       }
-    } catch (err) {
+    } catch {
       showToast("网络错误", "error");
     } finally {
       setLoading(false);
@@ -110,6 +109,21 @@ export function PostFormDialog({
               required
             />
           </div>
+          {mode === "create" && (
+            <div className="grid gap-2">
+              <Label htmlFor="post-directory-id">目录 ID</Label>
+              <Input
+                id="post-directory-id"
+                value={directoryId}
+                onChange={(e) => setDirectoryId(e.target.value.toLowerCase())}
+                placeholder="my-first-post"
+                pattern="[a-z]+(-[a-z]+)*"
+                title="只能包含小写英文字母和连字符"
+                required
+              />
+              <p className="text-xs text-muted-foreground">必填；仅用于服务器目录，只能包含小写英文字母和连字符。</p>
+            </div>
+          )}
           <div className="grid gap-2">
             <Label htmlFor="post-tags">标签 (Tags)</Label>
             <Input

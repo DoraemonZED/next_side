@@ -68,58 +68,41 @@ async function commitIfNeeded(): Promise<boolean> {
   return true;
 }
 
-async function discardLocalChanges(): Promise<void> {
-  const { branch } = config();
-  await git(['merge', '--abort']).catch(() => undefined);
-  await git(['reset', '--hard', `origin/${branch}`]);
-  await git(['clean', '-fd']);
-}
-
-async function hasMergeConflict(): Promise<boolean> {
-  return access(path.join(BLOG_ROOT, '.git', 'MERGE_HEAD'), constants.F_OK).then(() => true).catch(() => false);
-}
-
 async function pullBeforeWrite(): Promise<void> {
-  const { autoSync, branch } = config();
-  if (!autoSync || !(await hasRepository())) return;
+  const { branch } = config();
+  if (!(await hasRepository())) return;
+  if ((await git(['status', '--porcelain', '--untracked-files=all'])).trim()) throw new BlogGitError('博客存在未同步的本地改动，无法确认最新版本');
   await git(['fetch', 'origin', branch]);
   try {
-    await git(['merge', '--no-edit', '-m', 'blog update', `origin/${branch}`]);
+    await git(['merge', '--ff-only', `origin/${branch}`]);
   } catch (error) {
-    await git(['merge', '--abort']).catch(() => undefined);
-    throw new BlogGitError(`自动拉取博客仓库失败：${error instanceof Error ? error.message : '未知错误'}`);
+    throw new BlogGitError(`博客仓库无法快进到远程版本：${error instanceof Error ? error.message : '未知错误'}`);
   }
 }
 
 export const blogGitService = {
   pullBeforeWrite,
 
+  async commitAndPush(): Promise<void> {
+    if (!(await hasRepository())) return;
+    const { branch } = config();
+    await commitIfNeeded();
+    try {
+      await git(['push', 'origin', `HEAD:${branch}`]);
+    } catch (error) {
+      throw new BlogGitError(`博客已保存到本地，但推送 GitHub 失败：${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  },
+
   async sync(): Promise<{ message: string; discarded: boolean }> {
     const { branch } = config();
     if (!(await hasRepository())) throw new BlogGitError('博客 Git 仓库尚未初始化，请先配置 BLOG_REPO 后重新部署');
     await commitIfNeeded();
     await git(['fetch', 'origin', branch]);
-    try {
-      await git(['merge', '--no-edit', '-m', 'blog update', `origin/${branch}`]);
-    } catch (error) {
-      if (!(await hasMergeConflict())) throw error;
-      await discardLocalChanges();
-      return { message: '检测到无法合并的冲突，已丢弃服务器本地博客改动并采用 GitHub 版本', discarded: true };
-    }
+    await git(['merge', '--ff-only', `origin/${branch}`]);
     try {
       await git(['push', 'origin', `HEAD:${branch}`]);
       return { message: '博客已同步到 GitHub', discarded: false };
-    } catch (pushError) {
-      await git(['fetch', 'origin', branch]);
-      try {
-        await git(['merge', '--no-edit', '-m', 'blog update', `origin/${branch}`]);
-        await git(['push', 'origin', `HEAD:${branch}`]);
-        return { message: '博客已同步到 GitHub', discarded: false };
-      } catch {
-        if (!(await hasMergeConflict())) throw pushError;
-        await discardLocalChanges();
-        return { message: '远程版本已更新且无法合并，已丢弃服务器本地博客改动并采用 GitHub 版本', discarded: true };
-      }
-    }
+    } catch (error) { throw new BlogGitError(`推送失败，未丢弃本地博客内容：${error instanceof Error ? error.message : '未知错误'}`); }
   },
 };

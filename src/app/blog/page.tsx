@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button"
 import {
   Pagination,
   PaginationContent,
@@ -9,9 +8,11 @@ import {
 } from "@/components/ui/pagination"
 import { blogService, postSortField, postSortOrder } from "@/lib/blogService"
 import { NewCategoryButton } from "@/components/NewCategoryButton"
+import { NewPostButton } from "@/components/NewPostButton"
 import { CategoryList } from "@/components/CategoryList"
 import { PostCard } from "@/components/PostCard"
 import { PostFilters } from "@/components/PostFilters"
+import { BookOpen, FolderTree } from "lucide-react"
 
 export default async function BlogRootPage(props: {
   searchParams: Promise<{ 
@@ -39,42 +40,42 @@ export default async function BlogRootPage(props: {
     postSortField(sortBy),
     postSortOrder(sortOrder)
   )
+  const totalPostCount = categories.reduce((total, category) => total + category.count, 0)
 
   return (
-    <div className="container mx-auto px-4 py-10 md:py-16">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
-        <div className="flex flex-col gap-4">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">博客</h1>
-          <p className="text-lg text-muted-foreground">分享关于技术、生活和成长的见闻。</p>
-        </div>
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
-        {/* 左侧分类列表 - 侧边栏 */}
-        <aside className="w-full md:w-64 shrink-0">
-          <div className="sticky top-24 space-y-6">
+    <div className="site-page blog-page">
+      <div className="blog-page__layout">
+        <aside className="blog-sidebar">
+          <div className="blog-sidebar__sticky">
             <CategoryList categories={categories} currentCategory="all" />
             <NewCategoryButton />
-
-            <div className="p-6 border rounded-xl bg-card/50 hidden md:block">
-              <h4 className="text-sm font-bold mb-3">订阅邮件</h4>
-              <p className="text-xs text-muted-foreground mb-4">第一时间获取最新的文章推送。</p>
-              <Button className="w-full h-9 text-xs">立即订阅</Button>
+            <NewPostButton category="all" />
+            <div className="blog-sidebar__protocol">
+              <BookOpen aria-hidden="true" />
+              <span>READER&apos;S PROTOCOL</span>
+              <p>不追逐碎片化收藏，只记录经过验证、可以迁移的工作方法。</p>
+              <div><FolderTree /> <small>CONTENT / GIT / MD</small></div>
             </div>
           </div>
         </aside>
 
-        {/* 右侧文章列表 - 主内容 */}
-        <main className="flex-1 min-w-0">
+        <main id="post-index" className="blog-feed">
+          <div className="blog-feed__masthead">
+            <div>
+              <span>THE INDEX / 01</span>
+              <p>{searchQuery ? `检索：${searchQuery}` : "最新文章与实践记录"}</p>
+            </div>
+            <small>{String(totalPostCount).padStart(2, "0")} / ENTRIES</small>
+          </div>
           <PostFilters />
           
-          <div className="grid gap-6">
+          <div className="blog-feed__list grid gap-6">
             {posts.length > 0 ? (
               posts.map((article) => (
                 <PostCard key={`${article.category}-${article.id}`} article={article} />
               ))
             ) : (
-              <div className="py-20 text-center border rounded-2xl border-dashed">
+              <div className="site-empty blog-feed__empty py-20 text-center border border-dashed">
                 <p className="text-muted-foreground">
                   {searchQuery ? `未找到与 "${searchQuery}" 相关的文章` : "暂无文章"}
                 </p>

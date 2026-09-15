@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Trash2, Settings2, Eye, Clock } from "lucide-react";
+import { Trash2, Settings2, Eye, ArrowUpRight, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUIStore } from "@/store/useUIStore";
@@ -39,6 +39,9 @@ export function PostCard({ article }: PostCardProps) {
   const { showConfirm, showToast, setLoading } = useUIStore();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const router = useRouter();
+  const date = new Date(article.date);
+  const year = Number.isNaN(date.getTime()) ? '—' : String(date.getFullYear());
+  const issue = Number.isNaN(date.getTime()) ? 'NOTE' : `${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -70,22 +73,25 @@ export function PostCard({ article }: PostCardProps) {
   };
 
   return (
-    <article className="group flex flex-col gap-4 p-5 md:p-6 border rounded-2xl bg-card hover:shadow-md transition-all border-border/40 overflow-hidden relative">
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 overflow-x-auto md:flex-wrap md:overflow-visible scrollbar-none">
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium whitespace-nowrap shrink-0">
+    <article className="blog-post-card group">
+      <div className="blog-post-card__index" aria-hidden="true">
+        <span>{year}</span><strong>{issue}</strong><i />
+      </div>
+      <div className="blog-post-card__body">
+        <div className="blog-post-card__top">
+          <div className="blog-post-card__labels">
+            <span className="blog-post-card__category text-xs px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium whitespace-nowrap shrink-0">
               {article.categoryName}
             </span>
             {article.tags && article.tags.split(',').map(tag => (
-              <span key={tag} className="text-xs px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium whitespace-nowrap shrink-0">
+              <span key={tag} className="blog-post-card__tag text-xs px-2.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium whitespace-nowrap shrink-0">
                 {tag.trim()}
               </span>
             ))}
           </div>
 
           {isAuthenticated && (
-            <div className="flex items-center gap-1">
+            <div className="blog-post-card__admin">
               <Button
                 variant="ghost"
                 size="icon"
@@ -110,21 +116,21 @@ export function PostCard({ article }: PostCardProps) {
           )}
         </div>
 
-        <h2 className="text-xl md:text-2xl font-bold group-hover:text-primary transition-colors leading-tight">
+        <h2 className="blog-post-card__title text-xl md:text-2xl font-bold group-hover:text-primary transition-colors leading-tight">
           <Link href={`/blog/${article.category}/${article.id}`}>{article.title}</Link>
         </h2>
 
-        <p className="text-sm md:text-base text-muted-foreground leading-relaxed line-clamp-3">
+        <p className="blog-post-card__summary text-sm md:text-base text-muted-foreground leading-relaxed line-clamp-3">
           {article.summary}
         </p>
 
-        <div className="flex items-center justify-between mt-2">
-          <Button variant="link" className="w-fit p-0 h-auto text-primary" asChild>
-            <Link href={`/blog/${article.category}/${article.id}`}>阅读全文 →</Link>
+        <div className="blog-post-card__footer">
+          <Button variant="link" className="blog-post-card__read w-fit p-0 h-auto text-primary" asChild>
+            <Link href={`/blog/${article.category}/${article.id}`}>阅读全文 <ArrowUpRight className="h-3.5 w-3.5" /></Link>
           </Button>
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          <div className="blog-post-card__meta">
             <span className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
+              <CalendarDays className="h-3 w-3" />
               {formatUpdatedAt(article.updatedAt)}
             </span>
             <span className="flex items-center gap-1">

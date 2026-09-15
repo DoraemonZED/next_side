@@ -101,11 +101,12 @@ export default function GamesPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-5xl px-4 py-10 md:py-16">
-      <div className="mx-auto flex max-w-2xl flex-col items-center gap-4 text-center md:gap-6">
-        <div className="rounded-full bg-primary/10 p-3 text-primary md:p-4"><Gamepad2 className="h-8 w-8 md:h-12 md:w-12" /></div>
-        <h1 className="text-3xl font-bold tracking-tight md:text-4xl">游戏中心</h1>
-        <p className="text-lg text-muted-foreground md:text-xl">上传独立网页游戏，保留 ZIP 源包，并通过 GitHub 管理版本。</p>
+    <div className="site-page games-page container mx-auto max-w-6xl px-4 py-12 md:py-20">
+      <div className="site-page__hero mx-auto flex max-w-2xl flex-col items-center gap-4 text-center md:gap-6">
+        <div className="site-page__icon p-3 md:p-4"><Gamepad2 className="h-8 w-8 md:h-12 md:w-12" /></div>
+        <p className="site-page__eyebrow">02 / PLAYGROUND</p>
+        <h1 className="site-page__title">认真，玩点不一样<span>。</span></h1>
+        <p className="site-page__description">上传独立网页游戏，保留 ZIP 源包，并通过 GitHub 管理版本。</p>
         {isAuthenticated && (
           <div className="flex flex-wrap justify-center gap-3 pt-2">
             <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
@@ -127,10 +128,10 @@ export default function GamesPage() {
       </div>
 
       {loading ? <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
-        : error ? <div className="py-16 text-center text-red-500">{error}</div>
-        : games.length === 0 ? <div className="py-16 text-center text-muted-foreground">暂无游戏{isAuthenticated ? '，可上传第一个 ZIP 游戏包。' : ''}</div>
+        : error ? <div className="site-empty py-16 text-center text-red-400">{error}</div>
+        : games.length === 0 ? <div className="site-empty py-16 text-center text-muted-foreground">暂无游戏{isAuthenticated ? '，可上传第一个 ZIP 游戏包。' : ''}</div>
         : <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 md:mt-12 md:gap-6">{games.map((game) => (
-          <article key={game.name} className="flex min-h-52 flex-col rounded-2xl border bg-card p-6 shadow-sm md:p-8">
+          <article key={game.name} className="game-card flex min-h-52 flex-col p-6 md:p-8">
             <div className="mb-4 flex items-start justify-between gap-3"><div><h2 className="text-2xl font-bold">{game.title}</h2><p className="mt-1 font-mono text-xs text-muted-foreground">/{game.name}/</p></div>{isAuthenticated && <Button variant="ghost" size="icon" className="shrink-0 text-destructive hover:text-destructive" onClick={() => handleDelete(game)} aria-label={`删除 ${game.title}`}><Trash2 className="h-4 w-4" /></Button>}</div>
             <p className="flex-1 text-sm leading-6 text-muted-foreground">{game.description || '独立网页小游戏'}</p>
             <Button className="mt-6 w-full" onClick={() => handleStartGame(game.name)}><Play className="mr-2 h-4 w-4" />开始游戏</Button>

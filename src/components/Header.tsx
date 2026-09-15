@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Moon, Sun, Settings, Menu, Download, GitBranch } from 'lucide-react'
+import { Moon, Sun, Monitor, Menu, Download } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 import { Button } from '@/components/ui/button'
@@ -53,13 +53,12 @@ interface HeaderProps {
 
 export function Header({ initialAuthState }: HeaderProps) {
   const pathname = usePathname()
-  const { setTheme } = useTheme()
+  const { theme, setTheme } = useTheme()
   const [isOpen, setIsOpen] = React.useState(false)
   const [isBackupDialogOpen, setIsBackupDialogOpen] = React.useState(false)
   const [backupInfo, setBackupInfo] = React.useState('')
   const [recipientEmail, setRecipientEmail] = React.useState('')
   const [isBackingUp, setIsBackingUp] = React.useState(false)
-  const [isGitSyncing, setIsGitSyncing] = React.useState(false)
   const { user, isAuthenticated, logout, checkAuth, setUser } = useAuthStore()
   const { showToast } = useUIStore()
   const [isMounted, setIsMounted] = React.useState(false)
@@ -131,22 +130,9 @@ export function Header({ initialAuthState }: HeaderProps) {
     }
   }
 
-  const handleGitSync = async () => {
-    setIsGitSyncing(true)
-    try {
-      const response = await fetch('/api/blog/git-sync', { method: 'POST' })
-      const data = await response.json()
-      showToast(data.message || (response.ok ? 'GitHub 同步完成' : 'GitHub 同步失败'), response.ok ? 'success' : 'error')
-    } catch {
-      showToast('网络错误', 'error')
-    } finally {
-      setIsGitSyncing(false)
-    }
-  }
-
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between mx-auto px-4">
+    <header className="site-header sticky top-0 z-50 w-full">
+      <div className="site-header__inner flex h-16 items-center justify-between">
         {/* Mobile Menu & Logo */}
         <div className="flex items-center gap-4">
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -158,7 +144,7 @@ export function Header({ initialAuthState }: HeaderProps) {
             </SheetTrigger>
             <SheetContent side="left" className="w-[240px] sm:w-[300px]">
               <SheetHeader>
-                <SheetTitle className="text-left text-primary font-bold">MySite 导航</SheetTitle>
+                <SheetTitle className="text-left text-primary font-bold">AWEI 导航</SheetTitle>
               </SheetHeader>
               <nav className="flex flex-col gap-4 mt-8">
                 {navItems.map((item) => (
@@ -178,8 +164,8 @@ export function Header({ initialAuthState }: HeaderProps) {
             </SheetContent>
           </Sheet>
           
-          <Link href="/" className="flex items-center space-x-2">
-            <span className="text-xl font-bold tracking-tight text-primary">MySite</span>
+          <Link href="/" className="site-header__brand flex items-center space-x-2">
+            <span>AW</span><b>AWEI<i> / DIGITAL LAB</i></b>
           </Link>
 
           {/* Desktop Nav */}
@@ -189,7 +175,7 @@ export function Header({ initialAuthState }: HeaderProps) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'transition-colors hover:text-primary relative py-1',
+                  'site-header__link transition-colors relative py-1',
                   (item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)) 
                     ? 'text-foreground after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:bg-primary' 
                     : 'text-muted-foreground'
@@ -203,40 +189,33 @@ export function Header({ initialAuthState }: HeaderProps) {
 
         {/* Actions */}
         <div className="flex items-center gap-2 sm:gap-4">
-          {/* Theme Settings Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Settings className="h-5 w-5" />
-                <span className="sr-only">切换主题</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setTheme('light')}>
-                <Sun className="mr-2 h-4 w-4" />
-                <span>浅色</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme('dark')}>
-                <Moon className="mr-2 h-4 w-4" />
-                <span>深色</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme('system')}>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>系统默认</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="theme-switch" data-theme={theme || 'dark'} role="radiogroup" aria-label="主题选择">
+            <button type="button" role="radio" aria-checked={theme === 'dark' || !theme} title="深色" onClick={() => setTheme('dark')}>
+              <Moon className="h-3.5 w-3.5" /><span className="sr-only">深色</span>
+            </button>
+            <button type="button" role="radio" aria-checked={theme === 'system'} title="自动" onClick={() => setTheme('system')}>
+              <Monitor className="h-3.5 w-3.5" /><span className="sr-only">自动跟随系统</span>
+            </button>
+            <button type="button" role="radio" aria-checked={theme === 'light'} title="浅色" onClick={() => setTheme('light')}>
+              <Sun className="h-3.5 w-3.5" /><span className="sr-only">浅色</span>
+            </button>
+          </div>
 
           {/* User Avatar & Login Dialog */}
           {displayIsAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full border-2 border-primary/20 hover:border-primary/50 transition-all">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                      {displayUser?.username?.charAt(0).toUpperCase()}
+                <Button variant="ghost" className="header-identity" aria-label="打开用户菜单">
+                  <Avatar className="header-identity__avatar">
+                    <AvatarFallback className="header-identity__fallback">
+                      <span>{displayUser?.username?.slice(0, 2).toUpperCase() || 'AW'}</span>
                     </AvatarFallback>
                   </Avatar>
+                  <span className="header-identity__copy">
+                    <strong>{displayUser?.username || 'Awei'}</strong>
+                    <small>WORKSPACE</small>
+                  </span>
+                  <i className="header-identity__status" aria-hidden="true" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
@@ -308,10 +287,6 @@ export function Header({ initialAuthState }: HeaderProps) {
                     </div>
                   </DialogContent>
                 </Dialog>
-                <DropdownMenuItem onClick={handleGitSync} disabled={isGitSyncing}>
-                  <GitBranch className="mr-2 h-4 w-4" />
-                  <span>{isGitSyncing ? 'GitHub 同步中...' : 'GitHub 同步'}</span>
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => logout()} className="text-red-500 focus:text-red-500">
                   退出登录
                 </DropdownMenuItem>

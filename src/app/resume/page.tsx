@@ -254,7 +254,7 @@ export default function ResumePage() {
       <div className="resume-noise" />
       <div className="resume-wrap">
         <nav className="resume-nav" aria-label="简历导航">
-          <a className="resume-brand" href="#top"><span>YW</span><b>WAYNE.<i>DEV</i></b></a>
+          <a className="resume-brand" href="#top"><span>AW</span><b>AWEI.<i>DEV</i></b></a>
           <div className="resume-nav__links">
             <a href="#projects">项目</a>
             <a href="#stack">技术栈</a>
@@ -308,7 +308,7 @@ export default function ResumePage() {
         <div className="resume-content">
           <aside className="resume-profile">
             <div className="resume-profile__card">
-              <div className="resume-avatar"><span>YW</span><i /></div>
+              <div className="resume-avatar"><span>AW</span><i /></div>
               <p className="resume-profile__role">NODE.JS / JAVA FULL-STACK ENGINEER</p>
               <h2>杨伟 <small>Wayne Yang</small></h2>
               <p className="resume-profile__bio">Node.js / Java 高级全栈工程师，擅长复杂业务建模、实时通信、AI 应用服务与跨端产品的全链路交付。</p>
@@ -627,11 +627,6 @@ export default function ResumePage() {
           </main>
         </div>
 
-        <footer className="resume-footer">
-          <p>WAYNE YANG · AGENT FULL-STACK ENGINEER</p>
-          <span>DESIGNED FOR THE NEXT CHALLENGE · 2026</span>
-          <a href="#top">BACK TO TOP ↑</a>
-        </footer>
       </div>
     </div>
   )

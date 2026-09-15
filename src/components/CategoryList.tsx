@@ -131,7 +131,7 @@ function SortableCategoryItem({ cat, isActive, isAuthenticated, onDelete, onUpda
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative flex items-center ${isDragging ? "opacity-50" : ""}`}
+      className={`blog-category-list__item group relative flex items-center ${isActive ? "is-active" : ""} ${isDragging ? "opacity-50" : ""}`}
     >
       {isAuthenticated && (
         <div
@@ -304,15 +304,15 @@ export function CategoryList({ categories: initialCategories, currentCategory }:
   const totalCount = categories.reduce((sum, cat) => sum + cat.count, 0);
 
   return (
-    <div className="space-y-6">
+    <div className="blog-category-list space-y-6">
       <div>
-        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+        <h3 className="blog-category-list__title text-sm font-semibold mb-4 flex items-center gap-2">
           <Hash className="h-4 w-4 text-primary" />
           文章分类
         </h3>
-        <nav className="flex flex-col gap-1">
+        <nav className="blog-category-list__nav flex flex-col gap-1">
           {/* 全部分类 - 固定在最上方 */}
-          <div className="group relative flex items-center gap-1">
+          <div className={`blog-category-list__item group relative flex items-center gap-1 ${currentCategory === "all" ? "is-active" : ""}`}>
             <Button
               variant={currentCategory === "all" ? "secondary" : "ghost"}
               className="flex-1 justify-between h-10 px-4 font-normal transition-all"
@@ -357,7 +357,7 @@ export function CategoryList({ categories: initialCategories, currentCategory }:
             </DndContext>
           ) : (
             categories.map((cat) => (
-              <div key={cat.slug} className="group relative flex items-center gap-1">
+              <div key={cat.slug} className={`blog-category-list__item group relative flex items-center gap-1 ${currentCategory === cat.slug ? "is-active" : ""}`}>
                 <Button
                   variant={currentCategory === cat.slug ? "secondary" : "ghost"}
                   className="flex-1 justify-between h-10 px-4 font-normal transition-all"

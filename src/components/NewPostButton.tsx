@@ -21,8 +21,9 @@ export function NewPostButton({ category }: NewPostButtonProps) {
 
   return (
     <>
-      <Button 
-        className="gap-2" 
+      <Button
+        variant="outline"
+        className="blog-sidebar__new-post w-full gap-2"
         onClick={() => setOpen(true)}
         disabled={isAllCategory}
         title={isAllCategory ? "请先选择具体分类" : "新建文章"}
