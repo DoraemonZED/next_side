@@ -15,7 +15,9 @@ COPY . .
 # Disable telemetry during build
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN mkdir -p blog game db && pnpm build
+# Git does not preserve empty directories. Keep public available for the
+# runner-stage COPY even when no static assets are tracked.
+RUN mkdir -p blog game db public && pnpm build
 
 # Stage 2: Runner
 FROM node:24-alpine AS runner

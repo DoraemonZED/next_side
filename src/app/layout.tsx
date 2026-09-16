@@ -11,6 +11,9 @@ import { getSession } from "@/lib/auth";
 export const metadata: Metadata = {
   title: "杨伟｜Agent 全栈工程师",
   description: "杨伟的 Agent 全栈工程师个人简历：Node.js、NestJS、AI Agent、实时通信与多端交付。",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default async function RootLayout({
