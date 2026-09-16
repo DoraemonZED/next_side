@@ -67,13 +67,15 @@ async function commitIfNeeded(): Promise<boolean> {
   return true;
 }
 
-async function pullBeforeWrite(): Promise<void> {
+async function pullBeforeWrite(): Promise<boolean> {
   const { branch } = config();
-  if (!(await hasRepository())) return;
+  if (!(await hasRepository())) return false;
   if ((await git(['status', '--porcelain', '--untracked-files=all'])).trim()) throw new BlogGitError('博客存在未同步的本地改动，无法确认最新版本');
+  const before = (await git(['rev-parse', 'HEAD'])).trim();
   await git(['fetch', 'origin', branch]);
   try {
     await git(['merge', '--ff-only', `origin/${branch}`]);
+    return before !== (await git(['rev-parse', 'HEAD'])).trim();
   } catch (error) {
     throw new BlogGitError(`博客仓库无法快进到远程版本：${error instanceof Error ? error.message : '未知错误'}`);
   }

@@ -14,7 +14,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { PlusCircle } from 'lucide-react';
-import { BlogGitSyncButton } from '@/components/BlogGitSyncButton';
 
 export function NewCategoryButton() {
   const [name, setName] = useState('');
@@ -55,7 +54,7 @@ export function NewCategoryButton() {
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <Button variant="outline" className="blog-sidebar__action w-full gap-2">
@@ -96,7 +95,6 @@ export function NewCategoryButton() {
           </form>
         </DialogContent>
       </Dialog>
-      <BlogGitSyncButton />
-    </div>
+    </>
   );
 }

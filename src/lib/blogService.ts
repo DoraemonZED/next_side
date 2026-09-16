@@ -24,6 +24,7 @@ type StoredCategory = Omit<Category, 'count'>;
 type FrontMatter = Partial<Pick<PostMeta, 'title' | 'date' | 'updatedAt' | 'author' | 'summary' | 'tags'>>;
 type Post = Omit<PostMeta, 'categoryName' | 'views' | 'likes' | 'shares'> & { content: string };
 type Store = { version: 2; categories: StoredCategory[] };
+type IndexRow = { category_id: string; metric_category_id: string; post_id: string; title: string; published_at: string; updated_at: string; author: string; summary: string; tags: string; views: number; likes: number; shares: number; };
 
 async function store(): Promise<Store> {
   try {
@@ -77,6 +78,10 @@ function normalizedMarkdown(postId: string, source: string, now = new Date()): {
 }
 function metric(category: string, postId: string) { return (db.prepare('SELECT views, likes, shares FROM post_metrics WHERE category_id = ? AND post_id = ?').get(category, postId) as { views: number; likes: number; shares: number } | undefined) || { views: 0, likes: 0, shares: 0 }; }
 function metricRow(category: string, postId: string) { db.prepare('INSERT OR IGNORE INTO post_metrics (category_id, post_id, views, likes, shares) VALUES (?, ?, 0, 0, 0)').run(category, postId); }
+const upsertIndex = db.prepare(`INSERT INTO post_index (category_id, metric_category_id, post_id, title, published_at, updated_at, author, summary, tags)
+  VALUES (@category_id, @metric_category_id, @post_id, @title, @published_at, @updated_at, @author, @summary, @tags)
+  ON CONFLICT(category_id, post_id) DO UPDATE SET metric_category_id=excluded.metric_category_id, title=excluded.title, published_at=excluded.published_at, updated_at=excluded.updated_at, author=excluded.author, summary=excluded.summary, tags=excluded.tags`);
+const removeIndex = db.prepare('DELETE FROM post_index WHERE category_id = ? AND post_id = ?');
 async function post(c: StoredCategory, postId: string): Promise<Post | null> {
   try {
     const dir = postDir(c, postId), source = await fs.readFile(path.join(dir, 'index.md'), 'utf8'), parsed = frontMatter(source);
@@ -85,31 +90,47 @@ async function post(c: StoredCategory, postId: string): Promise<Post | null> {
   } catch (e) { if (isMissing(e)) return null; throw e; }
 }
 async function posts(s: Store) { const result: Post[] = []; for (const c of s.categories) { try { for (const e of await fs.readdir(categoryDir(c), { withFileTypes: true })) if (e.isDirectory() && isBlogDirectoryId(e.name)) { const value = await post(c, e.name); if (value) result.push(value); } } catch (e) { if (!isMissing(e)) throw e; } } return result; }
-async function mutation<T>(fn: (s: Store) => Promise<T>) { return withBlogLock(async () => { await blogGitService.pullBeforeWrite(); const result = await fn(await store()); await blogGitService.commitAndPush(); return result; }); }
+function indexInput(c: StoredCategory, p: Post) { return { category_id: c.directoryId, metric_category_id: c.slug, post_id: p.id, title: p.title, published_at: p.date, updated_at: p.updatedAt, author: p.author, summary: p.summary, tags: p.tags }; }
+async function refreshPostIndex(s: Store): Promise<number> {
+  const source = await posts(s);
+  const categories = new Map(s.categories.map((category) => [category.directoryId, category]));
+  db.transaction((items: Post[]) => {
+    db.prepare('DELETE FROM post_index').run();
+    for (const item of items) {
+      const category = categories.get(item.category);
+      if (category) upsertIndex.run(indexInput(category, item));
+    }
+    const existingMetricRows = db.prepare('SELECT category_id, post_id FROM post_metrics').all() as Array<{ category_id: string; post_id: string }>;
+    const existing = new Set(items.map((item) => `${categories.get(item.category)?.slug}\u0000${item.id}`));
+    const removeMetric = db.prepare('DELETE FROM post_metrics WHERE category_id = ? AND post_id = ?');
+    for (const row of existingMetricRows) if (!existing.has(`${row.category_id}\u0000${row.post_id}`)) removeMetric.run(row.category_id, row.post_id);
+  })(source);
+  return source.length;
+}
+async function mutation<T>(fn: (s: Store) => Promise<T>) { return withBlogLock(async () => { const pulledChanges = await blogGitService.pullBeforeWrite(); const s = await store(); if (pulledChanges) await refreshPostIndex(s); const result = await fn(s); await blogGitService.commitAndPush(); return result; }); }
 const meta = (p: Post, c: StoredCategory): PostMeta => ({ ...p, categoryName: c.name, ...metric(c.slug,p.id) });
-function sort(list: PostMeta[], field: PostSortField, order: PostSortOrder) { const d = order === 'asc' ? 1 : -1; return list.sort((a,b) => ((field === 'date' ? Date.parse(a.date) : a[field]) === (field === 'date' ? Date.parse(b.date) : b[field]) ? a.title.localeCompare(b.title) : (field === 'date' ? Date.parse(a.date) : a[field]) < (field === 'date' ? Date.parse(b.date) : b[field]) ? -1 : 1) * d); }
+function indexedMeta(row: IndexRow, category: StoredCategory): PostMeta { return { id: row.post_id, category: row.category_id, categoryName: category.name, directoryId: row.post_id, title: row.title, date: row.published_at, updatedAt: row.updated_at, author: row.author, summary: row.summary, tags: row.tags, views: row.views, likes: row.likes, shares: row.shares }; }
+function indexOrder(field: PostSortField) { return field === 'date' ? 'published_at' : field; }
 
 export const blogService = {
   /** Removes metric rows whose category/article file no longer exists on disk. */
   async cleanupMissingPostMetrics(): Promise<number> {
-    const s = await store();
-    const existing = new Set((await posts(s)).map((item) => `${findCategory(s, item.category)?.slug}\u0000${item.id}`));
-    const rows = db.prepare('SELECT category_id, post_id FROM post_metrics').all() as Array<{ category_id: string; post_id: string }>;
-    const stale = rows.filter((row) => !existing.has(`${row.category_id}\u0000${row.post_id}`));
-    if (stale.length === 0) return 0;
-
-    const remove = db.prepare('DELETE FROM post_metrics WHERE category_id = ? AND post_id = ?');
-    db.transaction((items: typeof stale) => {
-      for (const item of items) remove.run(item.category_id, item.post_id);
-    })(stale);
-    return stale.length;
+    const before = (db.prepare('SELECT COUNT(*) AS count FROM post_metrics').get() as { count: number }).count;
+    await refreshPostIndex(await store());
+    const after = (db.prepare('SELECT COUNT(*) AS count FROM post_metrics').get() as { count: number }).count;
+    return Math.max(0, before - after);
   },
-  async getCategories(): Promise<Category[]> { const s = await store(), all = await posts(s); return s.categories.map((c) => ({...c,count:all.filter((p)=>p.category===c.directoryId).length})).sort((a,b)=>a.order-b.order); },
+  async refreshPostIndex(): Promise<number> { return refreshPostIndex(await store()); },
+  async getCategories(): Promise<Category[]> {
+    const s = await store();
+    const counts = new Map((db.prepare('SELECT category_id, COUNT(*) AS count FROM post_index GROUP BY category_id').all() as Array<{ category_id: string; count: number }>).map((row) => [row.category_id, row.count]));
+    return s.categories.map((c) => ({ ...c, count: counts.get(c.directoryId) ?? 0 })).sort((a, b) => a.order - b.order);
+  },
   async createCategory(name: string, directoryId: string, description = '') { try { return await mutation(async(s) => { const dir=id(directoryId,'目录 ID'); if (!name.trim() || findCategory(s,dir)) throw new Error('分类已存在'); const c={name:name.trim(),slug:dir,directoryId:dir,description,order:s.categories.length}; await fs.mkdir(categoryDir(c),{recursive:true}); s.categories.push(c); await saveStore(s); return true; }); } catch (e) { console.error(e); return false; } },
   async updateCategory(categoryId: string, data: Partial<Category>) { try { return await mutation(async(s) => { const c=findCategory(s,id(categoryId,'分类目录 ID')); if(!c) throw new Error('分类不存在'); if(data.name!==undefined) c.name=data.name.trim(); if(!c.name) throw new Error('分类名称不能为空'); if(data.description!==undefined)c.description=data.description; if(data.order!==undefined)c.order=data.order; await saveStore(s); return true; }); } catch(e){console.error(e);return false;} },
-  async deleteCategory(categoryId: string) { try { return await mutation(async(s)=>{const c=findCategory(s,id(categoryId,'分类目录 ID'));if(!c)return false;await fs.rm(categoryDir(c),{recursive:true,force:true});s.categories=s.categories.filter(x=>x!==c);await saveStore(s);return true;});}catch(e){console.error(e);return false;} },
-  async deletePost(category: string, postId: string) { try{return await mutation(async(s)=>{const c=findCategory(s,id(category,'分类目录 ID')),safe=id(postId,'文章目录 ID');if(!c||!await post(c,safe))return false;await fs.rm(postDir(c,safe),{recursive:true,force:true});db.prepare('DELETE FROM post_metrics WHERE category_id=? AND post_id=?').run(c.slug,safe);return true;});}catch(e){console.error(e);return false;} },
-  async savePost(category: string, postId: string, data: Partial<PostMeta>, content?: string, directoryId?: string) { try{return await mutation(async(s)=>{const c=findCategory(s,id(category,'分类目录 ID')),safe=id(postId,'文章目录 ID');if(!c)throw new Error('分类不存在');const old=await post(c,safe);if(!old&&!directoryId)throw new Error('目录 ID 为必填项');if(directoryId&&directoryId!==safe)throw new Error('目录 ID 不匹配');const now=new Date().toISOString(), body=content??old?.content??'', fm={title:data.title||old?.title||titleFromId(safe),date:data.date||old?.date||now.slice(0,10),updatedAt:now,author:data.author||old?.author||'Admin',summary:data.summary??old?.summary??summary(body),tags:data.tags??old?.tags??''};await fs.mkdir(postDir(c,safe),{recursive:true});await fs.writeFile(path.join(postDir(c,safe),'index.md'),markdown(fm,body));metricRow(c.slug,safe);return true;});}catch(e){console.error(e);return false;} },
+  async deleteCategory(categoryId: string) { try { return await mutation(async(s)=>{const c=findCategory(s,id(categoryId,'分类目录 ID'));if(!c)return false;await fs.rm(categoryDir(c),{recursive:true,force:true});db.prepare('DELETE FROM post_index WHERE category_id=?').run(c.directoryId);db.prepare('DELETE FROM post_metrics WHERE category_id=?').run(c.slug);s.categories=s.categories.filter(x=>x!==c);await saveStore(s);return true;});}catch(e){console.error(e);return false;} },
+  async deletePost(category: string, postId: string) { try{return await mutation(async(s)=>{const c=findCategory(s,id(category,'分类目录 ID')),safe=id(postId,'文章目录 ID');if(!c||!await post(c,safe))return false;await fs.rm(postDir(c,safe),{recursive:true,force:true});removeIndex.run(c.directoryId,safe);db.prepare('DELETE FROM post_metrics WHERE category_id=? AND post_id=?').run(c.slug,safe);return true;});}catch(e){console.error(e);return false;} },
+  async savePost(category: string, postId: string, data: Partial<PostMeta>, content?: string, directoryId?: string) { try{return await mutation(async(s)=>{const c=findCategory(s,id(category,'分类目录 ID')),safe=id(postId,'文章目录 ID');if(!c)throw new Error('分类不存在');const old=await post(c,safe);if(!old&&!directoryId)throw new Error('目录 ID 为必填项');if(directoryId&&directoryId!==safe)throw new Error('目录 ID 不匹配');const now=new Date().toISOString(), body=content??old?.content??'', fm={title:data.title||old?.title||titleFromId(safe),date:data.date||old?.date||now.slice(0,10),updatedAt:now,author:data.author||old?.author||'Admin',summary:data.summary??old?.summary??summary(body),tags:data.tags??old?.tags??''};await fs.mkdir(postDir(c,safe),{recursive:true});await fs.writeFile(path.join(postDir(c,safe),'index.md'),markdown(fm,body));metricRow(c.slug,safe);upsertIndex.run({category_id:c.directoryId,metric_category_id:c.slug,post_id:safe,title:fm.title,published_at:fm.date,updated_at:fm.updatedAt,author:fm.author,summary:fm.summary,tags:fm.tags});return true;});}catch(e){console.error(e);return false;} },
   async importZip(categoryId: string, files: Array<{path:string;data:Buffer}>) {
     return mutation(async (s) => {
       const dir = id(categoryId, '分类目录 ID');
@@ -153,12 +174,31 @@ export const blogService = {
 
       if (isNewCategory) s.categories.push(c);
       await saveStore(s);
-      db.transaction((postIds: string[]) => { for (const postId of postIds) metricRow(c.slug, postId); })(ids);
+      db.transaction((postIds: string[]) => {
+        for (const postId of postIds) {
+          metricRow(c.slug, postId);
+          const parsed = frontMatter(normalized.get(`${dir}/${postId}/index.md`)!.toString('utf8'));
+          const metadata = parsed.meta as Required<FrontMatter>;
+          upsertIndex.run({ category_id: c.directoryId, metric_category_id: c.slug, post_id: postId, title: metadata.title, published_at: metadata.date, updated_at: metadata.updatedAt, author: metadata.author, summary: metadata.summary, tags: metadata.tags });
+        }
+      })(ids);
       return { category: c.directoryId, posts: ids.length, normalizedPosts, metricsInitialized: ids.length };
     });
   },
-  async getAllPosts(page=1,pageSize=10,q='',field:PostSortField='date',order:PostSortOrder='desc'){const s=await store(),query=q.trim().toLowerCase(),list=sort((await posts(s)).map(p=>meta(p,findCategory(s,p.category)!)).filter(p=>!query||p.title.toLowerCase().includes(query)||p.tags.toLowerCase().includes(query)),field,order),current=Math.max(1,page);return {posts:list.slice((current-1)*pageSize,current*pageSize),total:list.length,page:current,pageSize,totalPages:Math.ceil(list.length/pageSize)};},
-  async getPostsByCategory(category:string,page=1,pageSize=10,q='',field:PostSortField='date',order:PostSortOrder='desc'){const s=await store(),resolved=findCategory(s,category)?.directoryId??category,all=await this.getAllPosts(1,Number.MAX_SAFE_INTEGER,q,field,order),list=all.posts.filter(p=>p.category===resolved),current=Math.max(1,page);return {posts:list.slice((current-1)*pageSize,current*pageSize),total:list.length,page:current,pageSize,totalPages:Math.ceil(list.length/pageSize)};},
+  async getAllPosts(page=1,pageSize=10,q='',field:PostSortField='date',order:PostSortOrder='desc'){
+    const s=await store();
+    const query=q.trim().toLowerCase(), current=Math.max(1,page), where=query?'WHERE LOWER(i.title) LIKE ? OR LOWER(i.tags) LIKE ?':'', params=query?[`%${query}%`,`%${query}%`]:[];
+    const total=(db.prepare(`SELECT COUNT(*) AS count FROM post_index i ${where}`).get(...params) as {count:number}).count;
+    const rows=db.prepare(`SELECT i.*, COALESCE(m.views,0) AS views, COALESCE(m.likes,0) AS likes, COALESCE(m.shares,0) AS shares FROM post_index i LEFT JOIN post_metrics m ON m.category_id=i.metric_category_id AND m.post_id=i.post_id ${where} ORDER BY ${indexOrder(field)} ${order.toUpperCase()}, i.title ${order.toUpperCase()} LIMIT ? OFFSET ?`).all(...params,pageSize,(current-1)*pageSize) as IndexRow[];
+    const categories=new Map(s.categories.map(c=>[c.directoryId,c]));
+    return {posts:rows.flatMap(row=>{const c=categories.get(row.category_id);return c?[indexedMeta(row,c)]:[];}),total,page:current,pageSize,totalPages:Math.ceil(total/pageSize)};
+  },
+  async getPostsByCategory(category:string,page=1,pageSize=10,q='',field:PostSortField='date',order:PostSortOrder='desc'){
+    const s=await store(); const resolved=findCategory(s,category)?.directoryId??category,query=q.trim().toLowerCase(),current=Math.max(1,page),where=query?'WHERE i.category_id=? AND (LOWER(i.title) LIKE ? OR LOWER(i.tags) LIKE ?)':'WHERE i.category_id=?',params=query?[resolved,`%${query}%`,`%${query}%`]:[resolved];
+    const total=(db.prepare(`SELECT COUNT(*) AS count FROM post_index i ${where}`).get(...params) as {count:number}).count;
+    const rows=db.prepare(`SELECT i.*, COALESCE(m.views,0) AS views, COALESCE(m.likes,0) AS likes, COALESCE(m.shares,0) AS shares FROM post_index i LEFT JOIN post_metrics m ON m.category_id=i.metric_category_id AND m.post_id=i.post_id ${where} ORDER BY ${indexOrder(field)} ${order.toUpperCase()}, i.title ${order.toUpperCase()} LIMIT ? OFFSET ?`).all(...params,pageSize,(current-1)*pageSize) as IndexRow[];
+    const c=findCategory(s,resolved); return {posts:c?rows.map(row=>indexedMeta(row,c)):[],total,page:current,pageSize,totalPages:Math.ceil(total/pageSize)};
+  },
   async getPostDetail(category:string,postId:string):Promise<PostDetail|null>{try{const s=await store(),c=findCategory(s,category);if(!c)return null;const p=await post(c,id(postId,'文章目录 ID'));return p?{...meta(p,c),content:p.content}:null;}catch(e){console.error(e);return null;}},
   async listAssets(category: string, postId: string): Promise<BlogAsset[]> {
     const s = await store(), c = findCategory(s, requiredPathSegment(category, '分类路径'));

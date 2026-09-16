@@ -13,18 +13,12 @@ export async function POST() {
 
   try {
     const result = await withBlogLock(async () => {
-      // Check both the local state and the state after a fast-forward pull:
-      // deleted files may originate from either place.
-      const removedBeforePull = await blogService.cleanupMissingPostMetrics();
       const syncResult = await blogGitService.sync();
-      const removedAfterPull = await blogService.cleanupMissingPostMetrics();
-      const removedMetricRows = removedBeforePull + removedAfterPull;
+      const indexedPosts = await blogService.refreshPostIndex();
       return {
         ...syncResult,
-        removedMetricRows,
-        message: removedMetricRows > 0
-          ? `${syncResult.message}，已清理 ${removedMetricRows} 条失效文章数据`
-          : `${syncResult.message}，文章数据校验完成`,
+        indexedPosts,
+        message: `${syncResult.message}，已刷新 ${indexedPosts} 篇文章的检索索引`,
       };
     });
     return NextResponse.json(result);

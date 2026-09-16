@@ -110,6 +110,22 @@ ps -ef | grep '[d]eploy.sh'
 | `next` 容器存在但首页异常 | 先用 `docker logs --tail 200 next` 定位；如同时存在备份容器，按下方步骤恢复备份版本。 |
 | `git pull --ff-only` 失败 | 代码目录有本地已跟踪修改或分支发生分叉。先用 `git status` 检查，确认本地修改的归属后再处理，禁止直接删除持久化内容目录。 |
 
+#### 一键清理中断部署
+
+若确认部署卡住或被中断，可在项目目录运行：
+
+```bash
+bash recover-deploy.sh
+```
+
+该脚本只会匹配**当前项目目录**中的 `deploy.sh` 进程及其子进程，先尝试正常终止、必要时强制终止，再移除 `.deploy.lock`。若仅遗留 `next-deploy-backup`，会将其恢复为 `next` 并启动旧服务；若 `next` 与备份容器同时存在，脚本不会删除任何容器。先用以下命令预演将执行的操作：
+
+```bash
+bash recover-deploy.sh --dry-run
+```
+
+恢复完成后再执行 `bash deploy.sh`。
+
 #### 手动恢复旧容器
 
 仅当 `docker ps -a` 明确显示 `next-deploy-backup` 存在、且新 `next` 容器无法工作时执行。以下操作只作用于应用容器，不会删除 `/root/blog`、`/root/game`、`/root/db`：

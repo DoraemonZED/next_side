@@ -6,11 +6,18 @@ import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useCallback, useEffect, useState, useTransition } from "react";
+
+const sortOptions = [
+  { label: "最新发布", value: "date", icon: Clock },
+  { label: "最多浏览", value: "views", icon: Eye },
+  { label: "最多点赞", value: "likes", icon: ThumbsUp },
+] as const;
 
 export function PostFilters() {
   const router = useRouter();
@@ -19,8 +26,9 @@ export function PostFilters() {
   const [, startTransition] = useTransition();
 
   const currentSearch = searchParams.get("q") || "";
-  const currentSortBy = searchParams.get("sortBy") || "date";
-  const currentSortOrder = (searchParams.get("sortOrder") as "asc" | "desc") || "desc";
+  const requestedSortBy = searchParams.get("sortBy");
+  const currentSortBy = sortOptions.some((option) => option.value === requestedSortBy) ? requestedSortBy! : "date";
+  const currentSortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const [searchInput, setSearchInput] = useState(currentSearch);
 
@@ -50,12 +58,6 @@ export function PostFilters() {
     return () => clearTimeout(timer);
   }, [currentSearch, searchInput, updateFilters]);
 
-  const sortOptions = [
-    { label: "最新发布", value: "date", icon: Clock },
-    { label: "最多浏览", value: "views", icon: Eye },
-    { label: "最多点赞", value: "likes", icon: ThumbsUp },
-  ];
-
   const currentSortOption = sortOptions.find(opt => opt.value === currentSortBy) || sortOptions[0];
 
   return (
@@ -80,18 +82,19 @@ export function PostFilters() {
               </span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-[140px]">
-            {sortOptions.map((option) => (
-              <DropdownMenuItem
+          <DropdownMenuContent align="end" sideOffset={6} className="blog-sort-menu w-[140px]">
+            <DropdownMenuRadioGroup value={currentSortBy} onValueChange={(value) => updateFilters({ sortBy: value })}>
+              {sortOptions.map((option) => (
+              <DropdownMenuRadioItem
                 key={option.value}
                 data-sort={option.value}
-                onClick={() => updateFilters({ sortBy: option.value })}
-                className={currentSortBy === option.value ? "bg-accent" : ""}
+                value={option.value}
               >
                 <option.icon className="mr-2 h-4 w-4" />
                 {option.label}
-              </DropdownMenuItem>
+              </DropdownMenuRadioItem>
             ))}
+            </DropdownMenuRadioGroup>
           </DropdownMenuContent>
         </DropdownMenu>
 

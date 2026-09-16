@@ -9,6 +9,7 @@ import {
 import { blogService, postSortField, postSortOrder } from "@/lib/blogService"
 import { NewCategoryButton } from "@/components/NewCategoryButton"
 import { NewPostButton } from "@/components/NewPostButton"
+import { BlogGitSyncButton } from "@/components/BlogGitSyncButton"
 import { CategoryList } from "@/components/CategoryList"
 import { PostCard } from "@/components/PostCard"
 import { PostFilters } from "@/components/PostFilters"
@@ -51,8 +52,11 @@ export default async function BlogRootPage(props: {
         <aside className="blog-sidebar">
           <div className="blog-sidebar__sticky">
             <CategoryList categories={categories} currentCategory="all" />
-            <NewCategoryButton />
-            <NewPostButton category="all" />
+            <div className="blog-sidebar__primary-actions">
+              <NewCategoryButton />
+              <NewPostButton category="all" />
+            </div>
+            <BlogGitSyncButton />
             <div className="blog-sidebar__protocol">
               <BookOpen aria-hidden="true" />
               <span>READER&apos;S PROTOCOL</span>

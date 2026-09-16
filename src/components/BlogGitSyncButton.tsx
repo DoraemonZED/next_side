@@ -2,7 +2,7 @@
 
 import { type ChangeEvent, type DragEvent, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FileArchive, FileUp, GitBranch, Loader2, Upload, X } from 'lucide-react';
+import { DatabaseZap, FileArchive, FileUp, GitBranch, Loader2, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useUIStore } from '@/store/useUIStore';
@@ -19,6 +19,8 @@ export function BlogGitSyncButton() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadError, setUploadError] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [rebuildOpen, setRebuildOpen] = useState(false);
+  const [isRebuilding, setIsRebuilding] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { isAuthenticated } = useAuthStore();
   const { showConfirm, showToast } = useUIStore();
@@ -45,6 +47,15 @@ export function BlogGitSyncButton() {
       message: '将扫描文章文件并清理 SQLite 中已删除文章的失效数据，然后从 GitHub 快进获取更新。页面保存时已自动推送，因此此操作不会重复推送。',
       onConfirm: () => void handleSync(),
     });
+  };
+  const rebuildIndex = async () => {
+    setIsRebuilding(true);
+    try {
+      const response = await fetch('/api/blog/index', { method: 'POST' });
+      const data = await response.json();
+      showToast(data.message || (response.ok ? '文章索引已重建' : '重建失败'), response.ok ? 'success' : 'error');
+      if (response.ok) { setRebuildOpen(false); router.refresh(); }
+    } catch { showToast('网络错误', 'error'); } finally { setIsRebuilding(false); }
   };
   const selectFile = async (file?: File) => {
     if (!file) return;
@@ -96,6 +107,10 @@ export function BlogGitSyncButton() {
         {isSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <GitBranch className="h-4 w-4" />}
         {isSyncing ? '获取中...' : '获取 GitHub 更新'}
       </Button>
+      <Button variant="outline" className="blog-sidebar__action w-full gap-2" onClick={() => setRebuildOpen(true)} disabled={isRebuilding}>
+        {isRebuilding ? <Loader2 className="h-4 w-4 animate-spin" /> : <DatabaseZap className="h-4 w-4" />}
+        {isRebuilding ? '重建中...' : '重建文章索引'}
+      </Button>
       <Dialog open={uploadOpen} onOpenChange={closeUploadDialog}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
@@ -119,6 +134,23 @@ export function BlogGitSyncButton() {
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => closeUploadDialog(false)} disabled={isUploading}>取消</Button>
             <Button type="button" onClick={handleUpload} disabled={!selectedFile || isUploading}>{isUploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{isUploading ? '正在上传…' : '确认上传'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={rebuildOpen} onOpenChange={(open) => { if (!isRebuilding) setRebuildOpen(open); }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>重建文章索引</DialogTitle>
+            <DialogDescription>此操作只重建 SQLite 中的列表检索数据，不会修改 Markdown 正文或 Git 仓库文件。</DialogDescription>
+          </DialogHeader>
+          <div className="rounded-lg border border-border bg-muted/35 p-4 text-sm leading-6 text-muted-foreground">
+            <p><strong className="text-foreground">适用场景：</strong>首次启用文章索引、手工修改了博客目录、或列表内容与 Markdown 不一致时。</p>
+            <p className="mt-2"><strong className="text-foreground">执行流程：</strong>扫描各分类下的 <code>index.md</code>，提取标题、日期、摘要、标签等元数据，更新列表索引，并清理已不存在文章的互动指标记录。</p>
+            <p className="mt-2">文章较多时可能需要稍等；日常新建、编辑、删除和 ZIP 导入不会触发这项全量扫描。</p>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setRebuildOpen(false)} disabled={isRebuilding}>取消</Button>
+            <Button type="button" onClick={rebuildIndex} disabled={isRebuilding}>{isRebuilding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}{isRebuilding ? '正在重建…' : '确认重建'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
