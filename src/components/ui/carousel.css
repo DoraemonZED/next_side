@@ -116,25 +116,26 @@
 
 .carousel-3d__arrows {
   position: absolute;
-  right: max(16px, calc(14% - 34px));
+  left: 50%;
   bottom: 27px;
   z-index: 50;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px;
+  gap: 8px;
+  padding: 5px;
   border: 1px solid rgba(255, 255, 255, .12);
   border-radius: 999px;
   color: rgba(255, 255, 255, .52);
   background: rgba(5, 17, 22, .88);
   box-shadow: 0 16px 36px rgba(0, 0, 0, .28);
   backdrop-filter: blur(14px);
+  transform: translateX(-50%);
 }
 
 .carousel-3d__arrows button {
   display: grid;
-  width: 38px;
-  height: 38px;
+  width: 32px;
+  height: 32px;
   place-items: center;
   border: 0;
   border-radius: 50%;
@@ -156,19 +157,19 @@
 }
 
 .carousel-3d__arrows svg {
-  width: 17px;
+  width: 15px;
 }
 
 .carousel-3d__arrows span {
-  min-width: 62px;
+  min-width: 54px;
   text-align: center;
-  font: 600 0.6875rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  font: 600 0.625rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: .08em;
 }
 
 .carousel-3d__arrows strong {
   color: var(--carousel-accent);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
 }
 
 .carousel-3d__dots {
@@ -235,9 +236,7 @@
   }
 
   .carousel-3d__arrows {
-    right: 50%;
     bottom: 3px;
-    transform: translateX(50%);
   }
 
   .carousel-3d__floor { display: none; }

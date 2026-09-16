@@ -69,32 +69,47 @@ async function commitIfNeeded(): Promise<boolean> {
   return true;
 }
 
-/** Sync only when Git can fast-forward or merge cleanly. Conflicts are intentionally kept for manual resolution. */
 export const gameGitService = {
-  async sync(): Promise<{ message: string; changed: boolean }> {
+  async pullBeforeWrite(): Promise<void> {
+    const { branch } = config();
+    if (!(await hasRepository())) return;
+    if (await hasMergeConflict()) throw new GameGitError('游戏仓库存在未解决的合并冲突；请先在服务器处理冲突后再保存');
+    if ((await git(['status', '--porcelain', '--untracked-files=all'])).trim()) {
+      throw new GameGitError('游戏目录存在未同步的本地改动，无法确认最新版本');
+    }
+    await git(['fetch', 'origin', branch]);
+    try {
+      await git(['merge', '--ff-only', `origin/${branch}`]);
+    } catch (error) {
+      throw new GameGitError(`游戏仓库无法快进到远程版本：${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  },
+
+  async commitAndPush(): Promise<void> {
+    if (!(await hasRepository())) return;
+    const { branch } = config();
+    await commitIfNeeded();
+    try {
+      await git(['push', 'origin', `HEAD:${branch}`]);
+    } catch (error) {
+      throw new GameGitError(`游戏已保存到本地，但推送 GitHub 失败：${error instanceof Error ? error.message : '未知错误'}`);
+    }
+  },
+
+  /** Fetches remote game code only; uploads and deletions already push themselves. */
+  async sync(): Promise<{ message: string }> {
     const { branch } = config();
     if (!(await hasRepository())) throw new GameGitError('游戏 Git 仓库尚未初始化，请先配置 GAME_REPO 后重新部署');
     if (await hasMergeConflict()) throw new GameGitError('游戏仓库存在未解决的合并冲突；请先在服务器处理冲突后再同步');
-    const changed = await commitIfNeeded();
+    if ((await git(['status', '--porcelain', '--untracked-files=all'])).trim()) {
+      throw new GameGitError('游戏目录存在未同步的本地改动；请先通过上传或删除操作保存后再获取远端代码');
+    }
     await git(['fetch', 'origin', branch]);
     try {
-      await git(['merge', '--no-edit', '-m', 'game update', `origin/${branch}`]);
+      await git(['merge', '--ff-only', `origin/${branch}`]);
+      return { message: '已获取 GitHub 中的游戏代码更新' };
     } catch (error) {
-      if (await hasMergeConflict()) throw new GameGitError('检测到 Git 冲突，已停止同步并保留冲突现场；请处理后再试');
-      throw error;
+      throw new GameGitError(`游戏仓库无法快进到远程版本：${error instanceof Error ? error.message : '未知错误'}`);
     }
-    try {
-      await git(['push', 'origin', `HEAD:${branch}`]);
-    } catch (pushError) {
-      await git(['fetch', 'origin', branch]);
-      try {
-        await git(['merge', '--no-edit', '-m', 'game update', `origin/${branch}`]);
-      } catch {
-        if (await hasMergeConflict()) throw new GameGitError('远程更新与本地游戏发生冲突，已停止同步并保留冲突现场；请处理后再试');
-        throw pushError;
-      }
-      await git(['push', 'origin', `HEAD:${branch}`]);
-    }
-    return { message: changed ? '游戏已同步到 GitHub' : '游戏仓库已是最新状态', changed };
   },
 };

@@ -12,6 +12,7 @@ import { NewPostButton } from "@/components/NewPostButton"
 import { CategoryList } from "@/components/CategoryList"
 import { PostCard } from "@/components/PostCard"
 import { PostFilters } from "@/components/PostFilters"
+import { BlogParticleField } from "@/components/BlogParticleField"
 import { BookOpen, FolderTree } from "lucide-react"
 
 export default async function BlogRootPage(props: {
@@ -43,7 +44,9 @@ export default async function BlogRootPage(props: {
   const totalPostCount = categories.reduce((total, category) => total + category.count, 0)
 
   return (
-    <div className="site-page blog-page">
+    <>
+      <BlogParticleField />
+      <div className="site-page blog-page">
       <div className="blog-page__layout">
         <aside className="blog-sidebar">
           <div className="blog-sidebar__sticky">
@@ -126,6 +129,7 @@ export default async function BlogRootPage(props: {
           )}
         </main>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

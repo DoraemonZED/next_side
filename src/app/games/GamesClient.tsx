@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { FileArchive, Gamepad2, GitBranch, Loader2, Play, Trash2, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -18,6 +19,7 @@ export function GamesClient({ initialGames }: { initialGames: GameInfo[] }) {
   const [syncing, setSyncing] = useState(false)
   const [form, setForm] = useState({ name: '', title: '', description: '' })
   const fileRef = useRef<HTMLInputElement>(null)
+  const router = useRouter()
   const { isAuthenticated } = useAuthStore()
   const { showConfirm, showToast } = useUIStore()
 
@@ -75,11 +77,20 @@ export function GamesClient({ initialGames }: { initialGames: GameInfo[] }) {
       const response = await fetch('/api/game/git-sync/', { method: 'POST' })
       const data = await response.json()
       showToast(data.message || (response.ok ? '游戏已同步到 GitHub' : 'GitHub 同步失败'), response.ok ? 'success' : 'error')
+      if (response.ok) router.refresh()
     } catch {
       showToast('网络错误', 'error')
     } finally {
       setSyncing(false)
     }
+  }
+
+  const confirmSync = () => {
+    showConfirm({
+      title: '获取 GitHub 游戏代码？',
+      message: '将从 GitHub 快进获取远端游戏代码，不会重复推送本地文件。上传或删除游戏时已自动同步到 GitHub。',
+      onConfirm: () => void handleSync(),
+    })
   }
 
   return (
@@ -104,7 +115,7 @@ export function GamesClient({ initialGames }: { initialGames: GameInfo[] }) {
                 <div className="flex justify-end gap-2"><Button variant="outline" onClick={() => setUploadOpen(false)} disabled={uploading}>取消</Button><Button onClick={handleUpload} disabled={uploading}>{uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileArchive className="mr-2 h-4 w-4" />}{uploading ? '解压上传中...' : '上传并解压'}</Button></div>
               </DialogContent>
             </Dialog>
-            <Button variant="outline" onClick={handleSync} disabled={syncing}>{syncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GitBranch className="mr-2 h-4 w-4" />}{syncing ? '同步中...' : '同步到 Git'}</Button>
+            <Button variant="outline" onClick={confirmSync} disabled={syncing}>{syncing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <GitBranch className="mr-2 h-4 w-4" />}{syncing ? '获取中...' : '获取 GitHub 代码'}</Button>
           </div>
         )}
       </div>

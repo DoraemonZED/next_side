@@ -71,7 +71,7 @@ export class ParticleFlight {
       if (enemy.fireIn <= 0) {
         const dx = this.player.x - enemy.x, dy = this.player.y - enemy.y
         const length = Math.max(1, Math.hypot(dx, dy))
-        this.shots.push({ x: enemy.x, y: enemy.y + 14, vx: dx / length * 135, vy: dy / length * 135, hostile: true })
+        this.shots.push({ x: enemy.x, y: enemy.y + 11, vx: dx / length * 135, vy: dy / length * 135, hostile: true })
         enemy.fireIn = 1.3 + this.random() * .6
       }
     }
@@ -90,7 +90,7 @@ export class ParticleFlight {
         return false
       }
       if (!shot.hostile) {
-        const index = this.enemies.findIndex(enemy => hit(enemy.x, enemy.y, 17))
+        const index = this.enemies.findIndex(enemy => hit(enemy.x, enemy.y, 13))
         if (index >= 0) {
           const enemy = this.enemies.splice(index, 1)[0]
           this.burst(enemy.x, enemy.y)
@@ -115,13 +115,13 @@ export function flightTargets(game: ParticleFlight, output: Float32Array) {
     if (index >= FLIGHT_PARTICLES) return
     output.set([x / game.width, 1 - y / game.height, size, alpha], index++ * 4)
   }
-  const line = (x1: number, y1: number, x2: number, y2: number, hostile = false) => {
+  const line = (x1: number, y1: number, x2: number, y2: number, hostile = false, size = 2) => {
     const steps = Math.ceil(Math.hypot(x2 - x1, y2 - y1) / 2)
-    for (let i = 0; i <= steps; i++) dot(x1 + (x2 - x1) * i / steps, y1 + (y2 - y1) * i / steps, hostile ? -1.6 : 1.6)
+    for (let i = 0; i <= steps; i++) dot(x1 + (x2 - x1) * i / steps, y1 + (y2 - y1) * i / steps, hostile ? -size : size)
   }
   const plane = (x: number, y: number, hostile = false) => {
     if (hostile) {
-      const triangle = [[0, 17], [-15, -11], [15, -11], [0, 17]]
+      const triangle = [[0, 13], [-11, -8], [11, -8], [0, 13]]
       for (let i = 1; i < triangle.length; i++) {
         const [ax, ay] = triangle[i - 1], [bx, by] = triangle[i]
         line(x + ax, y + ay, x + bx, y + by, true)
@@ -143,6 +143,6 @@ export function flightTargets(game: ParticleFlight, output: Float32Array) {
   }
   if (game.running) plane(game.player.x, game.player.y)
   game.enemies.forEach(enemy => plane(enemy.x, enemy.y, true))
-  game.shots.forEach(shot => line(shot.x, shot.y, shot.x - shot.vx * .018, shot.y - shot.vy * .018, shot.hostile))
+  game.shots.forEach(shot => line(shot.x, shot.y, shot.x - shot.vx * .018, shot.y - shot.vy * .018, shot.hostile, 2.7))
   game.sparks.forEach(spark => dot(spark.x, spark.y, 2, spark.life))
 }

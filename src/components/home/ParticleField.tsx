@@ -97,7 +97,8 @@ void main() {
   vec3 darkColor = mix(vec3(.19, .65, .49), vec3(.72, 1.0, .82), vSeed);
   vec3 color = mix(lightColor, darkColor, uDark);
   color = mix(color, mix(vec3(.06, .48, .28), vec3(.82, 1.0, .88), uDark), vInfluence);
-  color = mix(color, vec3(.93, .66, .44), vEnemy);
+  // Enemy planes and hostile shots use a dedicated red channel for immediate contrast.
+  color = mix(color, mix(vec3(.80, .025, .055), vec3(1.0, .16, .19), uDark), vEnemy);
   gl_FragColor = vec4(color, (1.0 - d * d) * (vAlpha + vInfluence * .55) * mix(2.35, 1.0, uDark));
 }`
 

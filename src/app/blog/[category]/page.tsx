@@ -12,6 +12,7 @@ import { NewCategoryButton } from "@/components/NewCategoryButton"
 import { CategoryList } from "@/components/CategoryList"
 import { PostCard } from "@/components/PostCard"
 import { PostFilters } from "@/components/PostFilters"
+import { BlogParticleField } from "@/components/BlogParticleField"
 import { BookOpen, FolderTree } from "lucide-react"
 
 export default async function BlogCategoryPage(props: { 
@@ -46,7 +47,9 @@ export default async function BlogCategoryPage(props: {
   const activeCategory = categories.find((item) => item.slug === category)
 
   return (
-    <div className="site-page blog-page">
+    <>
+      <BlogParticleField />
+      <div className="site-page blog-page">
       <div className="blog-page__layout">
         <aside className="blog-sidebar">
           <div className="blog-sidebar__sticky">
@@ -131,6 +134,7 @@ export default async function BlogCategoryPage(props: {
           )}
         </main>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

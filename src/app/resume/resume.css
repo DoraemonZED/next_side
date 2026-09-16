@@ -88,13 +88,47 @@ html:not(.dark) .resume-shell { --resume-ink: var(--foreground); --resume-paper:
 .resume-console__footer span { margin-left: auto; color: var(--resume-acid); }
 .resume-hero__stats { position: absolute; right: 0; bottom: 0; left: 0; z-index: 3; display: grid; grid-template-columns: repeat(4,1fr); border-top: 1px solid var(--resume-line); background: rgba(255,255,255,.5); }
 .dark .resume-hero__stats { border-top-color: rgba(255,255,255,.09); background: rgba(3,14,18,.62); backdrop-filter: blur(16px); }
-.resume-hero__stats > div { display: flex; min-height: 96px; align-items: center; justify-content: center; gap: 13px; border-right: 1px solid var(--resume-line); }
+.resume-hero__stats > div { display: flex; min-height: 108px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 5px; padding: 14px clamp(18px,2.3vw,34px); border-right: 1px solid var(--resume-line); }
 .dark .resume-hero__stats > div { border-right-color: rgba(255,255,255,.08); }
 .resume-hero__stats > div:last-child { border-right: 0; }
-.resume-hero__stats strong { color: var(--resume-ink); font: 900 1.8125rem/1 ui-monospace, monospace; }
+.resume-hero__stats strong { color: var(--resume-ink); font: 900 2rem/.92 ui-monospace, monospace; letter-spacing: -.08em; }
 .dark .resume-hero__stats strong { color: white; }
-.resume-hero__stats sup { color: var(--resume-acid); font-size: 0.8125rem; }
-.resume-hero__stats span { color: var(--resume-muted); font-size: 0.6875rem; font-weight: 700; }
+.resume-hero__stats span { color: var(--resume-muted); font: 700 0.5625rem/1 ui-monospace, monospace; letter-spacing: .1em; }
+.resume-hero__stats small { color: color-mix(in srgb, var(--resume-muted) 70%, transparent); font: 600 0.4375rem/1 ui-monospace, monospace; letter-spacing: .09em; }
+.resume-shell .resume-hero__stats > div { position: relative; isolation: isolate; overflow: hidden; --stat-accent: var(--primary); --stat-soft: var(--primary-subtle); }
+.resume-shell .resume-hero__stats > div::before { position: absolute; top: 0; left: clamp(18px,2.3vw,34px); width: 26px; height: 2px; content: ""; background: var(--stat-accent); box-shadow: 0 0 18px color-mix(in srgb, var(--stat-accent) 56%, transparent); }
+.resume-shell .resume-hero__stats > div::after { position: absolute; right: 1.5rem; bottom: .85rem; z-index: 0; width: 2.8rem; height: 1px; content: ""; pointer-events: none; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--stat-accent) 52%, transparent)); }
+.resume-shell .resume-hero__stats > div > * { position: relative; z-index: 1; }
+.resume-shell .resume-hero__stats > div:nth-child(1) { --stat-accent: var(--primary); --stat-soft: var(--primary-subtle); }
+.resume-shell .resume-hero__stats > div:nth-child(2) { --stat-accent: var(--info); --stat-soft: var(--info-soft); }
+.resume-shell .resume-hero__stats > div:nth-child(3) { --stat-accent: var(--violet); --stat-soft: var(--violet-soft); }
+.resume-shell .resume-hero__stats > div:nth-child(4) { --stat-accent: var(--warning); --stat-soft: var(--warning-soft); }
+.resume-shell .resume-hero__stats > div strong { color: var(--stat-accent) !important; text-shadow: 0 8px 24px color-mix(in srgb, var(--stat-accent) 24%, transparent); }
+.resume-shell .resume-hero__stats > div small { color: color-mix(in srgb, var(--stat-accent) 72%, var(--resume-muted)); }
+/* Profile contact rows use color only as a compact signal; the information itself stays high contrast. */
+.resume-shell .resume-profile__meta { gap: 5px; }
+.resume-shell .resume-profile__meta a,
+.resume-shell .resume-profile__meta span {
+  min-height: 2rem;
+  padding: .25rem .45rem;
+  border-radius: .625rem;
+  color: var(--resume-ink) !important;
+  transition: color .18s ease, background .18s ease;
+}
+.resume-shell .resume-profile__meta a:hover { background: var(--resume-subtle); }
+.resume-shell .resume-profile__meta svg {
+  box-sizing: content-box;
+  width: .875rem;
+  padding: .3rem;
+  border-radius: .4rem;
+  color: var(--profile-contact-accent, var(--primary)) !important;
+  background: var(--profile-contact-soft, var(--primary-subtle));
+}
+.resume-shell .resume-profile__meta a:nth-of-type(1) { --profile-contact-accent: var(--primary); --profile-contact-soft: var(--primary-subtle); }
+.resume-shell .resume-profile__meta a:nth-of-type(2) { --profile-contact-accent: var(--info); --profile-contact-soft: var(--info-soft); }
+.resume-shell .resume-profile__meta span:nth-of-type(1) { --profile-contact-accent: var(--violet); --profile-contact-soft: var(--violet-soft); }
+.resume-shell .resume-profile__meta span:nth-of-type(2) { --profile-contact-accent: var(--warning); --profile-contact-soft: var(--warning-soft); }
+
 @keyframes resume-pulse { 50% { opacity: .5; box-shadow: 0 0 0 8px rgba(185,218,99,0); } }
 
 .resume-content { display: grid; grid-template-columns: 300px minmax(0,1fr); gap: 54px; margin-top: 74px; }
@@ -489,7 +523,7 @@ html:not(.dark) .resume-shell { --resume-ink: var(--foreground); --resume-paper:
   .resume-hero__main { padding: 68px 44px 35px; }
   .resume-hero h1 { font-size: clamp(3rem,9vw,4.5rem); }
   .resume-hero__console { width: calc(100% - 88px); margin: 0 44px 45px; transform: none; }
-  .resume-hero__stats > div { min-height: 80px; }
+  .resume-hero__stats > div { min-height: 92px; }
   .resume-content { grid-template-columns: 1fr; margin-top: 46px; }
   .resume-profile { position: static; display: grid; grid-template-columns: 1fr .8fr; gap: 12px; }
   .resume-profile__status { margin-top: 0; align-self: end; }
@@ -514,9 +548,10 @@ html:not(.dark) .resume-shell { --resume-ink: var(--foreground); --resume-paper:
   .resume-hero__console { width: calc(100% - 32px); margin: 4px 16px 20px; border-radius: 19px; }
   .resume-console__code { padding: 21px 18px; font-size: 0.625rem; }
   .resume-hero__stats { position: relative; grid-template-columns: repeat(2,1fr); }
-  .resume-hero__stats > div { min-height: 75px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .resume-hero__stats > div { min-height: 92px; padding: 13px 16px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .resume-shell .resume-hero__stats > div::before { left: 16px; }
   .resume-hero__stats > div:nth-child(2) { border-right: 0; }
-  .resume-hero__stats strong { font-size: 1.375rem; }
+  .resume-hero__stats strong { font-size: 1.5rem; }
   .resume-profile { grid-template-columns: 1fr; }
   .resume-section-head { grid-template-columns: 39px 1fr; margin-bottom: 25px; padding-bottom: 17px; }
   .resume-section-head > span { display: none; }
@@ -813,3 +848,42 @@ html:not(.dark) .resume-shell { --resume-ink: var(--foreground); --resume-paper:
 .resume-shell .resume-engineering article p { color: var(--resume-muted); opacity: 1; }.resume-shell .resume-engineering article > div { border-top-color: color-mix(in srgb, currentColor 28%, var(--resume-line)); }.resume-shell .resume-engineering article > div small { background: color-mix(in srgb, currentColor 8%, transparent); }
 @keyframes resume-skill-reveal { from { width: 0 !important; opacity: .25; filter: saturate(.5); } to { opacity: 1; filter: saturate(1); } }
 @media (prefers-reduced-motion: reduce) { .resume-shell .resume-stack__skill-progress i { animation: none; } }
+
+/* Desktop hero refresh: a shorter, more balanced engineering profile rather than a tall landing card. */
+@media screen and (min-width: 901px) {
+  .resume-shell .resume-hero {
+    grid-template-columns: minmax(0, 1.18fr) minmax(23rem, .82fr);
+    column-gap: 2rem;
+    min-height: 37.25rem;
+    border-radius: 2rem;
+  }
+  .resume-shell .resume-hero__main {
+    padding: 3.625rem 1.25rem 3.9rem 3.75rem;
+  }
+  .resume-shell .resume-availability { padding: .42rem .7rem; }
+  .resume-shell .resume-hero__overline { margin: 1.25rem 0 .55rem; }
+  .resume-shell .resume-hero h1 {
+    max-width: 42rem;
+    font-size: clamp(3rem, 5.15vw, 4.875rem);
+  }
+  .resume-shell .resume-hero__summary {
+    max-width: 37rem;
+    margin-top: 1.25rem;
+    font-size: .8125rem;
+    line-height: 1.85;
+  }
+  .resume-shell .resume-hero__actions { margin-top: 1.5rem; }
+  .resume-shell .resume-hero__actions a,
+  .resume-shell .resume-hero__actions button { min-height: 2.875rem; border-radius: .75rem; }
+  .resume-shell .resume-hero__console {
+    width: calc(100% - 2.75rem);
+    border-radius: 1.125rem;
+    box-shadow: 0 1.5rem 3.5rem -2.25rem color-mix(in srgb, var(--foreground) 75%, transparent);
+    transform: translateY(-.35rem);
+  }
+  .resume-shell .resume-console__bar { min-height: 2.75rem; padding-inline: 1rem; }
+  .resume-shell .resume-console__code { padding: 1.25rem; font-size: .6875rem; line-height: 1.85; }
+  .resume-shell .resume-console__footer { padding: .75rem 1rem; }
+  .resume-shell .resume-hero__stats > div { min-height: 5.875rem; padding-block: .75rem; }
+  .resume-shell .resume-hero__stats strong { font-size: 1.8rem; }
+}

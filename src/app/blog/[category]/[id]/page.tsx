@@ -8,6 +8,7 @@ import { PostClientWrapper } from "@/components/PostClientWrapper"
 import { BackToTop } from "@/components/BackToTop"
 import { ArticleOutline } from "@/components/ArticleOutline"
 import { ReadingProgress } from "@/components/ReadingProgress"
+import { BlogParticleField } from "@/components/BlogParticleField"
 
 export default async function BlogPostDetail(props: { 
   params: Promise<{ category: string; id: string }> 
@@ -24,7 +25,9 @@ export default async function BlogPostDetail(props: {
   }
 
   return (
-    <article className="site-page post-detail">
+    <>
+      <BlogParticleField />
+      <article className="site-page post-detail">
       <ReadingProgress />
       <div className="post-detail__frame">
         <Button variant="ghost" size="sm" className="post-detail__back" asChild>
@@ -71,6 +74,7 @@ export default async function BlogPostDetail(props: {
         </div>
       </div>
       <BackToTop />
-    </article>
+      </article>
+    </>
   )
 }

@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react'
 import { Button } from "@/components/ui/button"
-import { User, Share2, Bookmark, Edit2, Eye } from "lucide-react"
+import { User, Share2, Heart, Edit2, Eye } from "lucide-react"
 import { BlogEditor } from "@/components/BlogEditor"
 import { BlogMarkdown } from "@/components/BlogMarkdown"
 import { useAuthStore } from '@/store/useAuthStore'
@@ -53,6 +53,42 @@ export function PostClientWrapper({ post }: { post: Post }) {
     }
   }, [content, isSaving, post.category, post.id, post.title, setGlobalLoading, showToast])
 
+  const recordMetric = useCallback(async (action: 'like' | 'share') => {
+    const response = await fetch('/api/blog/posts', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ category: post.category, id: post.id, action }),
+    })
+    if (!response.ok) throw new Error('记录指标失败')
+  }, [post.category, post.id])
+
+  const handleLike = useCallback(async () => {
+    try {
+      await recordMetric('like')
+      showToast('感谢点赞！', 'success')
+    } catch {
+      showToast('点赞记录失败', 'error')
+    }
+  }, [recordMetric, showToast])
+
+  const handleShare = useCallback(async () => {
+    try {
+      const shareData = { title: post.title, url: window.location.href }
+      if (navigator.share) {
+        await navigator.share(shareData)
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(shareData.url)
+        showToast('文章链接已复制', 'success')
+      } else {
+        throw new Error('当前浏览器不支持分享')
+      }
+      await recordMetric('share')
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return
+      showToast('分享未完成', 'error')
+    }
+  }, [post.title, recordMetric, showToast])
+
   return (
     <>
       {/* 文章头部操作区 */}
@@ -81,11 +117,11 @@ export function PostClientWrapper({ post }: { post: Post }) {
               )}
             </Button>
           )}
-          <Button variant="outline" size="icon" className="post-detail__action" aria-label="分享文章">
+          <Button variant="outline" size="icon" className="post-detail__action" aria-label="分享文章" onClick={handleShare}>
             <Share2 className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" className="post-detail__action" aria-label="收藏文章">
-            <Bookmark className="h-4 w-4" />
+          <Button variant="outline" size="icon" className="post-detail__action" aria-label="点赞文章" onClick={handleLike}>
+            <Heart className="h-4 w-4" />
           </Button>
         </div>
       </div>

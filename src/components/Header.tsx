@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Moon, Sun, Monitor, Menu, Download } from 'lucide-react'
+import { Moon, Sun, Monitor, Menu, Database } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 import { Button } from '@/components/ui/button'
@@ -31,7 +31,6 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/store/useAuthStore'
 import { useUIStore } from '@/store/useUIStore'
@@ -56,11 +55,10 @@ export function Header({ initialAuthState }: HeaderProps) {
   const { theme, setTheme } = useTheme()
   const [isOpen, setIsOpen] = React.useState(false)
   const [isBackupDialogOpen, setIsBackupDialogOpen] = React.useState(false)
-  const [backupInfo, setBackupInfo] = React.useState('')
   const [recipientEmail, setRecipientEmail] = React.useState('')
   const [isBackingUp, setIsBackingUp] = React.useState(false)
   const { user, isAuthenticated, logout, checkAuth, setUser } = useAuthStore()
-  const { showToast } = useUIStore()
+  const { showConfirm, showToast } = useUIStore()
   const [isMounted, setIsMounted] = React.useState(false)
 
   // 组件挂载后，完全使用 store 状态（实时更新）
@@ -111,7 +109,6 @@ export function Header({ initialAuthState }: HeaderProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          backupInfo: backupInfo || '这是您的博客、游戏和运行数据备份文件。',
           recipientEmail,
         }),
       })
@@ -119,9 +116,8 @@ export function Header({ initialAuthState }: HeaderProps) {
       const data = await response.json()
 
       if (response.ok) {
-        showToast(`备份成功！${data.fileSize ? `文件大小: ${data.fileSize}` : ''}`, 'success')
+        showToast(`数据库已发送${data.fileSize ? ` · ${data.fileSize}` : ''}`, 'success')
         setIsBackupDialogOpen(false)
-        setBackupInfo('')
         setRecipientEmail('')
       } else {
         showToast(data.message || '备份失败', 'error')
@@ -132,6 +128,14 @@ export function Header({ initialAuthState }: HeaderProps) {
     } finally {
       setIsBackingUp(false)
     }
+  }
+
+  const confirmDatabaseEmail = () => {
+    showConfirm({
+      title: '发送数据库到邮箱？',
+      message: `将把当前的 db.sqlite3 数据库文件作为附件发送到 ${recipientEmail}。发送后请妥善保管该文件。`,
+      onConfirm: () => void handleBackup(),
+    })
   }
 
   return (
@@ -235,15 +239,15 @@ export function Header({ initialAuthState }: HeaderProps) {
                       e.preventDefault()
                       setIsBackupDialogOpen(true)
                     }}>
-                      <Download className="mr-2 h-4 w-4" />
-                      <span>备份数据</span>
+                      <Database className="mr-2 h-4 w-4" />
+                      <span>发送数据库到邮箱</span>
                     </DropdownMenuItem>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>备份数据</DialogTitle>
+                      <DialogTitle>发送数据库</DialogTitle>
                       <DialogDescription>
-                        输入备份信息和接收邮箱，系统将压缩博客、游戏和运行数据并发送到您的邮箱。
+                        系统将把当前的 SQLite 数据库文件作为附件发送到指定邮箱。
                       </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
@@ -258,24 +262,12 @@ export function Header({ initialAuthState }: HeaderProps) {
                           disabled={isBackingUp}
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="backup-info">备份信息（可选）</Label>
-                        <Textarea
-                          id="backup-info"
-                          placeholder="请输入备份说明信息..."
-                          value={backupInfo}
-                          onChange={(e) => setBackupInfo(e.target.value)}
-                          disabled={isBackingUp}
-                          rows={4}
-                        />
-                      </div>
                     </div>
                     <div className="flex justify-end gap-2">
                       <Button
                         variant="outline"
                         onClick={() => {
                           setIsBackupDialogOpen(false)
-                          setBackupInfo('')
                           setRecipientEmail('')
                         }}
                         disabled={isBackingUp}
@@ -283,10 +275,10 @@ export function Header({ initialAuthState }: HeaderProps) {
                         取消
                       </Button>
                       <Button
-                        onClick={handleBackup}
+                        onClick={confirmDatabaseEmail}
                         disabled={isBackingUp || !recipientEmail}
                       >
-                        {isBackingUp ? '备份中...' : '开始备份'}
+                        {isBackingUp ? '发送中...' : '发送数据库'}
                       </Button>
                     </div>
                   </DialogContent>

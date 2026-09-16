@@ -46,6 +46,16 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ views });
     }
 
+    if (action === 'like') {
+      const likes = await blogService.incrementLikes(category, id);
+      return NextResponse.json({ likes });
+    }
+
+    if (action === 'share') {
+      const shares = await blogService.incrementShares(category, id);
+      return NextResponse.json({ shares });
+    }
+
     return NextResponse.json({ message: '未知操作' }, { status: 400 });
   } catch {
     return NextResponse.json({ message: '服务器错误' }, { status: 500 });

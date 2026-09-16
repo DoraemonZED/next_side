@@ -38,6 +38,7 @@ export function GlobalUI() {
   const currentLocationRef = useRef("");
   const isNavigatingRef = useRef(false);
   const navigationStartedAtRef = useRef(0);
+  const lockedScrollYRef = useRef(0);
   const isMaskActive = isLoading || isNavigating;
 
   useEffect(() => {
@@ -112,6 +113,36 @@ export function GlobalUI() {
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     if (removeTimerRef.current) clearTimeout(removeTimerRef.current);
     if (navigationTimeoutRef.current) clearTimeout(navigationTimeoutRef.current);
+  }, []);
+
+  // Radix locks modal scrolling by changing the body's overflow. On some
+  // browsers that change resets the document's current scroll position before
+  // the dialog has painted, which makes a fixed/sticky shell visibly jump.
+  // Preserve the latest unlocked position for every Dialog, not just confirms.
+  useEffect(() => {
+    const rememberScrollPosition = () => {
+      if (!document.body.hasAttribute("data-scroll-locked")) {
+        lockedScrollYRef.current = window.scrollY;
+      }
+    };
+    const restoreAfterLock = () => {
+      if (!document.body.hasAttribute("data-scroll-locked")) return;
+      const targetY = lockedScrollYRef.current;
+      requestAnimationFrame(() => {
+        if (document.body.hasAttribute("data-scroll-locked") && Math.abs(window.scrollY - targetY) > 1) {
+          window.scrollTo(0, targetY);
+        }
+      });
+    };
+
+    rememberScrollPosition();
+    window.addEventListener("scroll", rememberScrollPosition, { passive: true });
+    const observer = new MutationObserver(restoreAfterLock);
+    observer.observe(document.body, { attributes: true, attributeFilter: ["data-scroll-locked"] });
+    return () => {
+      window.removeEventListener("scroll", rememberScrollPosition);
+      observer.disconnect();
+    };
   }, []);
 
   // Avoid a flashing mask for short requests. Once it has appeared, keep it on
@@ -210,7 +241,7 @@ export function GlobalUI() {
 
       {/* 自定义确认弹窗 - 使用 rem 实现响应式缩放 */}
       <Dialog open={!!confirm} onOpenChange={(open) => !open && hideConfirm()}>
-        <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-[25rem] border-primary/20 p-[1.5rem]">
+        <DialogContent className="confirm-dialog max-w-[calc(100vw-2rem)] sm:max-w-[25rem] border-primary/20 p-[1.5rem]">
           <DialogHeader>
             <DialogTitle className="text-[1.25rem] font-bold text-foreground">
               {confirm?.title || "确认操作"}

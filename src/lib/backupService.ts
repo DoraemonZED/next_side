@@ -1,91 +1,34 @@
-import archiver from 'archiver';
-import { createWriteStream } from 'node:fs';
-import { access, constants, mkdtemp, readFile, rm } from 'node:fs/promises';
-import os from 'node:os';
+import { access, constants, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import nodemailer from 'nodemailer';
 import { runtimeDataDirectory } from '@/lib/runtimePaths';
 
-const backupDirectories = ['blog', 'game', 'db'] as const;
-
-type BackupDirectory = { name: (typeof backupDirectories)[number]; source: string };
-
-interface BackupArchive {
+interface DatabaseBackup {
   buffer: Buffer;
   filename: string;
   sizeInBytes: number;
-  cleanup: () => Promise<void>;
 }
 
-function timestamp(): string {
-  return new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-}
-
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (character) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;',
-  })[character] as string);
-}
-
-async function existingRuntimeDirectories(): Promise<BackupDirectory[]> {
-  const directories = backupDirectories.map((name) => ({ name, source: runtimeDataDirectory(name) }));
-  const checks = await Promise.all(directories.map(async (directory) => {
-    try {
-      await access(directory.source, constants.F_OK);
-      return directory;
-    } catch {
-      return null;
-    }
-  }));
-  return checks.filter((directory): directory is BackupDirectory => directory !== null);
-}
-
-async function writeZip(filePath: string, directories: BackupDirectory[]): Promise<void> {
-  await new Promise<void>((resolve, reject) => {
-    const output = createWriteStream(filePath);
-    const archive = archiver('zip', { zlib: { level: 9 } });
-
-    output.on('close', resolve);
-    output.on('error', reject);
-    archive.on('error', reject);
-    archive.pipe(output);
-    directories.forEach(({ name, source }) => archive.directory(source, name));
-    void archive.finalize();
-  });
-}
-
-/** Creates an archive in a private OS temp directory, never in the app directory. */
-export async function createBackupArchive(): Promise<BackupArchive> {
-  const directories = await existingRuntimeDirectories();
-  if (directories.length === 0) throw new Error('没有可备份的数据目录');
-
-  const directory = await mkdtemp(path.join(os.tmpdir(), 'next-site-backup-'));
-  const filename = `site-backup-${timestamp()}.zip`;
-  const filePath = path.join(directory, filename);
+/** Reads the persistent SQLite file into memory so no temporary backup file is left behind. */
+export async function createDatabaseBackup(): Promise<DatabaseBackup> {
+  const filePath = path.join(runtimeDataDirectory('db'), 'db.sqlite3');
   try {
-    await writeZip(filePath, directories);
+    await access(filePath, constants.R_OK);
     const buffer = await readFile(filePath);
     return {
       buffer,
-      filename,
+      filename: 'db.sqlite3',
       sizeInBytes: buffer.length,
-      cleanup: () => rm(directory, { recursive: true, force: true }),
     };
   } catch (error) {
-    await rm(directory, { recursive: true, force: true });
-    throw error;
+    throw new Error(`无法读取数据库文件：${error instanceof Error ? error.message : '未知错误'}`);
   }
 }
 
-/** Sends a prepared archive through the configured SMTP account. */
-export async function sendBackupEmail(
+/** Sends the SQLite database file through the configured SMTP account. */
+export async function sendDatabaseEmail(
   recipientEmail: string,
-  backupInfo: string,
-  archive: Pick<BackupArchive, 'buffer' | 'filename' | 'sizeInBytes'>,
+  backup: DatabaseBackup,
 ): Promise<void> {
   const user = process.env.QQ_EMAIL_USER;
   const pass = process.env.QQ_EMAIL_PASS;
@@ -98,15 +41,13 @@ export async function sendBackupEmail(
     secure: false,
     auth: { user, pass },
   });
-  const formattedSize = `${(archive.sizeInBytes / 1024 / 1024).toFixed(2)} MB`;
-  const safeInfo = escapeHtml(backupInfo || '这是您的博客、游戏和运行数据备份文件。');
-
+  const formattedSize = `${(backup.sizeInBytes / 1024 / 1024).toFixed(2)} MB`;
   await transporter.sendMail({
-    from: `"备份系统" <${user}>`,
+    from: `"数据库备份" <${user}>`,
     to: recipientEmail,
-    subject: `数据备份 - ${new Date().toLocaleString('zh-CN')}`,
-    text: backupInfo || '这是您的博客、游戏和运行数据备份文件。',
-    html: `<p>${safeInfo}</p><p>备份时间：${new Date().toLocaleString('zh-CN')}<br>文件大小：${formattedSize}</p>`,
-    attachments: [{ filename: archive.filename, content: archive.buffer }],
+    subject: `数据库备份 - ${new Date().toLocaleString('zh-CN')}`,
+    text: '这是您的网站 SQLite 数据库备份文件。',
+    html: `<p>这是您的网站 SQLite 数据库备份文件。</p><p>备份时间：${new Date().toLocaleString('zh-CN')}<br>文件大小：${formattedSize}</p>`,
+    attachments: [{ filename: backup.filename, content: backup.buffer }],
   });
 }

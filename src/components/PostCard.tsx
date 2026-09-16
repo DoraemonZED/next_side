@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Trash2, Settings2, Eye, ArrowUpRight, CalendarDays } from "lucide-react";
+import { Trash2, Settings2, Eye, ArrowUpRight, CalendarDays, Share2, ThumbsUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUIStore } from "@/store/useUIStore";
@@ -129,13 +129,21 @@ export function PostCard({ article }: PostCardProps) {
             <Link href={`/blog/${article.category}/${article.id}`}>阅读全文 <ArrowUpRight className="h-3.5 w-3.5" /></Link>
           </Button>
           <div className="blog-post-card__meta">
-            <span className="flex items-center gap-1">
-              <CalendarDays className="h-3 w-3" />
-              {formatUpdatedAt(article.updatedAt)}
+            <span className="flex items-center gap-1" title="点赞" aria-label={`点赞 ${formatViews(article.likes)}`}>
+              <ThumbsUp className="h-3 w-3" />
+              {formatViews(article.likes)}
             </span>
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1" title="观看" aria-label={`观看 ${formatViews(article.views)}`}>
               <Eye className="h-3 w-3" />
               {formatViews(article.views)}
+            </span>
+            <span className="flex items-center gap-1" title="分享" aria-label={`分享 ${formatViews(article.shares)}`}>
+              <Share2 className="h-3 w-3" />
+              {formatViews(article.shares)}
+            </span>
+            <span className="flex items-center gap-1" title="更新" aria-label={`更新于 ${formatUpdatedAt(article.updatedAt)}`}>
+              <CalendarDays className="h-3 w-3" />
+              {formatUpdatedAt(article.updatedAt)}
             </span>
           </div>
         </div>

@@ -37,7 +37,7 @@ export default async function RootLayout({
         >
           <SmoothScroll>
             <PullToRefresh>
-              <div className="relative flex min-h-screen flex-col">
+              <div className="site-shell relative flex min-h-screen flex-col">
                 <Header initialAuthState={initialAuthState} />
                 <main className="flex-1">{children}</main>
                 <Footer />

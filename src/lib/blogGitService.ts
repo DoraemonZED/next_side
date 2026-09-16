@@ -94,15 +94,23 @@ export const blogGitService = {
     }
   },
 
-  async sync(): Promise<{ message: string; discarded: boolean }> {
+  /**
+   * Fetches the remote blog state only. Every in-app blog mutation already
+   * commits and pushes through `commitAndPush`, so pushing again here is both
+   * redundant and makes a manual pull harder to reason about.
+   */
+  async sync(): Promise<{ message: string }> {
     const { branch } = config();
     if (!(await hasRepository())) throw new BlogGitError('博客 Git 仓库尚未初始化，请先配置 BLOG_REPO 后重新部署');
-    await commitIfNeeded();
+    if ((await git(['status', '--porcelain', '--untracked-files=all'])).trim()) {
+      throw new BlogGitError('博客目录存在未保存到 GitHub 的本地改动；请先通过页面保存或处理这些文件后再获取远端更新');
+    }
     await git(['fetch', 'origin', branch]);
-    await git(['merge', '--ff-only', `origin/${branch}`]);
     try {
-      await git(['push', 'origin', `HEAD:${branch}`]);
-      return { message: '博客已同步到 GitHub', discarded: false };
-    } catch (error) { throw new BlogGitError(`推送失败，未丢弃本地博客内容：${error instanceof Error ? error.message : '未知错误'}`); }
+      await git(['merge', '--ff-only', `origin/${branch}`]);
+      return { message: '已获取 GitHub 中的博客更新' };
+    } catch (error) {
+      throw new BlogGitError(`博客仓库无法快进到远程版本：${error instanceof Error ? error.message : '未知错误'}`);
+    }
   },
 };

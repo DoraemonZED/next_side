@@ -297,11 +297,11 @@ export default function ResumePage() {
             <div className="resume-console__footer"><TerminalSquare /> pnpm run create-future <span>↵</span></div>
           </div>
 
-            <div className="resume-hero__stats">
-            <div><strong>05<sup>+</sup></strong><span>年全栈研发</span></div>
-            <div><strong>05</strong><span>代表性项目</span></div>
-            <div><strong>03</strong><span>多端交付能力</span></div>
-            <div><strong>∞</strong><span>持续学习</span></div>
+          <div className="resume-hero__stats" aria-label="职业成果概览">
+            <div><span>年全栈研发</span><strong>05+</strong><small>YEARS OF BUILDING</small></div>
+            <div><span>代表性项目</span><strong>05</strong><small>SELECTED WORK</small></div>
+            <div><span>多端交付能力</span><strong>03</strong><small>DELIVERY PLATFORMS</small></div>
+            <div><span>持续学习</span><strong>NOW</strong><small>ALWAYS EVOLVING</small></div>
           </div>
         </header>
 
