@@ -45,6 +45,7 @@ const editorPlugins = (openAssets: () => void, category: string, postId: string)
 
 export function BlogEditor({ initialValue, onChange, onSave, isSaving = false, category, postId }: BlogEditorProps) {
   const editorRef = useRef<MDXEditorMethods>(null)
+  const editorContainerRef = useRef<HTMLElement>(null)
   const latestMarkdown = useRef(initialValue)
   const [assetsOpen, setAssetsOpen] = useState(false)
   const handleChange = useCallback((markdown: string) => { latestMarkdown.current = markdown; onChange(markdown) }, [onChange])
@@ -59,12 +60,26 @@ export function BlogEditor({ initialValue, onChange, onSave, isSaving = false, c
     const markdown = event.clipboardData.getData('text/plain')
     if (!markdown || !looksLikeMarkdown(markdown)) return
     event.preventDefault()
+    event.stopPropagation()
+
+    const selectedText = window.getSelection()?.toString().trim() || ''
+    const editorText = editorContainerRef.current?.querySelector('.article-editor__content')?.textContent?.trim() || ''
+    const replacesWholeDocument = !latestMarkdown.current.trim() || Boolean(selectedText && selectedText === editorText)
+    if (replacesWholeDocument) {
+      // setMarkdown imports the whole mdast tree, which is reliable for a
+      // complete multi-block document. It deliberately suppresses onChange,
+      // so keep the parent editor state in sync explicitly.
+      latestMarkdown.current = markdown
+      editorRef.current?.setMarkdown(markdown)
+      onChange(markdown)
+      return
+    }
     editorRef.current?.insertMarkdown(markdown)
-  }, [])
+  }, [onChange])
   const plugins = useMemo(() => editorPlugins(() => setAssetsOpen(true), category, postId), [category, postId])
 
   return (
-    <section className="article-editor" aria-label="Markdown 编辑器" onPasteCapture={handlePaste}>
+    <section ref={editorContainerRef} className="article-editor" aria-label="Markdown 编辑器" onPasteCapture={handlePaste}>
       <MDXEditor
         ref={editorRef}
         markdown={initialValue}
