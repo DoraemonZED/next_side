@@ -56,7 +56,7 @@ export default async function BlogPostDetail(props: {
               {post.author}
             </div>
           </div>
-          <h1 className="post-detail__title text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground leading-[1.1]">
+          <h1 className="post-detail__title text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight text-foreground leading-[1.1]">
             {post.title}
           </h1>
           <div className="post-detail__lead">{post.summary}</div>

@@ -22,7 +22,6 @@ function errorDetail(error: unknown): string {
 function config() {
   const token = process.env.GITHUB_PAT || '';
   return {
-    autoSync: process.env.BLOG_GIT_AUTO_SYNC === 'true',
     branch: process.env.BLOG_GIT_BRANCH || 'main',
     username: token ? 'x-access-token' : '',
     token,

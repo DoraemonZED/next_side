@@ -809,6 +809,7 @@ html body[data-scroll-locked] .site-shell::before {
 
 .games-page .site-page__hero { margin-bottom: 44px; }
 .games-page .site-page__hero::after { right: 50%; transform: translateX(50%); }
+.games-page .site-page__title { font-size: clamp(2rem, 4vw, 3.25rem); }
 .game-card {
   position: relative; overflow: hidden; border: 1px solid rgba(183,247,207,.14); border-radius: 5px;
   background: linear-gradient(135deg, rgba(183,247,207,.08), rgba(16,23,20,.78) 48%);
@@ -1269,5 +1270,6 @@ html:not(.dark) .post-detail__head, html:not(.dark) .post-detail__tags { border-
   .site-page { padding-top: 36px; padding-bottom: 52px; }
   .site-page__hero { padding-bottom: 25px; }
   .site-page__title { font-size: 2.375rem; }
+  .games-page .site-page__title { font-size: 2rem; }
   .site-footer__copy, .site-footer__links { font-size: 0.5rem; }
 }

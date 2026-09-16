@@ -58,7 +58,6 @@
    | `GITHUB_PAT` | 博客和游戏仓库共用、具有 Contents 读写权限的 GitHub Personal Access Token。 |
    | `BLOG_REPO` | 博客内容 Git 仓库 HTTPS 地址；配置后首次部署会克隆到 `blog` 目录。 |
    | `BLOG_GIT_BRANCH` | 博客仓库分支，默认 `main`。 |
-   | `BLOG_GIT_AUTO_SYNC` | 设为 `true` 时，每次写博客前先拉取远程更新；默认 `false`。 |
    | `GAME_REPO` | 游戏内容 Git 仓库 HTTPS 地址；配置后首次部署会克隆到 `game` 目录。 |
    | `GAME_GIT_BRANCH` | 游戏仓库分支，默认 `main`。 |
 
