@@ -37,7 +37,10 @@ export default function GamesPage() {
     }
   }, [])
 
-  useEffect(() => { void fetchGames() }, [fetchGames])
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void fetchGames() }, 0)
+    return () => window.clearTimeout(timer)
+  }, [fetchGames])
 
   const handleStartGame = (gameName: string) => {
     window.open(`/api/game/${encodeURIComponent(gameName)}/`, '_blank', 'noopener,noreferrer')

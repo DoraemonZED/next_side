@@ -12,7 +12,6 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
   const router = useRouter();
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isPulling, setIsPulling] = useState(false);
   const startY = useRef(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const pullDistanceRef = useRef(0);
@@ -39,7 +38,6 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
     if (window.scrollY === 0 && !isRefreshingRef.current) {
       startY.current = e.touches[0].clientY;
       isPullingRef.current = true;
-      setIsPulling(true);
     }
   }, []);
 
@@ -67,7 +65,6 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
     if (!isPullingRef.current) return;
 
     isPullingRef.current = false;
-    setIsPulling(false);
 
     if (pullDistanceRef.current >= threshold && !isRefreshingRef.current) {
       isRefreshingRef.current = true;
@@ -92,7 +89,6 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
 
   const handleTouchCancel = useCallback(() => {
     isPullingRef.current = false;
-    setIsPulling(false);
     setPullDistanceAtNextFrame(0);
   }, [setPullDistanceAtNextFrame]);
 
@@ -120,7 +116,6 @@ export function PullToRefresh({ children }: PullToRefreshProps) {
     }
   }, []);
 
-  const progress = Math.min(pullDistance / threshold, 1);
   const shouldTrigger = pullDistance >= threshold;
 
   return (

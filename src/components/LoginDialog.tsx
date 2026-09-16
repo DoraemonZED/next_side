@@ -48,7 +48,7 @@ export function LoginDialog() {
         setError(data.message || '登录失败');
         showToast(data.message || '登录失败', 'error');
       }
-    } catch (err) {
+    } catch {
       setError('网络错误');
       showToast('网络错误', 'error');
     } finally {

@@ -61,7 +61,7 @@ function EditCategoryDialog({ cat, onUpdate }: { cat: Category; onUpdate: Sortab
     try {
       await onUpdate(cat.slug, { name, slug });
       setOpen(false);
-    } catch (err) {
+    } catch {
       showToast("更新失败", "error");
     } finally {
       setLoading(false);
@@ -193,7 +193,8 @@ export function CategoryList({ categories: initialCategories, currentCategory }:
 
   // 当服务端数据通过 router.refresh() 更新时，同步更新本地状态
   useEffect(() => {
-    setCategories(initialCategories);
+    const frame = requestAnimationFrame(() => setCategories(initialCategories));
+    return () => cancelAnimationFrame(frame);
   }, [initialCategories]);
 
   const sensors = useSensors(

@@ -83,6 +83,64 @@ bash deploy.sh
 
 部署仓库的已跟踪文件不能有未提交修改。需要改端口或启动等待时间时，可传入 `HOST_PORT=8080 STARTUP_TIMEOUT=180 bash deploy.sh`。
 
+### 部署失败与恢复
+
+`deploy.sh` 采用“先构建、后切换”的方式部署：构建镜像期间，旧的 `next` 容器会一直保持服务；只有新容器通过容器内首页健康检查后，旧容器才会被清理。切换后的任一步失败或脚本被中断时，脚本会删除新容器、将 `next-deploy-backup` 自动恢复为 `next` 并重新启动。因此，正常的构建或健康检查失败不会影响已在线的版本。
+
+`blog`、`game`、`db` 是宿主机持久化目录，不包含在镜像或容器回滚范围内。恢复应用容器不会回退博客文章、游戏文件或 SQLite 运行时数据；处理这些内容前应先单独备份或确认 Git 状态。
+
+#### 先诊断，不要直接删除容器或锁
+
+在部署目录执行以下检查：
+
+```bash
+cd /root/next_site
+docker ps -a --filter 'name=^/next$' --filter 'name=^/next-deploy-backup$'
+docker logs --tail 200 next
+test -d .deploy.lock && echo '存在部署锁' || echo '没有部署锁'
+ps -ef | grep '[d]eploy.sh'
+```
+
+常见状态与处理方式：
+
+| 现象 | 含义与处理 |
+| --- | --- |
+| `bash deploy.sh` 构建失败，`next` 仍在运行 | 自动回滚已完成；查看构建输出和 `docker logs --tail 200 next`，修复代码或环境后再次执行部署。 |
+| 存在 `next-deploy-backup`，但没有 `next` | 上次切换中断，按下方“手动恢复旧容器”执行。 |
+| `.deploy.lock` 存在，且没有 `deploy.sh` 进程 | 可能是意外中断留下的锁；确认没有部署进程后可执行 `rmdir .deploy.lock`，再重新部署。 |
+| `next` 容器存在但首页异常 | 先用 `docker logs --tail 200 next` 定位；如同时存在备份容器，按下方步骤恢复备份版本。 |
+| `git pull --ff-only` 失败 | 代码目录有本地已跟踪修改或分支发生分叉。先用 `git status` 检查，确认本地修改的归属后再处理，禁止直接删除持久化内容目录。 |
+
+#### 手动恢复旧容器
+
+仅当 `docker ps -a` 明确显示 `next-deploy-backup` 存在、且新 `next` 容器无法工作时执行。以下操作只作用于应用容器，不会删除 `/root/blog`、`/root/game`、`/root/db`：
+
+```bash
+cd /root/next_site
+
+# 仅移除失败的新容器；若 next 不存在，该命令会安全返回。
+docker rm -f next 2>/dev/null || true
+
+# 将保留的旧容器恢复为正式容器并启动。
+docker rename next-deploy-backup next
+docker start next
+
+# 验证恢复结果。
+docker ps --filter 'name=^/next$'
+curl -fsSI http://127.0.0.1/ | head -n 1
+```
+
+如需回退**应用代码**到某个已知 Git 提交，先记录当前提交并确保团队确认目标版本；这不会改动三个持久化目录：
+
+```bash
+cd /root/next_site
+git log --oneline -10
+git reset --hard <已确认的提交号>
+bash deploy.sh
+```
+
+回退完成后应将 Git 分支恢复到期望状态，避免下次 `git pull --ff-only` 再次把非预期版本部署上线。
+
 ### 将博客更新同步到 Git
 
 先在 `.env.local` 配置 `GITHUB_PAT` 和 `BLOG_REPO`，然后重新执行一次 `bash deploy.sh`，首次会克隆博客仓库到 `blog` 目录。之后在网站后台编辑博客，点击管理员菜单中的“GitHub 同步”，即可将本地博客内容提交并推送到该仓库（提交信息为 `blog update`）。

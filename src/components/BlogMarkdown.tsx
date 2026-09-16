@@ -20,9 +20,13 @@ const assetUrl = (src: string, category: string, postId: string) => {
 /** Renders blog Markdown as a fully styleable React tree. */
 export function BlogMarkdown({ content, category, postId }: BlogMarkdownProps) {
   const headingIds = new Map<number, string>(markdownHeadings(content).map((heading) => [heading.line, heading.id]))
-  const heading = (tag: 'h1' | 'h2' | 'h3') => ({ node, children, ...props }: { node?: { position?: { start?: { line?: number } } }; children?: React.ReactNode }) => {
-    const line = node?.position?.start?.line
-    return React.createElement(tag, { ...props, id: line === undefined ? undefined : headingIds.get(line) }, children)
+  const heading = (tag: 'h1' | 'h2' | 'h3') => {
+    const Heading = ({ node, children, ...props }: { node?: { position?: { start?: { line?: number } } }; children?: React.ReactNode }) => {
+      const line = node?.position?.start?.line
+      return React.createElement(tag, { ...props, id: line === undefined ? undefined : headingIds.get(line) }, children)
+    }
+    Heading.displayName = `Markdown${tag.toUpperCase()}`
+    return Heading
   }
 
   return (
@@ -44,6 +48,8 @@ export function BlogMarkdown({ content, category, postId }: BlogMarkdownProps) {
           h1: heading('h1'),
           h2: heading('h2'),
           h3: heading('h3'),
+          // Markdown can point to local files and arbitrary remote URLs, so Next/Image cannot safely infer dimensions here.
+          // eslint-disable-next-line @next/next/no-img-element
           img: ({ src, alt = '', ...props }) => <img src={typeof src === 'string' ? assetUrl(src, category, postId) : undefined} alt={alt} {...props} />,
           code: ({ className, children, ...props }) => {
             const language = /language-([\w-]+)/.exec(className || '')?.[1]

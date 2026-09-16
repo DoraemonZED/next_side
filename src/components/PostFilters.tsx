@@ -10,13 +10,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 
 export function PostFilters() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const currentSearch = searchParams.get("q") || "";
   const currentSortBy = searchParams.get("sortBy") || "date";
@@ -24,7 +24,7 @@ export function PostFilters() {
 
   const [searchInput, setSearchInput] = useState(currentSearch);
 
-  const updateFilters = (updates: Record<string, string | null>) => {
+  const updateFilters = useCallback((updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams.toString());
     Object.entries(updates).forEach(([key, value]) => {
       if (value === null) {
@@ -39,7 +39,7 @@ export function PostFilters() {
     startTransition(() => {
       router.push(`${pathname}?${params.toString()}`);
     });
-  };
+  }, [pathname, router, searchParams, startTransition]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -48,7 +48,7 @@ export function PostFilters() {
       }
     }, 500);
     return () => clearTimeout(timer);
-  }, [searchInput]);
+  }, [currentSearch, searchInput, updateFilters]);
 
   const sortOptions = [
     { label: "最新发布", value: "date", icon: Clock },

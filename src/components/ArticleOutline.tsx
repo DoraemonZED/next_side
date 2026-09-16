@@ -9,17 +9,19 @@ export function ArticleOutline({ content }: { content: string }) {
   const [activeId, setActiveId] = useState(headings[0]?.id || '')
 
   useEffect(() => {
-    setActiveId(headings[0]?.id || '')
-    if (!headings.length) return
-    const observer = new IntersectionObserver((entries) => {
+    const frame = requestAnimationFrame(() => setActiveId(headings[0]?.id || ''))
+    const observer = headings.length ? new IntersectionObserver((entries) => {
       const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)
       if (visible[0]) setActiveId(visible[0].target.id)
-    }, { rootMargin: '-104px 0px -66% 0px', threshold: 0 })
-    headings.forEach((heading) => {
+    }, { rootMargin: '-104px 0px -66% 0px', threshold: 0 }) : null
+    if (observer) headings.forEach((heading) => {
       const target = document.getElementById(heading.id)
       if (target) observer.observe(target)
     })
-    return () => observer.disconnect()
+    return () => {
+      cancelAnimationFrame(frame)
+      observer?.disconnect()
+    }
   }, [headings])
 
   return (

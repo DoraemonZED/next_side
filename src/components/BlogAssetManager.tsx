@@ -55,7 +55,11 @@ export function BlogAssetManager({ category, postId, markdown, open, onOpenChang
     } finally { setLoading(false) }
   }, [category, postId, showToast])
 
-  useEffect(() => { if (open) void load() }, [open, load])
+  useEffect(() => {
+    if (!open) return
+    const timer = window.setTimeout(() => { void load() }, 0)
+    return () => window.clearTimeout(timer)
+  }, [open, load])
 
   const run = async (key: string, action: () => Promise<Response>, success: string) => {
     setWorking(key)
