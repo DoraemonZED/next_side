@@ -44,7 +44,7 @@ export default async function BlogCategoryPage(props: {
     postSortField(sortBy),
     postSortOrder(sortOrder)
   )
-  const activeCategory = categories.find((item) => item.slug === category)
+  const activeCategory = categories.find((item) => item.directoryId === category)
 
   return (
     <>

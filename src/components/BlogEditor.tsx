@@ -23,6 +23,10 @@ const imagePreviewUrl = (source: string, category: string, postId: string) => {
   return `/blog/${encodeURIComponent(category)}/${encodeURIComponent(postId)}/${filename}`
 }
 
+// Lexical's default paste path treats text/plain as plain text. Detect actual
+// Markdown here and send it through MDXEditor's Markdown importer instead.
+const looksLikeMarkdown = (value: string) => /(^|\n)(#{1,6}\s+|[-*+]\s+|\d+[.)]\s+|>\s+|```|---\s*$|!?(?:\[[^\]]+\]\([^)]+\))|\|.+\|)|\*\*[^*]+\*\*|__[^_]+__|`[^`]+`/m.test(value)
+
 const editorPlugins = (openAssets: () => void, category: string, postId: string) => [
   headingsPlugin(), listsPlugin(), quotePlugin(), linkPlugin(), tablePlugin(), thematicBreakPlugin(),
   imagePlugin({ imagePreviewHandler: async (source) => imagePreviewUrl(source, category, postId) }),
@@ -51,10 +55,16 @@ export function BlogEditor({ initialValue, onChange, onSave, isSaving = false, c
     editorRef.current?.setMarkdown(next)
     onChange(next)
   }, [onChange])
+  const handlePaste = useCallback((event: React.ClipboardEvent<HTMLElement>) => {
+    const markdown = event.clipboardData.getData('text/plain')
+    if (!markdown || !looksLikeMarkdown(markdown)) return
+    event.preventDefault()
+    editorRef.current?.insertMarkdown(markdown)
+  }, [])
   const plugins = useMemo(() => editorPlugins(() => setAssetsOpen(true), category, postId), [category, postId])
 
   return (
-    <section className="article-editor" aria-label="Markdown 编辑器">
+    <section className="article-editor" aria-label="Markdown 编辑器" onPasteCapture={handlePaste}>
       <MDXEditor
         ref={editorRef}
         markdown={initialValue}
@@ -64,7 +74,7 @@ export function BlogEditor({ initialValue, onChange, onSave, isSaving = false, c
         className="article-editor__root"
       />
       <div className="article-editor__footer">
-        <span>内容将保存为 Markdown</span>
+        <span>可直接粘贴 Markdown，标题、列表、代码等会自动转换</span>
         <Button type="button" size="sm" onClick={onSave} disabled={isSaving} className="article-editor__save">
           <Save className="h-3.5 w-3.5" />
           {isSaving ? '保存中…' : '保存文章'}

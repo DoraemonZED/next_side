@@ -18,7 +18,6 @@ import { BlogGitSyncButton } from '@/components/BlogGitSyncButton';
 
 export function NewCategoryButton() {
   const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
   const [directoryId, setDirectoryId] = useState('');
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -36,13 +35,13 @@ export function NewCategoryButton() {
       const res = await fetch('/api/blog/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug, name, directoryId, description: '' }),
+        body: JSON.stringify({ name, directoryId, description: '' }),
       });
       
       if (res.ok) {
         showToast('分类创建成功', 'success');
         setOpen(false);
-        window.location.href = `/blog/${slug}`;
+        window.location.href = `/blog/${directoryId}`;
       } else {
         const data = await res.json();
         showToast(data.message || '创建失败', 'error');
@@ -73,21 +72,8 @@ export function NewCategoryButton() {
               <Input
                 id="name"
                 value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  if (!slug) setSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'));
-                }}
+                onChange={(e) => setName(e.target.value)}
                 placeholder="例如：技术笔记"
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="slug">页面路径 (Slug)</Label>
-              <Input
-                id="slug"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                placeholder="tech-notes"
                 required
               />
             </div>
@@ -97,12 +83,12 @@ export function NewCategoryButton() {
                 id="category-directory-id"
                 value={directoryId}
                 onChange={(e) => setDirectoryId(e.target.value.toLowerCase())}
-                placeholder="tech-notes"
+                placeholder="例如：tech-notes（创建后不可修改）"
                 pattern="[a-z]+(-[a-z]+)*"
                 title="只能包含小写英文字母和连字符"
                 required
               />
-              <p className="text-xs text-muted-foreground">必填；仅用于服务器目录，只能包含小写英文字母和连字符。</p>
+              <p className="text-xs text-muted-foreground">必填；同时作为分类目录与页面路径，只能包含小写英文字母和连字符。</p>
             </div>
             <Button type="submit" disabled={loading}>
               {loading ? '创建中...' : '创建分类'}

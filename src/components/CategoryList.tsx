@@ -44,13 +44,12 @@ interface SortableCategoryItemProps {
   cat: Category;
   isActive: boolean;
   isAuthenticated: boolean;
-  onDelete: (slug: string) => void;
-  onUpdate: (oldSlug: string, newData: Partial<Category>) => Promise<void>;
+  onDelete: (categoryId: string) => void;
+  onUpdate: (categoryId: string, newData: Partial<Category>) => Promise<void>;
 }
 
 function EditCategoryDialog({ cat, onUpdate }: { cat: Category; onUpdate: SortableCategoryItemProps['onUpdate'] }) {
   const [name, setName] = useState(cat.name);
-  const [slug, setSlug] = useState(cat.slug);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { showToast } = useUIStore();
@@ -59,7 +58,7 @@ function EditCategoryDialog({ cat, onUpdate }: { cat: Category; onUpdate: Sortab
     e.preventDefault();
     setLoading(true);
     try {
-      await onUpdate(cat.slug, { name, slug });
+      await onUpdate(cat.directoryId, { name });
       setOpen(false);
     } catch {
       showToast("更新失败", "error");
@@ -94,12 +93,12 @@ function EditCategoryDialog({ cat, onUpdate }: { cat: Category; onUpdate: Sortab
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="edit-slug">路径 (Slug)</Label>
+            <Label htmlFor="edit-directory-id">目录 ID / 页面路径</Label>
             <Input
-              id="edit-slug"
-              value={slug}
-              onChange={(e) => setSlug(e.target.value)}
-              required
+              id="edit-directory-id"
+              value={cat.directoryId}
+              readOnly
+              className="cursor-not-allowed opacity-70"
             />
           </div>
           <Button type="submit" disabled={loading}>
@@ -119,7 +118,7 @@ function SortableCategoryItem({ cat, isActive, isAuthenticated, onDelete, onUpda
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: cat.slug });
+  } = useSortable({ id: cat.directoryId });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -148,7 +147,7 @@ function SortableCategoryItem({ cat, isActive, isAuthenticated, onDelete, onUpda
         className="flex-1 justify-between h-10 px-4 font-normal transition-all"
         asChild
       >
-        <Link href={`/blog/${cat.slug}`}>
+        <Link href={`/blog/${cat.directoryId}`}>
           <span className="truncate mr-2">{cat.name}</span>
           <span
             className={`text-xs px-2 py-0.5 rounded-full border shrink-0 transition-all duration-200 ${
@@ -174,7 +173,7 @@ function SortableCategoryItem({ cat, isActive, isAuthenticated, onDelete, onUpda
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              onDelete(cat.slug);
+              onDelete(cat.directoryId);
             }}
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -208,22 +207,18 @@ export function CategoryList({ categories: initialCategories, currentCategory }:
     })
   );
 
-  const handleUpdate = async (oldSlug: string, newData: Partial<Category>) => {
+  const handleUpdate = async (categoryId: string, newData: Partial<Category>) => {
     setLoading(true);
     try {
       const res = await fetch("/api/blog/categories", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug: oldSlug, ...newData }),
+        body: JSON.stringify({ categoryId, ...newData }),
       });
 
       if (res.ok) {
         showToast("分类更新成功", "success");
-        if (newData.slug && newData.slug !== oldSlug) {
-          router.push(`/blog/${newData.slug}`);
-        } else {
-          router.refresh();
-        }
+        router.refresh();
       } else {
         const data = await res.json();
         showToast(data.message || "更新失败", "error");
@@ -240,8 +235,8 @@ export function CategoryList({ categories: initialCategories, currentCategory }:
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = categories.findIndex((c) => c.slug === active.id);
-      const newIndex = categories.findIndex((c) => c.slug === over.id);
+      const oldIndex = categories.findIndex((c) => c.directoryId === active.id);
+      const newIndex = categories.findIndex((c) => c.directoryId === over.id);
 
       const newCategories = arrayMove(categories, oldIndex, newIndex);
       const updatedCategories = newCategories.map((cat, i) => ({ ...cat, order: i }));
@@ -255,7 +250,7 @@ export function CategoryList({ categories: initialCategories, currentCategory }:
             fetch("/api/blog/categories", {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ slug: cat.slug, order: cat.order }),
+              body: JSON.stringify({ categoryId: cat.directoryId, order: cat.order }),
             })
           )
         );
@@ -270,20 +265,20 @@ export function CategoryList({ categories: initialCategories, currentCategory }:
     }
   };
 
-  const handleDelete = async (slug: string) => {
+  const handleDelete = async (categoryId: string) => {
     showConfirm({
       title: "删除分类",
       message: "确定要删除这个分类及其下的所有文章吗？此操作不可撤销。",
       onConfirm: async () => {
         setLoading(true);
         try {
-          const res = await fetch(`/api/blog/categories?slug=${slug}`, {
+          const res = await fetch(`/api/blog/categories?categoryId=${categoryId}`, {
             method: "DELETE",
           });
           if (res.ok) {
             showToast("分类删除成功", "success");
-            setCategories(categories.filter((c) => c.slug !== slug));
-            if (currentCategory === slug) {
+            setCategories(categories.filter((c) => c.directoryId !== categoryId));
+            if (currentCategory === categoryId) {
               router.push("/blog");
             } else {
               router.refresh();
@@ -341,14 +336,14 @@ export function CategoryList({ categories: initialCategories, currentCategory }:
               onDragEnd={handleDragEnd}
             >
               <SortableContext
-                items={categories.map((c) => c.slug)}
+                items={categories.map((c) => c.directoryId)}
                 strategy={verticalListSortingStrategy}
               >
                 {categories.map((cat) => (
                   <SortableCategoryItem
-                    key={cat.slug}
+                    key={cat.directoryId}
                     cat={cat}
-                    isActive={currentCategory === cat.slug}
+                    isActive={currentCategory === cat.directoryId}
                     isAuthenticated={isAuthenticated}
                     onDelete={handleDelete}
                     onUpdate={handleUpdate}
@@ -358,17 +353,17 @@ export function CategoryList({ categories: initialCategories, currentCategory }:
             </DndContext>
           ) : (
             categories.map((cat) => (
-              <div key={cat.slug} className={`blog-category-list__item group relative flex items-center gap-1 ${currentCategory === cat.slug ? "is-active" : ""}`}>
+              <div key={cat.directoryId} className={`blog-category-list__item group relative flex items-center gap-1 ${currentCategory === cat.directoryId ? "is-active" : ""}`}>
                 <Button
-                  variant={currentCategory === cat.slug ? "secondary" : "ghost"}
+                  variant={currentCategory === cat.directoryId ? "secondary" : "ghost"}
                   className="flex-1 justify-between h-10 px-4 font-normal transition-all"
                   asChild
                 >
-                  <Link href={`/blog/${cat.slug}`}>
+                  <Link href={`/blog/${cat.directoryId}`}>
                     <span className="truncate">{cat.name}</span>
                     <span
                       className={`text-xs px-2 py-0.5 rounded-full border shrink-0 ${
-                        currentCategory === cat.slug
+                        currentCategory === cat.directoryId
                           ? "bg-primary/20 text-primary border-primary/20"
                           : "text-muted-foreground bg-background border-border/40"
                       }`}

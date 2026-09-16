@@ -52,9 +52,10 @@ export function BlogGitSyncButton() {
   return (
     <div className="blog-git-sync space-y-1">
       <label className="flex h-9 w-full cursor-pointer items-center justify-center gap-2 rounded-md border px-4 text-sm font-medium hover:bg-accent disabled:pointer-events-none">
-        {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}{isUploading ? '上传中...' : '上传博客 ZIP'}
+        {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}{isUploading ? '导入中...' : '导入博客 ZIP'}
         <Input className="sr-only" type="file" accept=".zip,application/zip" disabled={isUploading} onChange={(event) => void handleUpload(event.target.files?.[0])} />
       </label>
+      <p className="px-1 text-xs text-muted-foreground">目录格式：分类 ID/文章 ID/文件；每篇需含 index.md。缺少文章头信息时会自动补全并初始化浏览、点赞、分享数据。</p>
       <Button variant="outline" className="w-full gap-2" onClick={confirmSync} disabled={isSyncing}>
         {isSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <GitBranch className="h-4 w-4" />}
         {isSyncing ? '获取中...' : '获取 GitHub 更新'}

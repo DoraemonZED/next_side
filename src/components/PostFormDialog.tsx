@@ -109,28 +109,30 @@ export function PostFormDialog({
               required
             />
           </div>
-          {mode === "create" && (
-            <div className="grid gap-2">
-              <Label htmlFor="post-directory-id">目录 ID</Label>
-              <Input
-                id="post-directory-id"
-                value={directoryId}
-                onChange={(e) => setDirectoryId(e.target.value.toLowerCase())}
-                placeholder="my-first-post"
-                pattern="[a-z]+(-[a-z]+)*"
-                title="只能包含小写英文字母和连字符"
-                required
-              />
-              <p className="text-xs text-muted-foreground">必填；仅用于服务器目录，只能包含小写英文字母和连字符。</p>
-            </div>
-          )}
+          <div className="grid gap-2">
+            <Label htmlFor="post-directory-id">目录 ID</Label>
+            <Input
+              id="post-directory-id"
+              value={directoryId}
+              onChange={(e) => setDirectoryId(e.target.value.toLowerCase())}
+              placeholder="例如：my-first-post（创建后不可修改）"
+              pattern="[a-z]+(-[a-z]+)*"
+              title="只能包含小写英文字母和连字符"
+              readOnly={mode === "edit"}
+              className={mode === "edit" ? "cursor-not-allowed opacity-70" : undefined}
+              required
+            />
+            <p className="text-xs text-muted-foreground">
+              {mode === "create" ? "必填；同时作为文章目录与页面路径。" : "文章目录与页面路径固定，不能修改。"}
+            </p>
+          </div>
           <div className="grid gap-2">
             <Label htmlFor="post-tags">标签 (Tags)</Label>
             <Input
               id="post-tags"
               value={tags}
               onChange={(e) => setTags(e.target.value)}
-              placeholder="例如：React, Nextjs (用逗号分隔)"
+              placeholder="例如：React, Next.js（必须使用英文逗号分隔）"
             />
           </div>
           <div className="grid gap-2">

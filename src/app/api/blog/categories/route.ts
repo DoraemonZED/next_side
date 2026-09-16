@@ -9,15 +9,15 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { slug, name, directoryId, description } = await request.json();
-    if (!slug || !name || !directoryId) {
+    const { name, directoryId, description } = await request.json();
+    if (!name || !directoryId) {
       return NextResponse.json({ message: '参数缺失' }, { status: 400 });
     }
     if (!isBlogDirectoryId(directoryId)) {
       return NextResponse.json({ message: '目录 ID 只能包含小写英文字母和连字符' }, { status: 400 });
     }
 
-    const success = await blogService.createCategory(slug, name, directoryId, description);
+    const success = await blogService.createCategory(name, directoryId, description);
     if (success) {
       return NextResponse.json({ message: '分类创建成功' });
     } else {
@@ -35,12 +35,12 @@ export async function PATCH(request: NextRequest) {
   }
 
   try {
-    const { slug, ...data } = await request.json();
-    if (!slug) {
+    const { categoryId, ...data } = await request.json();
+    if (!categoryId) {
       return NextResponse.json({ message: '分类标识缺失' }, { status: 400 });
     }
 
-    const success = await blogService.updateCategory(slug, data);
+    const success = await blogService.updateCategory(categoryId, data);
     if (success) {
       return NextResponse.json({ message: '分类更新成功' });
     } else {
@@ -59,12 +59,12 @@ export async function DELETE(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const slug = searchParams.get('slug');
-    if (!slug) {
+    const categoryId = searchParams.get('categoryId');
+    if (!categoryId) {
       return NextResponse.json({ message: '分类标识缺失' }, { status: 400 });
     }
 
-    const success = await blogService.deleteCategory(slug);
+    const success = await blogService.deleteCategory(categoryId);
     if (success) {
       return NextResponse.json({ message: '分类删除成功' });
     } else {

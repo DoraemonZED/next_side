@@ -145,7 +145,20 @@ bash deploy.sh
 
 先在 `.env.local` 配置 `GITHUB_PAT` 和 `BLOG_REPO`，然后重新执行一次 `bash deploy.sh`，首次会克隆博客仓库到 `blog` 目录。之后在网站后台编辑博客，点击管理员菜单中的“GitHub 同步”，即可将本地博客内容提交并推送到该仓库（提交信息为 `blog update`）。
 
-SQLite 只保存登录账号；博客内容保存在 `blog` 目录的 JSON 与 Markdown 文件中。
+SQLite 保存登录账号及文章互动指标（浏览、点赞、分享）；博客正文与元数据保存在 `blog` 目录的 JSON 与 Markdown 文件中。
+
+### 博客 ZIP 导入格式
+
+后台“导入博客 ZIP”接受一个分类目录，内部可有多篇文章：
+
+```text
+分类-id/
+  文章-id/
+    index.md
+    cover.png
+```
+
+分类和文章 ID 均只能使用小写英文和连字符。`index.md` 的 Front Matter 可省略；导入时会补全 `title`、`date`、`updatedAt`、`author`、`summary`、`tags`，并为每篇文章在 SQLite 初始化 `views`、`likes`、`shares` 为 `0`。导入会先校验整个压缩包（最多 500 个文件、解压后最多 100 MB），再写入文章、更新 `categories.json`，最后提交到已配置的博客 Git 仓库。
 
 ### 将游戏上传并同步到 Git
 
