@@ -58,7 +58,7 @@ export function NewCategoryButton() {
     <div className="flex flex-col gap-2">
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="w-full mt-4 gap-2 border-dashed">
+          <Button variant="outline" className="blog-sidebar__action w-full gap-2">
             <PlusCircle className="h-4 w-4" /> 新建分类
           </Button>
         </DialogTrigger>

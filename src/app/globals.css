@@ -937,13 +937,9 @@ html body[data-scroll-locked] .site-shell::before {
 .blog-category-list__nav { padding: 5px; border-radius: 13px; background: color-mix(in srgb, var(--surface-raised) 86%, transparent); }
 .blog-category-list__item [data-slot="button"] { min-height: 39px; padding-inline: 11px; border-radius: 8px; font-size: 0.6875rem; }
 .blog-sidebar .blog-category-list + .flex { padding: 0; }.blog-sidebar .blog-category-list + .flex > [data-slot="button"] { margin-top: 0; min-height: 37px; }
-.blog-sidebar .blog-git-sync label,
-.blog-sidebar .blog-git-sync [data-slot="button"],
-.blog-sidebar__new-post { min-height: 37px; border-color: var(--line) !important; border-radius: 9px !important; background: var(--surface-glass) !important; color: var(--ink-muted) !important; font-family: var(--font-geist-mono); font-size: 0.625rem; letter-spacing: .04em; }
-.blog-sidebar .blog-git-sync label:hover,
-.blog-sidebar .blog-git-sync [data-slot="button"]:hover,
-.blog-sidebar__new-post:hover:not(:disabled) { border-color: var(--line-strong) !important; background: var(--primary-subtle) !important; color: var(--primary) !important; }
-.blog-sidebar__new-post:disabled { border-color: var(--line) !important; background: var(--surface-muted) !important; color: var(--ink-subtle) !important; cursor: not-allowed; opacity: .55; }
+.blog-sidebar__action { min-height: 37px; border-color: var(--line) !important; border-radius: 9px !important; background: var(--surface-glass) !important; color: var(--ink-muted) !important; font-family: var(--font-geist-mono); font-size: 0.625rem; letter-spacing: .04em; }
+.blog-sidebar__action:hover:not(:disabled) { border-color: var(--line-strong) !important; background: var(--primary-subtle) !important; color: var(--primary) !important; }
+.blog-sidebar__action:disabled { border-color: var(--line) !important; background: var(--surface-muted) !important; color: var(--ink-subtle) !important; cursor: not-allowed; opacity: .55; }
 .blog-sidebar__protocol { position: relative; display: grid; gap: 10px; padding: 17px; overflow: hidden; border: 1px solid var(--line); border-radius: 13px; background: linear-gradient(145deg, var(--primary-subtle), var(--surface-glass)); }
 .blog-sidebar__protocol::after { position: absolute; right: -18px; bottom: -24px; width: 82px; height: 82px; border: 1px solid var(--line-strong); border-radius: 50%; content: ""; }
 .blog-sidebar__protocol > svg { width: 16px; color: var(--primary); }.blog-sidebar__protocol > span { color: var(--primary); font: 700 0.5625rem/1 var(--font-geist-mono); letter-spacing: .12em; }.blog-sidebar__protocol p { margin: 0; color: var(--ink-muted); font-size: 0.6875rem; line-height: 1.75; }.blog-sidebar__protocol div { display: flex; align-items: center; gap: 6px; color: var(--ink-subtle); }.blog-sidebar__protocol div svg { width: 12px; color: var(--primary); }.blog-sidebar__protocol small { font: 0.5rem/1 var(--font-geist-mono); letter-spacing: .08em; }
@@ -958,7 +954,7 @@ html body[data-scroll-locked] .site-shell::before {
 
 @media (max-width: 850px) { .blog-page__layout { grid-template-columns: 1fr; }.blog-sidebar__sticky { position: static; }.blog-sidebar__protocol { display: none; }.post-detail__head { grid-template-columns: 1fr; }.post-detail__meta { justify-content: flex-start; max-width: none; }.post-detail__title { grid-column: auto; }.post-detail__reading-grid { grid-template-columns: 1fr; }.post-detail__rail { position: static; grid-template-columns: repeat(2, 1fr); }.post-detail__rail > div { border-top: 1px solid var(--line); }.post-detail__lead { max-width: 680px; } }
 @media (max-width: 850px) { .post-detail__outline { position: static; }.post-detail__outline nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }.post-detail__outline a[data-level="2"], .post-detail__outline a[data-level="3"] { padding-left: 0; } }
-@media (max-width: 620px) { .blog-page, .post-detail { width: min(100% - 1.25rem, 1480px); }.blog-feed__masthead { align-items: flex-start; }.blog-feed__masthead small { display: none; }.blog-filters { grid-template-columns: 1fr; }.blog-filters > div:last-child { border-top: 1px solid var(--line); border-left: 0; }.blog-filters__control { flex: 1; min-width: 0; }.blog-post-card { grid-template-columns: 1fr; gap: 11px; padding: 16px; }.blog-post-card__index { flex-direction: row; align-items: center; gap: 8px; padding-top: 0; }.blog-post-card__index i { margin: 0 0 0 4px; }.blog-post-card__title { font-size: 1.5rem; }.blog-post-card__footer { align-items: flex-start; flex-direction: column; gap: 10px; }.post-detail__head { padding: 28px 21px 34px; border-radius: 18px; }.post-detail__head::after { left: 21px; }.post-detail__title { font-size: clamp(2.375rem, 11vw, 3.4375rem) !important; }.post-detail__meta { gap: 8px 13px; }.post-detail__reading-grid { margin-top: 32px; }.post-detail__rail { gap: 10px; }.post-detail__body { margin-top: 26px; } }
+@media (max-width: 620px) { .blog-page, .post-detail { width: min(100% - 1.25rem, 1480px); }.blog-feed__masthead { align-items: flex-start; }.blog-feed__masthead small { display: none; }.blog-filters { grid-template-columns: 1fr; }.blog-filters > div:last-child { border-top: 1px solid var(--line); border-left: 0; }.blog-filters__control { flex: 1; min-width: 0; }.blog-post-card { grid-template-columns: 1fr; gap: 11px; padding: 16px; }.blog-post-card__index { flex-direction: row; align-items: center; gap: 8px; padding-top: 0; }.blog-post-card__index i { margin: 0 0 0 4px; }.blog-post-card__title { font-size: 1.5rem; }.blog-post-card__footer { align-items: flex-start; flex-direction: column; gap: 10px; }.post-detail__head { padding: 28px 21px 34px; border-radius: 18px; }.post-detail__head::after { left: 21px; }.post-detail__title { font-size: clamp(1.5rem, 6vw, 1.875rem) !important; }.post-detail__meta { gap: 8px 13px; }.post-detail__reading-grid { margin-top: 32px; }.post-detail__rail { gap: 10px; }.post-detail__body { margin-top: 26px; } }
 @media (max-width: 620px) { .post-detail__outline nav { grid-template-columns: 1fr; }.post-detail__body { margin-top: 26px; } }
 
 /* Full-viewport WebGL star field, intentionally outside constrained layouts. */
@@ -1238,7 +1234,7 @@ html:not(.dark) .post-detail__head, html:not(.dark) .post-detail__tags { border-
   }
   .post-detail__title {
     max-width: min(100%, 70rem);
-    font-size: clamp(3rem, 5vw, 5.25rem) !important;
+    font-size: clamp(1.625rem, 2.5vw, 2.625rem) !important;
   }
   .post-detail__lead {
     max-width: 46rem;
