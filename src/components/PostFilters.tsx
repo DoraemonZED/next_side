@@ -82,16 +82,16 @@ export function PostFilters() {
               </span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" sideOffset={6} className="blog-sort-menu w-48">
+          <DropdownMenuContent align="end" sideOffset={6} className="blog-sort-menu w-[148px]">
             <DropdownMenuRadioGroup value={currentSortBy} onValueChange={(value) => updateFilters({ sortBy: value })}>
               {sortOptions.map((option) => (
               <DropdownMenuRadioItem
                 key={option.value}
                 data-sort={option.value}
                 value={option.value}
-                className="whitespace-nowrap"
+                className="px-2 pl-7 text-xs whitespace-nowrap"
               >
-                <option.icon className="mr-2 h-4 w-4" />
+                <option.icon className="mr-1.5 h-3.5 w-3.5" />
                 {option.label}
               </DropdownMenuRadioItem>
             ))}
