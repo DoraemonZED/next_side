@@ -207,7 +207,7 @@ export function Header({ initialAuthState }: HeaderProps) {
 
           {/* User Avatar & Login Dialog */}
           {displayIsAuthenticated ? (
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="header-identity" aria-label="打开用户菜单">
                   <Avatar className="header-identity__avatar">

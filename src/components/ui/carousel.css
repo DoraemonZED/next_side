@@ -162,13 +162,13 @@
 .carousel-3d__arrows span {
   min-width: 62px;
   text-align: center;
-  font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  font: 600 0.6875rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: .08em;
 }
 
 .carousel-3d__arrows strong {
   color: var(--carousel-accent);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .carousel-3d__dots {

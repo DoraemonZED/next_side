@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useUIStore } from "@/store/useUIStore";
 import {
   Dialog,
@@ -21,27 +22,106 @@ export function GlobalUI() {
     confirm, 
     hideConfirm
   } = useUIStore();
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [maskKind, setMaskKind] = useState<"navigation" | "request">("request");
   const [maskPhase, setMaskPhase] = useState<"hidden" | "visible" | "leaving">("hidden");
   const maskPhaseRef = useRef(maskPhase);
   const showTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const removeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const visibleSinceRef = useRef(0);
+  const navigationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const routePushTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const currentLocationRef = useRef("");
+  const isNavigatingRef = useRef(false);
+  const navigationStartedAtRef = useRef(0);
+  const isMaskActive = isLoading || isNavigating;
+
+  useEffect(() => {
+    currentLocationRef.current = `${pathname}?${searchParams.toString()}`;
+    if (isNavigatingRef.current) {
+      if (navigationTimeoutRef.current) clearTimeout(navigationTimeoutRef.current);
+      // Prefetched routes can finish before the regular mask's show delay.
+      // Keep a deliberate navigation active briefly so every page change gets
+      // the same visual hand-off as a network-bound transition.
+      const remaining = Math.max(0, 320 - (Date.now() - navigationStartedAtRef.current));
+      navigationTimeoutRef.current = setTimeout(() => {
+        isNavigatingRef.current = false;
+        navigationTimeoutRef.current = null;
+        setIsNavigating(false);
+      }, remaining);
+    }
+  }, [pathname, searchParams]);
+
+  // Next.js route requests are deliberately excluded from the request mask
+  // below, because it also sees background prefetches. Start this mask from a
+  // deliberate same-tab link click instead, then end it once the new route is
+  // rendered.
+  useEffect(() => {
+    const handleDocumentClick = (event: MouseEvent) => {
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) return;
+
+      const link = (event.target as HTMLElement | null)?.closest<HTMLAnchorElement>("a[href]");
+      if (!link || link.target || link.hasAttribute("download") || link.dataset.noPageTransition !== undefined) return;
+
+      const destination = new URL(link.href, window.location.href);
+      if (destination.origin !== window.location.origin || destination.hash) return;
+
+      const nextLocation = `${destination.pathname}?${destination.searchParams.toString()}`;
+      if (nextLocation === currentLocationRef.current) return;
+
+      // Cover the current page before handing control to Next. Without this,
+      // a prefetched route can commit before React has painted the mask.
+      event.preventDefault();
+      isNavigatingRef.current = true;
+      navigationStartedAtRef.current = Date.now();
+      setIsNavigating(true);
+      // Do not leave the UI blocked if a navigation is cancelled or fails.
+      if (navigationTimeoutRef.current) clearTimeout(navigationTimeoutRef.current);
+      navigationTimeoutRef.current = setTimeout(() => {
+        isNavigatingRef.current = false;
+        setIsNavigating(false);
+      }, 10000);
+      if (routePushTimerRef.current) clearTimeout(routePushTimerRef.current);
+      routePushTimerRef.current = setTimeout(() => {
+        routePushTimerRef.current = null;
+        router.push(`${destination.pathname}${destination.search}`);
+      }, 140);
+    };
+
+    document.addEventListener("click", handleDocumentClick, true);
+    return () => {
+      document.removeEventListener("click", handleDocumentClick, true);
+      if (navigationTimeoutRef.current) clearTimeout(navigationTimeoutRef.current);
+      if (routePushTimerRef.current) clearTimeout(routePushTimerRef.current);
+    };
+  }, [router]);
 
   useEffect(() => () => {
     if (showTimerRef.current) clearTimeout(showTimerRef.current);
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     if (removeTimerRef.current) clearTimeout(removeTimerRef.current);
+    if (navigationTimeoutRef.current) clearTimeout(navigationTimeoutRef.current);
   }, []);
 
   // Avoid a flashing mask for short requests. Once it has appeared, keep it on
   // screen long enough for the transition to read as intentional, then fade out.
   useEffect(() => {
-    const showDelay = 180;
-    const minimumVisibleTime = 900;
-    const exitDuration = 620;
+    const showDelay = isNavigating ? 0 : 180;
+    const minimumVisibleTime = 600;
+    const exitDuration = 400;
 
-    if (isLoading) {
+    if (isMaskActive) {
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
       if (removeTimerRef.current) clearTimeout(removeTimerRef.current);
       hideTimerRef.current = null;
@@ -55,6 +135,9 @@ export function GlobalUI() {
       if (maskPhaseRef.current === "hidden" && !showTimerRef.current) {
         showTimerRef.current = setTimeout(() => {
           showTimerRef.current = null;
+          // Keep the copy tied to the action that opened this mask. A fast
+          // route can complete while its minimum display time still runs.
+          setMaskKind(isNavigatingRef.current ? "navigation" : "request");
           visibleSinceRef.current = Date.now();
           maskPhaseRef.current = "visible";
           setMaskPhase("visible");
@@ -80,7 +163,7 @@ export function GlobalUI() {
         setMaskPhase("hidden");
       }, exitDuration);
     }, remaining);
-  }, [isLoading]);
+  }, [isMaskActive, isNavigating]);
 
   // Next.js prefetches links as they enter the viewport. Those background RSC
   // requests should never trigger a blocking request mask while the user scrolls.
@@ -114,13 +197,12 @@ export function GlobalUI() {
     <>
       {/* 全屏 Loading - 使用 rem 实现响应式缩放 */}
       {maskPhase !== "hidden" && (
-        <div className={`request-mask ${maskPhase === "leaving" ? "is-leaving" : ""}`} role="status" aria-live="polite" aria-label="请求处理中">
+        <div className={`request-mask ${maskPhase === "leaving" ? "is-leaving" : ""}`} role="status" aria-live="polite" aria-label={maskKind === "navigation" ? "页面切换中" : "请求处理中"}>
           <div className="request-mask__glow" aria-hidden="true" />
           <div className="request-mask__panel">
             <div className="request-mask__mark" aria-hidden="true"><i /><i /><i /></div>
             <div>
-              <p>REQUEST IN PROGRESS</p>
-              <strong>正在安全处理请求</strong>
+              <strong><span className="request-mask__activity" aria-hidden="true"><i /><i /><i /></span>{maskKind === "navigation" ? "PAGE TRANSITION" : "REQUEST IN PROGRESS"}</strong>
             </div>
           </div>
         </div>
