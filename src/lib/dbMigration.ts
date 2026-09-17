@@ -77,7 +77,21 @@ export function runDatabaseMigrations(db: Database.Database): void {
 
     const sql = fs.readFileSync(path.join(migrationsDirectory, filename), 'utf8');
     db.transaction(() => {
-      db.exec(sql);
+      // SQLite has no `ADD COLUMN IF NOT EXISTS`. A database created by an
+      // earlier interrupted deployment can already contain this column while
+      // lacking the file-name ledger entry, so replaying the ALTER would make
+      // every server import fail before the blog can render.
+      if (filename === '006_add_post_index_metric_category.sql') {
+        const hasMetricCategory = (db.prepare("SELECT name FROM pragma_table_info('post_index')").all() as { name: string }[])
+          .some(({ name }) => name === 'metric_category_id');
+        if (hasMetricCategory) {
+          db.exec("UPDATE post_index SET metric_category_id = category_id WHERE metric_category_id = ''");
+        } else {
+          db.exec(sql);
+        }
+      } else {
+        db.exec(sql);
+      }
       // Parallel Next.js build workers can observe the same unapplied migration;
       // the SQL is idempotent and the ledger only needs one winner.
       db.prepare('INSERT OR IGNORE INTO _migrations (filename) VALUES (?)').run(filename);
