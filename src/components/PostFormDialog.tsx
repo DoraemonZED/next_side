@@ -100,7 +100,7 @@ export function PostFormDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-5 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="post-title">标题</Label>
+            <Label htmlFor="post-title">标题 <span className="dialog-required-mark" aria-hidden="true">*</span></Label>
             <Input
               id="post-title"
               value={title}
@@ -110,7 +110,7 @@ export function PostFormDialog({
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="post-directory-id">目录 ID</Label>
+            <Label htmlFor="post-directory-id">目录 ID <span className="dialog-required-mark" aria-hidden="true">*</span></Label>
             <Input
               id="post-directory-id"
               value={directoryId}

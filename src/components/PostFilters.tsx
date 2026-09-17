@@ -73,7 +73,7 @@ export function PostFilters() {
       </div>
 
       <div className="flex items-center gap-2 w-full sm:w-auto">
-        <DropdownMenu>
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" data-sort={currentSortBy} className="blog-filters__control h-10 gap-2 min-w-[140px] justify-between">
               <span className="flex items-center gap-2">

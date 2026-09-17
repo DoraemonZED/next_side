@@ -229,7 +229,6 @@ export function GlobalUI() {
       {/* 全屏 Loading - 使用 rem 实现响应式缩放 */}
       {maskPhase !== "hidden" && (
         <div className={`request-mask ${maskPhase === "leaving" ? "is-leaving" : ""}`} role="status" aria-live="polite" aria-label={maskKind === "navigation" ? "页面切换中" : "请求处理中"}>
-          <div className="request-mask__glow" aria-hidden="true" />
           <div className="request-mask__panel">
             <div className="request-mask__mark" aria-hidden="true"><i /><i /><i /></div>
             <div>
@@ -268,18 +267,23 @@ export function GlobalUI() {
         </DialogContent>
       </Dialog>
 
-      {/* 轻量级提示 Toast - 使用 rem 实现响应式缩放 */}
+      {/* 顶部状态提示 */}
       {toast && (
         <div className={cn(
-          "fixed top-[2rem] left-1/2 -translate-x-1/2 z-[300] flex items-center gap-[0.75rem] px-[1.5rem] py-[0.75rem] rounded-full shadow-2xl border transition-all duration-500 animate-in slide-in-from-top-4 max-w-[calc(100vw-2rem)]",
-          toast.type === 'success' && "bg-primary/10 border-primary/30 text-primary",
-          toast.type === 'error' && "bg-destructive/10 border-destructive/30 text-destructive",
-          toast.type === 'info' && "bg-accent border-border text-foreground"
+          "toast-notice",
+          toast.type === 'success' && "toast-notice--success",
+          toast.type === 'error' && "toast-notice--error",
+          toast.type === 'info' && "toast-notice--info"
         )}>
-          {toast.type === 'success' && <CheckCircle2 className="h-[1.25rem] w-[1.25rem] shrink-0" />}
-          {toast.type === 'error' && <AlertCircle className="h-[1.25rem] w-[1.25rem] shrink-0" />}
-          {toast.type === 'info' && <Info className="h-[1.25rem] w-[1.25rem] shrink-0" />}
-          <span className="font-medium text-[0.9375rem]">{toast.message}</span>
+          <div className="toast-notice__mark" aria-hidden="true">
+            {toast.type === 'success' && <CheckCircle2 />}
+            {toast.type === 'error' && <AlertCircle />}
+            {toast.type === 'info' && <Info />}
+          </div>
+          <div className="toast-notice__content">
+            <small>{toast.type === 'success' ? 'COMPLETE' : toast.type === 'error' ? 'ATTENTION' : 'SYSTEM NOTICE'}</small>
+            <span>{toast.message}</span>
+          </div>
         </div>
       )}
     </>

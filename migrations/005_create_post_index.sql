@@ -1,6 +1,5 @@
 CREATE TABLE IF NOT EXISTS post_index (
   category_id TEXT NOT NULL,
-  metric_category_id TEXT NOT NULL,
   post_id TEXT NOT NULL,
   title TEXT NOT NULL,
   published_at TEXT NOT NULL,

@@ -60,16 +60,16 @@ export default async function BlogPostDetail(props: {
             {post.title}
           </h1>
           <div className="post-detail__lead">{post.summary}</div>
+          <div className="post-detail__tags post-detail__head-tags" aria-label="文章标签">
+            <span className="post-detail__tag post-detail__tag--category">#{post.categoryName}</span>
+            {post.tags && post.tags.split(',').filter(Boolean).map((tag) => <span key={tag} className="post-detail__tag">#{tag.trim()}</span>)}
+          </div>
         </header>
 
         <div className="post-detail__reading-grid">
           <ArticleOutline content={post.content} />
           <div className="post-detail__article">
             <PostClientWrapper post={post} />
-            <div className="post-detail__tags">
-              <span className="post-detail__tag post-detail__tag--category">#{post.categoryName}</span>
-              {post.tags && post.tags.split(',').map(tag => <span key={tag} className="post-detail__tag">#{tag.trim()}</span>)}
-            </div>
           </div>
         </div>
       </div>

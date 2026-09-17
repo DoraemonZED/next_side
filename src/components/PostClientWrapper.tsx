@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react'
 import { Button } from "@/components/ui/button"
-import { User, Share2, Heart, Edit2, Eye } from "lucide-react"
+import { User, Share2, ThumbsUp, Edit2, Eye } from "lucide-react"
 import { BlogEditor } from "@/components/BlogEditor"
 import { BlogMarkdown } from "@/components/BlogMarkdown"
 import { useAuthStore } from '@/store/useAuthStore'
@@ -73,21 +73,21 @@ export function PostClientWrapper({ post }: { post: Post }) {
 
   const handleShare = useCallback(async () => {
     try {
-      const shareData = { title: post.title, url: window.location.href }
-      if (navigator.share) {
-        await navigator.share(shareData)
-      } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(shareData.url)
-        showToast('文章链接已复制', 'success')
-      } else {
-        throw new Error('当前浏览器不支持分享')
+      if (!navigator.clipboard?.writeText) throw new Error('当前浏览器不支持复制链接')
+
+      await navigator.clipboard.writeText(window.location.href)
+      showToast('文章链接已复制到剪贴板', 'success')
+
+      // 复制是用户可见的分享结果；指标失败不应误报为复制失败。
+      try {
+        await recordMetric('share')
+      } catch {
+        console.error('Failed to record share metric')
       }
-      await recordMetric('share')
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') return
-      showToast('分享未完成', 'error')
+    } catch {
+      showToast('链接复制失败，请手动复制地址栏链接', 'error')
     }
-  }, [post.title, recordMetric, showToast])
+  }, [recordMetric, showToast])
 
   return (
     <>
@@ -117,11 +117,11 @@ export function PostClientWrapper({ post }: { post: Post }) {
               )}
             </Button>
           )}
-          <Button variant="outline" size="icon" className="post-detail__action" aria-label="分享文章" onClick={handleShare}>
+          <Button variant="outline" size="icon" className="post-detail__action" aria-label="复制文章链接" title="复制文章链接" onClick={handleShare}>
             <Share2 className="h-4 w-4" />
           </Button>
           <Button variant="outline" size="icon" className="post-detail__action" aria-label="点赞文章" onClick={handleLike}>
-            <Heart className="h-4 w-4" />
+            <ThumbsUp className="h-4 w-4" />
           </Button>
         </div>
       </div>

@@ -4,7 +4,7 @@
   --portal-violet:var(--violet);
   --portal-amber:var(--warning);
   --dim:#8d9691;
-  background:#080c0b;
+  background:transparent;
   color:#edf1ed;
   overflow:hidden;
   font-family:Arial,"PingFang SC","Microsoft YaHei",sans-serif;
@@ -837,7 +837,7 @@
 html:not(.dark) .lab-home {
   --mint:var(--primary);
   --dim:var(--muted-foreground);
-  background:var(--background);
+  background:transparent;
   color:var(--foreground)
 }
 

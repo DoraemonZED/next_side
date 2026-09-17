@@ -67,7 +67,7 @@ export function NewCategoryButton() {
           </DialogHeader>
           <form onSubmit={handleCreate} className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="name">分类名称</Label>
+              <Label htmlFor="name">分类名称 <span className="dialog-required-mark" aria-hidden="true">*</span></Label>
               <Input
                 id="name"
                 value={name}
@@ -77,7 +77,7 @@ export function NewCategoryButton() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="category-directory-id">目录 ID</Label>
+              <Label htmlFor="category-directory-id">目录 ID <span className="dialog-required-mark" aria-hidden="true">*</span></Label>
               <Input
                 id="category-directory-id"
                 value={directoryId}

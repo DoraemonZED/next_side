@@ -241,16 +241,22 @@ html:not(.dark) .resume-shell { --resume-ink: var(--foreground); --resume-paper:
 
 /* 项目轮播：缩略卡只承担导航，完整技术说明放入详情弹窗。 */
 .resume-shell .carousel-3d { --carousel-accent: var(--resume-acid); }
+.resume-shell .carousel-3d__shade { display: none; }
+.resume-shell .carousel-3d__slide[data-position="-1"],
+.resume-shell .carousel-3d__slide[data-position="1"] {
+  opacity: .91;
+  filter: brightness(.76) saturate(.82);
+}
 .resume-shell .carousel-3d__frame { border-color: var(--resume-line); background: var(--resume-paper); box-shadow: 0 26px 58px -32px rgba(20,70,66,.3); }
 .resume-shell .carousel-3d__slide[data-position="0"] .carousel-3d__frame { border-color: rgba(91,151,147,.44); box-shadow: 0 34px 70px -34px rgba(21,81,75,.38), 0 0 0 1px rgba(112,211,204,.11); }
-.resume-shell .carousel-3d__shade { background: linear-gradient(90deg, rgba(241,243,237,.92), rgba(241,243,237,.32)); }
-.resume-shell .carousel-3d__slide[data-position="1"] .carousel-3d__shade { background: linear-gradient(-90deg, rgba(241,243,237,.92), rgba(241,243,237,.32)); }
+.resume-shell .carousel-3d__shade { background: linear-gradient(90deg, rgb(241 243 237 / 58%) 0%, rgb(241 243 237 / 24%) 46%, transparent 100%); }
+.resume-shell .carousel-3d__slide[data-position="1"] .carousel-3d__shade { background: linear-gradient(-90deg, rgb(241 243 237 / 58%) 0%, rgb(241 243 237 / 24%) 46%, transparent 100%); }
 .resume-shell .carousel-3d__arrows { border-color: var(--resume-line); color: var(--resume-muted); background: rgba(255,255,255,.88); box-shadow: 0 16px 36px rgba(28,75,70,.14); }
 .resume-shell .carousel-3d__arrows button { color: var(--resume-ink); background: rgba(112,211,204,.12); }
 .dark .resume-shell .carousel-3d__frame { border-color: rgba(255,255,255,.16); background: #0c1e25; box-shadow: 0 30px 70px -28px rgba(1,12,17,.9); }
 .dark .resume-shell .carousel-3d__slide[data-position="0"] .carousel-3d__frame { border-color: rgba(185,218,99,.48); box-shadow: 0 42px 90px -34px rgba(0,0,0,.95), 0 0 0 1px rgba(185,218,99,.08), 0 0 70px -28px rgba(112,211,204,.5); }
-.dark .resume-shell .carousel-3d__shade { background: linear-gradient(90deg, rgba(3,12,16,.85), rgba(3,12,16,.25)); }
-.dark .resume-shell .carousel-3d__slide[data-position="1"] .carousel-3d__shade { background: linear-gradient(-90deg, rgba(3,12,16,.85), rgba(3,12,16,.25)); }
+.dark .resume-shell .carousel-3d__shade { background: linear-gradient(90deg, rgb(3 12 16 / 30%) 0%, rgb(3 12 16 / 10%) 52%, transparent 100%); }
+.dark .resume-shell .carousel-3d__slide[data-position="1"] .carousel-3d__shade { background: linear-gradient(-90deg, rgb(3 12 16 / 30%) 0%, rgb(3 12 16 / 10%) 52%, transparent 100%); }
 .dark .resume-shell .carousel-3d__arrows { border-color: rgba(255,255,255,.12); color: rgba(255,255,255,.52); background: rgba(5,17,22,.88); box-shadow: 0 16px 36px rgba(0,0,0,.28); }
 .dark .resume-shell .carousel-3d__arrows button { color: white; background: rgba(255,255,255,.08); }
 .resume-project { padding: 29px 31px; color: var(--resume-ink); background: radial-gradient(circle at 88% 12%, rgba(112,211,204,.16), transparent 28%), linear-gradient(135deg, rgba(255,255,255,.76), rgba(232,242,237,.7)); }
@@ -823,31 +829,62 @@ html:not(.dark) .resume-shell { --resume-ink: var(--foreground); --resume-paper:
 .resume-shell .resume-stack article:nth-child(2) { --stack-accent: var(--violet); --stack-soft: var(--violet-soft); }
 .resume-shell .resume-stack article:nth-child(3) { --stack-accent: var(--warning); --stack-soft: var(--warning-soft); }
 .resume-shell .resume-stack article:nth-child(4) { --stack-accent: var(--coral); --stack-soft: var(--coral-soft); }
-.resume-shell .resume-stack article { overflow: hidden; border-color: color-mix(in srgb, var(--stack-accent) 26%, var(--resume-line)); background: linear-gradient(145deg, color-mix(in srgb, var(--stack-soft) 80%, var(--resume-glass)), var(--resume-glass) 58%); }
-.resume-shell .resume-stack article::before { position: absolute; inset: 0; content: ""; pointer-events: none; opacity: .58; background: radial-gradient(circle at 94% 4%, color-mix(in srgb, var(--stack-accent) 20%, transparent), transparent 26%); }
+.resume-shell .resume-stack article { overflow: hidden; border-color: color-mix(in srgb, var(--stack-accent) 10%, var(--resume-line)); background: linear-gradient(145deg, color-mix(in srgb, var(--stack-soft) 18%, var(--resume-glass)), var(--resume-glass) 58%); }
+.resume-shell .resume-stack article::before { position: absolute; inset: 0; content: ""; pointer-events: none; opacity: .13; background: radial-gradient(circle at 94% 4%, color-mix(in srgb, var(--stack-accent) 10%, transparent), transparent 26%); }
 .resume-shell .resume-stack__head, .resume-shell .resume-stack__items, .resume-shell .resume-stack__items > div { position: relative; z-index: 1; }
-.resume-shell .resume-stack__head { border-bottom-color: color-mix(in srgb, var(--stack-accent) 27%, var(--resume-line)); background: color-mix(in srgb, var(--stack-soft) 60%, transparent); }
-.resume-shell .resume-stack__head > span, .resume-shell .resume-stack__head b, .resume-shell .resume-stack__skill-progress > span { border-color: color-mix(in srgb, var(--stack-accent) 38%, var(--resume-line)); color: var(--stack-accent); background: color-mix(in srgb, var(--stack-soft) 76%, transparent); }
-.resume-shell .resume-stack__items > div { border-color: color-mix(in srgb, var(--stack-accent) 18%, var(--resume-line)); background: color-mix(in srgb, var(--stack-soft) 36%, transparent); }
-.resume-shell .resume-stack__items > div:hover { background: color-mix(in srgb, var(--stack-soft) 65%, transparent); }
-.resume-shell .resume-stack__skill-progress > div { background: color-mix(in srgb, var(--stack-accent) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--stack-accent) 24%, transparent); }
-.resume-shell .resume-stack__skill-progress i { width: var(--skill-level) !important; background: linear-gradient(90deg, var(--stack-accent), color-mix(in srgb, var(--stack-accent) 45%, var(--primary))); animation: resume-skill-reveal .9s cubic-bezier(.18,.86,.28,1) both; box-shadow: 0 0 18px color-mix(in srgb, var(--stack-accent) 48%, transparent); }
-.resume-shell .resume-stack article:nth-child(2) .resume-stack__skill-progress i { background: linear-gradient(90deg, var(--violet), var(--info)); }.resume-shell .resume-stack article:nth-child(3) .resume-stack__skill-progress i { background: linear-gradient(90deg, var(--warning), var(--coral)); }.resume-shell .resume-stack article:nth-child(4) .resume-stack__skill-progress i { background: linear-gradient(90deg, var(--coral), var(--violet)); }
+.resume-shell .resume-stack__head { border-bottom-color: color-mix(in srgb, var(--stack-accent) 11%, var(--resume-line)); background: color-mix(in srgb, var(--stack-soft) 14%, transparent); }
+.resume-shell .resume-stack__head > span, .resume-shell .resume-stack__head b, .resume-shell .resume-stack__skill-progress > span { border-color: color-mix(in srgb, var(--stack-accent) 17%, var(--resume-line)); color: var(--stack-accent); background: color-mix(in srgb, var(--stack-soft) 20%, transparent); }
+.resume-shell .resume-stack__items > div { border-color: color-mix(in srgb, var(--stack-accent) 8%, var(--resume-line)); background: color-mix(in srgb, var(--stack-soft) 11%, transparent); }
+.resume-shell .resume-stack__items > div:hover { background: color-mix(in srgb, var(--stack-soft) 22%, transparent); }
+.resume-shell .resume-stack__skill-progress > div { background: color-mix(in srgb, var(--stack-accent) 8%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--stack-accent) 14%, transparent); }
+.resume-shell .resume-stack__skill-progress i { width: var(--skill-level) !important; background: linear-gradient(90deg, color-mix(in srgb, var(--stack-accent) 76%, var(--primary)), color-mix(in srgb, var(--stack-accent) 38%, var(--primary))); animation: resume-skill-reveal .9s cubic-bezier(.18,.86,.28,1) both; box-shadow: 0 0 12px color-mix(in srgb, var(--stack-accent) 25%, transparent); }
+.resume-shell .resume-stack article:nth-child(2) .resume-stack__skill-progress i { background: linear-gradient(90deg, color-mix(in srgb, var(--violet) 76%, var(--primary)), color-mix(in srgb, var(--violet) 38%, var(--primary))); }.resume-shell .resume-stack article:nth-child(3) .resume-stack__skill-progress i { background: linear-gradient(90deg, color-mix(in srgb, var(--warning) 72%, var(--primary)), color-mix(in srgb, var(--warning) 34%, var(--primary))); }.resume-shell .resume-stack article:nth-child(4) .resume-stack__skill-progress i { background: linear-gradient(90deg, color-mix(in srgb, var(--coral) 72%, var(--primary)), color-mix(in srgb, var(--coral) 34%, var(--primary))); }
 
 .resume-shell .resume-timeline > article.is-work:nth-child(3n + 1) { --timeline-accent: var(--info); --timeline-soft: var(--info-soft); }.resume-shell .resume-timeline > article.is-work:nth-child(3n + 2) { --timeline-accent: var(--violet); --timeline-soft: var(--violet-soft); }.resume-shell .resume-timeline > article.is-work:nth-child(3n) { --timeline-accent: var(--coral); --timeline-soft: var(--coral-soft); }
 .resume-shell .resume-timeline > article.is-work .resume-timeline__rail, .resume-shell .resume-timeline > article.is-work .resume-work-label { color: var(--timeline-accent); }
-.resume-shell .resume-timeline > article.is-work .resume-timeline__rail span, .resume-shell .resume-timeline > article.is-work .resume-timeline__card { border-color: color-mix(in srgb, var(--timeline-accent) 28%, var(--resume-line)); }
+.resume-shell .resume-timeline > article.is-work .resume-timeline__rail span { border-color: color-mix(in srgb, var(--timeline-accent) 28%, var(--resume-line)); }
+.resume-shell .resume-timeline > article.is-work .resume-timeline__card { border-color: var(--resume-line); }
 .resume-shell .resume-timeline > article.is-work .resume-timeline__rail i { background: linear-gradient(color-mix(in srgb, var(--timeline-accent) 58%, transparent), color-mix(in srgb, var(--timeline-accent) 8%, transparent)); }
-.resume-shell .resume-timeline > article.is-work .resume-timeline__card { background: linear-gradient(145deg, color-mix(in srgb, var(--timeline-soft) 62%, var(--resume-glass)), var(--resume-glass) 55%); }
+.resume-shell .resume-timeline > article.is-work .resume-timeline__card { background: var(--resume-glass); }
 .resume-shell .resume-timeline > article.is-work .resume-timeline__meta > span { color: var(--timeline-accent); background: color-mix(in srgb, var(--timeline-soft) 84%, transparent); }
 .resume-shell .resume-work-stack span { color: var(--timeline-accent); border-color: color-mix(in srgb, var(--timeline-accent) 30%, var(--resume-line)); background: color-mix(in srgb, var(--timeline-soft) 74%, transparent); }
 .resume-shell .resume-work-stack span:nth-child(3n + 2) { color: var(--violet); border-color: color-mix(in srgb, var(--violet) 28%, var(--resume-line)); background: var(--violet-soft); }.resume-shell .resume-work-stack span:nth-child(3n) { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 28%, var(--resume-line)); background: var(--warning-soft); }
-.resume-shell .resume-work-projects article { border-color: color-mix(in srgb, var(--timeline-accent) 22%, var(--resume-line)); background: color-mix(in srgb, var(--timeline-soft) 40%, transparent); }.resume-shell .resume-work-projects article > span { color: var(--timeline-accent); background: color-mix(in srgb, var(--timeline-soft) 82%, transparent); }.resume-shell .resume-work-projects article:nth-child(2) { border-color: color-mix(in srgb, var(--violet) 23%, var(--resume-line)); background: color-mix(in srgb, var(--violet-soft) 42%, transparent); }.resume-shell .resume-work-projects article:nth-child(2) > span { color: var(--violet); background: var(--violet-soft); }.resume-shell .resume-work-projects article:nth-child(3) { border-color: color-mix(in srgb, var(--warning) 24%, var(--resume-line)); background: color-mix(in srgb, var(--warning-soft) 44%, transparent); }.resume-shell .resume-work-projects article:nth-child(3) > span { color: var(--warning); background: var(--warning-soft); }
+.resume-shell .resume-work-projects article, .resume-shell .resume-work-projects article:nth-child(2), .resume-shell .resume-work-projects article:nth-child(3) { border-color: var(--resume-line); background: color-mix(in srgb, var(--resume-glass) 78%, transparent); }.resume-shell .resume-work-projects article > span { color: var(--timeline-accent); background: color-mix(in srgb, var(--timeline-soft) 60%, transparent); }.resume-shell .resume-work-projects article:nth-child(2) > span { color: var(--violet); background: color-mix(in srgb, var(--violet-soft) 60%, transparent); }.resume-shell .resume-work-projects article:nth-child(3) > span { color: var(--warning); background: color-mix(in srgb, var(--warning-soft) 60%, transparent); }
 
-.resume-shell .resume-engineering article:nth-child(1) { border-color: color-mix(in srgb, var(--info) 34%, var(--resume-line)); background: linear-gradient(145deg, color-mix(in srgb, var(--info-soft) 86%, var(--resume-glass)), var(--resume-glass)); color: var(--info); }.resume-shell .resume-engineering article:nth-child(2) { border-color: color-mix(in srgb, var(--violet) 34%, var(--resume-line)); background: linear-gradient(145deg, color-mix(in srgb, var(--violet-soft) 86%, var(--resume-glass)), var(--resume-glass)); color: var(--violet); }.resume-shell .resume-engineering article:nth-child(3) { border-color: color-mix(in srgb, var(--warning) 36%, var(--resume-line)); background: linear-gradient(145deg, color-mix(in srgb, var(--warning-soft) 86%, var(--resume-glass)), var(--resume-glass)); color: var(--warning); }
+.resume-shell .resume-engineering article:nth-child(1) { border-color: color-mix(in srgb, var(--info) 34%, var(--resume-line)); background: var(--surface-raised); color: var(--info); }.resume-shell .resume-engineering article:nth-child(2) { border-color: color-mix(in srgb, var(--violet) 34%, var(--resume-line)); background: var(--surface-raised); color: var(--violet); }.resume-shell .resume-engineering article:nth-child(3) { border-color: color-mix(in srgb, var(--warning) 36%, var(--resume-line)); background: var(--surface-raised); color: var(--warning); }
 .resume-shell .resume-engineering article p { color: var(--resume-muted); opacity: 1; }.resume-shell .resume-engineering article > div { border-top-color: color-mix(in srgb, currentColor 28%, var(--resume-line)); }.resume-shell .resume-engineering article > div small { background: color-mix(in srgb, currentColor 8%, transparent); }
 @keyframes resume-skill-reveal { from { width: 0 !important; opacity: .25; filter: saturate(.5); } to { opacity: 1; filter: saturate(1); } }
 @media (prefers-reduced-motion: reduce) { .resume-shell .resume-stack__skill-progress i { animation: none; } }
+
+/* Keep the selected carousel card dimensional, but do not turn it into a
+   glowing theme-colour object. This deliberately overrides the old dark-mode
+   highlight, whose stronger selector used a cyan outer bloom. */
+.resume-shell .carousel-3d__slide[data-position="0"] .carousel-3d__frame {
+  border-color: var(--primary);
+  box-shadow: var(--resume-shadow-card);
+}
+.dark .resume-shell .carousel-3d__slide[data-position="0"] .carousel-3d__frame {
+  border-color: var(--primary);
+  box-shadow: var(--resume-shadow-card);
+}
+.resume-shell .carousel-3d__arrows { bottom: 2px; }
+
+/* Education uses the same quiet glass surface as work history. A restrained
+   amber tint distinguishes the period without bringing back the large warm
+   gradient that previously filled the whole card. */
+.resume-shell .resume-timeline > article.is-learning .resume-timeline__card,
+.resume-shell .resume-timeline > article.is-education-featured .resume-timeline__card {
+  border-color: color-mix(in srgb, var(--warning) 20%, var(--resume-line));
+  background: color-mix(in srgb, var(--warning-soft) 16%, var(--resume-glass));
+}
+.resume-shell .resume-education-projects article {
+  border-color: color-mix(in srgb, var(--warning) 14%, var(--resume-line));
+  background: color-mix(in srgb, var(--warning-soft) 12%, var(--resume-glass));
+}
+.resume-shell .resume-education-certificate {
+  border: 1px solid color-mix(in srgb, var(--warning) 18%, var(--resume-line));
+  background: color-mix(in srgb, var(--warning-soft) 22%, var(--resume-glass));
+}
 
 /* Desktop hero refresh: a shorter, more balanced engineering profile rather than a tall landing card. */
 @media screen and (min-width: 901px) {

@@ -84,7 +84,7 @@ function EditCategoryDialog({ cat, onUpdate }: { cat: Category; onUpdate: Sortab
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="edit-name">分类名称</Label>
+            <Label htmlFor="edit-name">分类名称 <span className="dialog-required-mark" aria-hidden="true">*</span></Label>
             <Input
               id="edit-name"
               value={name}

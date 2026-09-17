@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Trash2, Settings2, Eye, ArrowUpRight, CalendarDays, Share2, ThumbsUp } from "lucide-react";
+import { Trash2, Settings2, Eye, ArrowUpRight, Clock, Share2, ThumbsUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useUIStore } from "@/store/useUIStore";
@@ -142,7 +142,7 @@ export function PostCard({ article }: PostCardProps) {
               {formatViews(article.shares)}
             </span>
             <span className="flex items-center gap-1" title="更新" aria-label={`更新于 ${formatUpdatedAt(article.updatedAt)}`}>
-              <CalendarDays className="h-3 w-3" />
+              <Clock className="h-3 w-3" />
               {formatUpdatedAt(article.updatedAt)}
             </span>
           </div>
