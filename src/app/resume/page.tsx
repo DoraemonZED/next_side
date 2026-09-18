@@ -356,10 +356,10 @@ export default function ResumePage() {
                       <div className="resume-timeline__meta"><time>{item.date}</time><span><GraduationCap />教育经历</span></div>
                       <div className="resume-education-title"><div><p>{item.universityEnglish}</p><h3>{item.title}</h3></div><span>{item.major} <b>{item.degree}</b></span></div>
                       <div className="resume-education-detail">
-                        <section><p className="resume-education-label">主修课程 / CORE COURSES</p><div className="resume-education-courses">{item.courses.map((course) => <span key={course}>{course}</span>)}</div></section>
-                        <section><p className="resume-education-label">专业能力 / LEARNING OUTCOME</p><ul>{item.outcomes.map((outcome) => <li key={outcome}><Check />{outcome}</li>)}</ul></section>
+                        <section><p className="resume-education-label">主修课程 / CORE COURSES</p><div className="resume-education-courses">{(item.courses ?? []).map((course) => <span key={course}>{course}</span>)}</div></section>
+                        <section><p className="resume-education-label">专业能力 / LEARNING OUTCOME</p><ul>{(item.outcomes ?? []).map((outcome) => <li key={outcome}><Check />{outcome}</li>)}</ul></section>
                       </div>
-                      <div className="resume-education-projects"><p className="resume-education-label">在校实践 / ACADEMIC PROJECTS</p><div>{item.projects.map((project, projectIndex) => <article key={project.name}><span>{String(projectIndex + 1).padStart(2, "0")}</span><p><strong>{project.name}</strong><small>{project.summary}</small></p></article>)}</div></div>
+                      <div className="resume-education-projects"><p className="resume-education-label">在校实践 / ACADEMIC PROJECTS</p><div>{(item.projects ?? []).map((project, projectIndex) => <article key={project.name}><span>{String(projectIndex + 1).padStart(2, "0")}</span><p><strong>{project.name}</strong><small>{project.summary}</small></p></article>)}</div></div>
                       <div className="resume-education-certificate"><Award /><p><small>PROFESSIONAL CERTIFICATE</small><strong>{item.certificate}</strong></p></div>
                     </div>
                   </article>
@@ -370,10 +370,10 @@ export default function ResumePage() {
                       <div className="resume-timeline__meta"><time>{item.date}</time><span><BriefcaseBusiness />工作经历</span></div>
                       <div className="resume-work-title"><p>WORK EXPERIENCE</p><h3>{item.company}<span>{item.role}</span></h3></div>
                       <div className="resume-work-detail">
-                        <section><p className="resume-work-label">使用技术 / TECH STACK</p><div className="resume-work-stack">{item.stack.map((technology) => <span key={technology}>{technology}</span>)}</div></section>
-                        <section><p className="resume-work-label">负责内容 / KEY RESPONSIBILITIES</p><ul>{item.responsibilities.map((responsibility) => <li key={responsibility}><Check />{responsibility}</li>)}</ul></section>
+                        <section><p className="resume-work-label">使用技术 / TECH STACK</p><div className="resume-work-stack">{(item.stack ?? []).map((technology) => <span key={technology}>{technology}</span>)}</div></section>
+                        <section><p className="resume-work-label">负责内容 / KEY RESPONSIBILITIES</p><ul>{(item.responsibilities ?? []).map((responsibility) => <li key={responsibility}><Check />{responsibility}</li>)}</ul></section>
                       </div>
-                      <div className="resume-work-projects"><p className="resume-work-label">参与项目 / SELECTED PROJECTS</p><div>{item.projects.map((project, projectIndex) => <article key={project.name}><span>{String(projectIndex + 1).padStart(2, "0")}</span><p><strong>{project.name}</strong><small>{project.summary}</small></p></article>)}</div></div>
+                      <div className="resume-work-projects"><p className="resume-work-label">参与项目 / SELECTED PROJECTS</p><div>{(item.projects ?? []).map((project, projectIndex) => <article key={project.name}><span>{String(projectIndex + 1).padStart(2, "0")}</span><p><strong>{project.name}</strong><small>{project.summary}</small></p></article>)}</div></div>
                     </div>
                   </article>
                 ))}
