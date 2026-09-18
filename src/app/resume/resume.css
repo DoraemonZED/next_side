@@ -188,19 +188,20 @@ html:not(.dark) .resume-shell { --resume-ink: var(--foreground); --resume-paper:
 .resume-capabilities article:hover .resume-capability__arrow { opacity: 1; transform: translate(0,0); }
 
 .resume-projects-section { overflow: visible; }
-.resume-project { position: relative; height: 100%; overflow: hidden; padding: 27px 30px; color: #eaf5ec; background: radial-gradient(circle at 85% 15%,rgba(112,211,204,.18),transparent 28%), linear-gradient(135deg,#102a31,#081a20); }
+.resume-project { position: relative; display: flex; flex-direction: column; height: 100%; overflow: hidden; padding: 22px 26px; color: #eaf5ec; background: radial-gradient(circle at 85% 15%,rgba(112,211,204,.18),transparent 28%), linear-gradient(135deg,#102a31,#081a20); }
 .resume-project::after { position: absolute; right: -28px; bottom: -54px; width: 180px; height: 180px; content: ""; border: 1px solid rgba(185,218,99,.16); border-radius: 50%; }
 .resume-project__grid { position: absolute; inset: 0; opacity: .3; background-image: linear-gradient(rgba(112,211,204,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(112,211,204,.06) 1px,transparent 1px); background-size: 34px 34px; mask-image: linear-gradient(125deg,black,transparent 70%); }
-.resume-project__topline { position: relative; z-index: 1; display: flex; justify-content: space-between; padding-bottom: 17px; border-bottom: 1px solid rgba(255,255,255,.09); color: #6e918e; font: 700 0.5625rem/1 ui-monospace, monospace; letter-spacing: .12em; }
+.resume-project__topline { position: relative; z-index: 1; display: flex; justify-content: space-between; padding-bottom: 13px; border-bottom: 1px solid rgba(255,255,255,.09); color: #6e918e; font: 700 0.5625rem/1 ui-monospace, monospace; letter-spacing: .12em; }
 .resume-project__signal { display: flex; align-items: center; gap: 8px; }
 .resume-project__signal i { display: block; width: 5px; height: 5px; }
-.resume-project__body { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 132px; gap: 24px; align-items: end; padding: 30px 0 22px; }
-.resume-project__eyebrow { margin: 0 0 10px; color: var(--resume-acid); font: 700 0.5625rem/1 ui-monospace, monospace; letter-spacing: .12em; }
-.resume-project h3 { max-width: 510px; margin: 0; font-size: clamp(1.375rem,2.7vw,2.25rem); line-height: 1.12; letter-spacing: -.045em; font-weight: 900; }
-.resume-project__intro { max-width: 530px; margin: 13px 0 0; color: #89a19e; font-size: 0.6875rem; line-height: 1.7; }
-.resume-project__tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 17px; }
-.resume-project__tags span { padding: 6px 8px; border: 1px solid rgba(112,211,204,.14); border-radius: 6px; color: #86aaa6; background: rgba(112,211,204,.055); font: 650 0.5rem/1 ui-monospace, monospace; }
-.resume-project__open { display: inline-flex; align-items: center; gap: 8px; margin-top: 17px; padding: 9px 12px; border: 1px solid rgba(185,218,99,.3); border-radius: 8px; color: #cfe987; background: rgba(185,218,99,.08); font-size: 0.5625rem; font-weight: 800; cursor: pointer; transition: background .18s ease, color .18s ease, transform .18s ease, opacity .2s ease; }
+.resume-project__body { position: relative; z-index: 1; display: flex; flex: 1; min-height: 0; padding: 20px 0 13px; }
+.resume-project__body > div { display: flex; flex: 1; flex-direction: column; min-width: 0; }
+.resume-project__eyebrow { margin: 0 0 8px; color: var(--resume-acid); font: 700 0.5625rem/1 ui-monospace, monospace; letter-spacing: .12em; }
+.resume-project h3 { width: min(590px,100%); height: 2.4rem; margin: 0; overflow: hidden; font-size: clamp(1.375rem,2.7vw,2.25rem); line-height: 1.12; letter-spacing: -.045em; font-weight: 900; white-space: nowrap; text-overflow: ellipsis; }
+.resume-project__intro { display: -webkit-box; max-width: 530px; overflow: hidden; margin: 10px 0 0; color: #89a19e; font-size: 0.6875rem; line-height: 1.7; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.resume-project__tags { display: flex; flex-wrap: nowrap; gap: 6px; overflow: hidden; margin-top: 12px; white-space: nowrap; }
+.resume-project__tags span { flex: 0 0 auto; padding: 6px 8px; border: 1px solid rgba(112,211,204,.14); border-radius: 6px; color: #86aaa6; background: rgba(112,211,204,.055); font: 650 0.5rem/1 ui-monospace, monospace; }
+.resume-project__open { display: inline-flex; align-self: flex-end; align-items: center; gap: 8px; margin-top: auto; padding: 8px 11px; border: 1px solid rgba(185,218,99,.3); border-radius: 8px; color: #cfe987; background: rgba(185,218,99,.08); font-size: 0.5625rem; font-weight: 800; cursor: pointer; transition: background .18s ease, color .18s ease, transform .18s ease, opacity .2s ease; }
 .resume-project__open:hover { color: #081418; background: var(--resume-acid); transform: translateY(-1px); }
 .resume-project__open svg { width: 12px; height: 12px; }
 .resume-project__open svg:last-child { margin-left: 2px; }
@@ -211,7 +212,7 @@ html:not(.dark) .resume-shell { --resume-ink: var(--foreground); --resume-paper:
 .resume-project__points { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.09); }
 .resume-project__points p { display: flex; gap: 8px; margin: 0; color: #8ea5a2; font-size: 0.5625rem; line-height: 1.55; }
 .resume-project__points svg { flex: 0 0 12px; width: 12px; color: var(--resume-acid); }
-.resume-carousel-hint { margin: 11px 0 0; color: var(--resume-muted); font: 650 0.5625rem/1 ui-monospace, monospace; text-align: center; letter-spacing: .06em; }
+.resume-carousel-hint { margin: 5px 0 0; color: var(--resume-muted); font: 650 0.5625rem/1 ui-monospace, monospace; text-align: center; letter-spacing: .06em; }
 .resume-carousel-hint span { color: #6cafaa; }
 
 .resume-project-dialog { color: #eaf3eb; background: #091a1f; box-shadow: 0 38px 100px rgba(0,0,0,.55); }
@@ -259,14 +260,14 @@ html:not(.dark) .resume-shell { --resume-ink: var(--foreground); --resume-paper:
 .dark .resume-shell .carousel-3d__slide[data-position="1"] .carousel-3d__shade { background: linear-gradient(-90deg, rgb(3 12 16 / 30%) 0%, rgb(3 12 16 / 10%) 52%, transparent 100%); }
 .dark .resume-shell .carousel-3d__arrows { border-color: rgba(255,255,255,.12); color: rgba(255,255,255,.52); background: rgba(5,17,22,.88); box-shadow: 0 16px 36px rgba(0,0,0,.28); }
 .dark .resume-shell .carousel-3d__arrows button { color: white; background: rgba(255,255,255,.08); }
-.resume-project { padding: 29px 31px; color: var(--resume-ink); background: radial-gradient(circle at 88% 12%, rgba(112,211,204,.16), transparent 28%), linear-gradient(135deg, rgba(255,255,255,.76), rgba(232,242,237,.7)); }
+.resume-project { padding: 22px 26px; color: var(--resume-ink); background: radial-gradient(circle at 88% 12%, rgba(112,211,204,.16), transparent 28%), linear-gradient(135deg, rgba(255,255,255,.76), rgba(232,242,237,.7)); }
 .dark .resume-project { color: #eaf5ec; background: radial-gradient(circle at 85% 15%,rgba(112,211,204,.18),transparent 28%), linear-gradient(135deg,#102a31,#081a20); }
 .resume-project__topline { border-bottom-color: var(--resume-line); color: #5b8581; }
 .dark .resume-project__topline { border-bottom-color: rgba(255,255,255,.09); color: #6e918e; }
-.resume-project__body { display: block; padding: 27px 0 0; }
+.resume-project__body { display: flex; flex: 1; min-height: 0; padding: 20px 0 0; }
 .resume-project__eyebrow { color: #4f8f8a; }
-.resume-project h3 { max-width: 590px; font-size: clamp(1.4375rem,2.5vw,2.125rem); }
-.resume-project__intro { max-width: 620px; color: var(--resume-muted); }
+.resume-project h3 { font-size: clamp(1.4375rem,2.5vw,2.125rem); }
+.resume-project__intro { min-height: 3.4em; max-width: 620px; color: var(--resume-muted); }
 .dark .resume-project__intro { color: #89a19e; }
 .resume-project__tags span { border-color: rgba(82,135,130,.18); color: #517a77; background: rgba(112,211,204,.1); }
 .dark .resume-project__tags span { border-color: rgba(112,211,204,.14); color: #86aaa6; background: rgba(112,211,204,.055); }
@@ -518,6 +519,8 @@ html:not(.dark) .resume-shell { --resume-ink: var(--foreground); --resume-paper:
   .resume-hero__main { padding-left: 48px; }
   .resume-content { grid-template-columns: 250px minmax(0,1fr); gap: 30px; }
   .resume-stack { grid-template-columns: 1fr; }
+  .resume-contact { grid-template-columns: 1fr; gap: 32px; padding: 38px; }
+  .resume-contact__intro > span { max-width: 570px; }
 }
 
 @media (max-width: 900px) {
@@ -567,15 +570,15 @@ html:not(.dark) .resume-shell { --resume-ink: var(--foreground); --resume-paper:
   .resume-stack__skill-progress { width: 100%; }
   .resume-capabilities article { min-height: 220px; }
   .resume-section { margin-bottom: 72px; }
-  .resume-project { padding: 22px 20px; }
+  .resume-project { padding: 18px; }
   .resume-project__topline { font-size: 0.4375rem; }
-  .resume-project__body { display: block; padding: 20px 0 0; }
+  .resume-project__body { display: flex; padding: 15px 0 0; }
   .resume-project__eyebrow { margin-bottom: 8px; font-size: 0.4375rem; letter-spacing: .08em; }
   .resume-project h3 { font-size: 1.5rem; }
   .resume-project__intro { display: -webkit-box; overflow: hidden; margin-top: 10px; font-size: 0.625rem; line-height: 1.6; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-  .resume-project__tags { margin-top: 13px; }
+  .resume-project__tags { margin-top: 10px; }
   .resume-project__tags span { padding: 5px 7px; font-size: 0.4375rem; }
-  .resume-project__open { margin-top: 13px; padding: 8px 10px; font-size: 0.5rem; }
+  .resume-project__open { margin-top: 10px; padding: 8px 10px; font-size: 0.5rem; }
   .resume-project__metric { display: none; }
   .resume-project-dialog__head { padding: 26px 22px 23px; }
   .resume-project-dialog__head h2 { margin-top: 20px; font-size: 1.6875rem; }
@@ -751,11 +754,21 @@ html:not(.dark) .resume-shell { --resume-ink: var(--foreground); --resume-paper:
 .resume-shell .resume-project__points p,
 .resume-shell .resume-project__tags span {
   border-color: var(--resume-line);
-  color: var(--resume-muted);
+  color: color-mix(in srgb, var(--resume-ink) 76%, var(--resume-muted));
 }
 .resume-shell .resume-project__tags span,
 .resume-shell .resume-project__open {
   background: var(--resume-subtle);
+}
+.resume-shell .resume-project__topline { font-size: .625rem; }
+.resume-shell .resume-project__intro { font-size: .75rem; font-weight: 500; line-height: 1.7; }
+.resume-shell .resume-project__tags span { font-size: .5625rem; font-weight: 700; }
+.resume-shell .resume-project__points p { font-size: .625rem; font-weight: 500; }
+@media (max-width: 640px) {
+  .resume-shell .resume-project__topline { font-size: .5625rem; }
+  .resume-shell .resume-project__intro { font-size: .6875rem; }
+  .resume-shell .resume-project__tags span { font-size: .5rem; }
+  .resume-shell .resume-project__points p { font-size: .5625rem; }
 }
 .resume-shell .resume-project__open {
   border-color: var(--resume-line-strong);
@@ -867,7 +880,166 @@ html:not(.dark) .resume-shell { --resume-ink: var(--foreground); --resume-paper:
   border-color: var(--primary);
   box-shadow: var(--resume-shadow-card);
 }
-.resume-shell .carousel-3d__arrows { bottom: 2px; }
+.resume-shell .carousel-3d__arrows {
+  top: calc(72.5% + (var(--carousel-slide-height) / 4));
+  bottom: auto;
+  transform: translate(-50%, -50%);
+}
+
+@media (max-width: 640px) {
+  .resume-shell .carousel-3d__arrows { top: calc(71.5% + (var(--carousel-slide-height) / 4)); }
+}
+
+/* The contact list is an index, not four separate cards. */
+.resume-shell .resume-profile__meta { gap: 6px; }
+.resume-shell .resume-profile__meta a,
+.resume-shell .resume-profile__meta span { min-height: 1.75rem; padding: .125rem .25rem; }
+.resume-shell .resume-profile__meta svg {
+  box-sizing: content-box;
+  width: .875rem;
+  height: .875rem;
+  padding: .25rem;
+  border-radius: 50%;
+}
+
+/* Project details inherit the active site palette instead of keeping the old cyan/lime skin. */
+.resume-shell .resume-project-dialog { color: var(--resume-ink); border: 1px solid var(--resume-line); background: var(--resume-paper); box-shadow: var(--resume-shadow-float); }
+.resume-shell .resume-project-dialog > button { color: var(--resume-ink); background: var(--resume-soft); }
+.resume-shell .resume-project-dialog__head { border-color: var(--resume-line); background: radial-gradient(circle at 85% 0%, var(--resume-soft), transparent 30%), linear-gradient(135deg, var(--resume-panel-2), var(--resume-paper)); }
+.resume-shell .resume-project-dialog__head::after { border-color: var(--resume-line-strong); }
+.resume-shell .resume-project-dialog__code { color: var(--ink-subtle); }
+.resume-shell .resume-project-dialog__code i { background: var(--primary); box-shadow: 0 0 0 5px var(--primary-subtle); }
+.resume-shell .resume-project-dialog__head h2 { color: var(--foreground); }
+.resume-shell .resume-project-dialog__head p,
+.resume-shell .resume-project-dialog__points p,
+.resume-shell .resume-project-dialog__metric small,
+.resume-shell .resume-project-dialog__metric span,
+.resume-shell .resume-project-dialog__footer > span { color: var(--resume-muted); }
+.resume-shell .resume-project-dialog__label { color: var(--primary); }
+.resume-shell .resume-project-dialog__points article { border-color: var(--resume-line); background: var(--resume-glass); }
+.resume-shell .resume-project-dialog__points span { color: var(--primary); background: var(--primary-subtle); }
+.resume-shell .resume-project-dialog__metric { border-color: var(--resume-line-strong); background: var(--primary-subtle); }
+.resume-shell .resume-project-dialog__metric strong { color: var(--primary); }
+.resume-shell .resume-project-dialog__tags span { border-color: var(--resume-line); color: var(--ink-muted); background: var(--resume-soft); }
+.resume-shell .resume-project-dialog__footer { border-color: var(--resume-line); background: var(--resume-glass); }
+.resume-shell .resume-project-dialog__footer > span svg { color: var(--primary); }
+
+/* Project details use the shared dialog surface; these rules only arrange its content. */
+.resume-project-detail { --project-accent: var(--primary); --project-soft: var(--primary-subtle); }
+.resume-project-detail__head { position: relative; padding: 0 0 18px; border-bottom: 1px solid var(--line); }
+.resume-project-detail__code { display: flex; align-items: center; justify-content: space-between; color: var(--ink-subtle); font: 700 .5625rem/1 ui-monospace, monospace; letter-spacing: .11em; }
+.resume-project-detail__code span { display: flex; align-items: center; gap: 8px; }
+.resume-project-detail__code i { width: 6px; height: 6px; border-radius: 50%; background: var(--project-accent); box-shadow: 0 0 0 5px var(--project-soft); }
+.resume-project-detail__head h2 { max-width: 700px; margin-top: 20px; color: var(--foreground); font-size: clamp(1.4rem, 4vw, 2.25rem); line-height: 1.08; letter-spacing: -.045em; font-weight: 800; }
+.resume-project-detail__head p { max-width: 650px; margin-top: 10px; color: var(--ink-muted); font-size: .75rem; line-height: 1.7; }
+.resume-project-detail__body { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(190px, .55fr); gap: 26px; }
+.resume-project-detail__label { margin: 0 0 12px; color: var(--project-accent); font: 750 .5rem/1 ui-monospace, monospace; letter-spacing: .14em; }
+.resume-project-detail__role { margin: -2px 0 18px; color: var(--ink-muted); font-size: .75rem; line-height: 1.7; }
+.resume-project-detail__points { display: grid; gap: 9px; }
+.resume-project-detail__points article { display: grid; grid-template-columns: 30px 1fr; gap: 11px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-glass); }
+.resume-project-detail__points span { display: grid; width: 26px; height: 26px; place-items: center; border-radius: 7px; color: var(--project-accent); background: var(--project-soft); font: 750 .5rem/1 ui-monospace, monospace; }
+.resume-project-detail__points p { margin: 1px 0 0; color: var(--ink-muted); font-size: .6875rem; line-height: 1.65; }
+.resume-project-detail__metric { margin-bottom: 21px; padding: 16px; border: 1px solid color-mix(in srgb, var(--project-accent) 34%, var(--line)); border-radius: 11px; background: var(--project-soft); }
+.resume-project-detail__metric small, .resume-project-detail__metric span { display: block; color: var(--ink-subtle); font: 700 .5rem/1 ui-monospace, monospace; letter-spacing: .1em; }
+.resume-project-detail__metric strong { display: block; margin: 10px 0; color: var(--project-accent); font: 850 1.125rem/1 ui-monospace, monospace; }
+.resume-project-detail__architecture { display: grid; gap: 7px; margin: -3px 0 20px; }
+.resume-project-detail__architecture p { display: flex; gap: 8px; margin: 0; color: var(--ink-muted); font-size: .625rem; line-height: 1.55; }
+.resume-project-detail__architecture span { color: var(--project-accent); font: 750 .5rem/1.55 ui-monospace, monospace; }
+.resume-project-detail__tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.resume-project-detail__tags span { padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink-muted); background: var(--project-soft); font: 650 .5rem/1 ui-monospace, monospace; }
+.resume-project-detail__footer { padding-top: 14px; border-top: 1px solid var(--line); }
+.resume-project-detail__footer > span { display: flex; align-items: center; gap: 8px; color: var(--ink-muted); font-size: .5625rem; }
+.resume-project-detail__footer svg { width: 14px; color: var(--project-accent); }
+@media (max-width: 640px) {
+  .resume-project-detail__head { padding-bottom: 14px; }
+  .resume-project-detail__head h2 { margin-top: 16px; font-size: 1.5rem; }
+  .resume-project-detail__body { grid-template-columns: 1fr; gap: 20px; }
+  .resume-project-detail__metric { margin-bottom: 18px; }
+}
+
+/* A compact skill matrix keeps the stack informative without dominating the resume. */
+.resume-section#stack .resume-section-head { margin-bottom: 24px; padding-bottom: 16px; }
+.resume-section#stack .resume-stack { gap: 10px; }
+.resume-section#stack .resume-stack article { border-radius: 15px; }
+.resume-section#stack .resume-stack__head { grid-template-columns: 28px 1fr auto; gap: 9px; padding: 12px 14px; }
+.resume-section#stack .resume-stack__head > span { width: 25px; height: 25px; border-radius: 7px; font-size: .5625rem; }
+.resume-section#stack .resume-stack__head h3 { font-size: .8125rem; }
+.resume-section#stack .resume-stack__head small { margin-top: 2px; font-size: .5625rem; line-height: 1.25; }
+.resume-section#stack .resume-stack__head b { padding: 4px 6px; font-size: .4375rem; }
+.resume-section#stack .resume-stack__items { gap: 6px; padding: 9px 10px 11px; }
+.resume-section#stack .resume-stack__items > div { grid-template-columns: minmax(0, 1.25fr) minmax(118px, .75fr); gap: 11px; padding: 8px 9px; border-radius: 8px; }
+.resume-section#stack .resume-stack__skill-copy p { margin-bottom: 2px; }
+.resume-section#stack .resume-stack__items strong { font-size: .6875rem; }
+.resume-section#stack .resume-stack__skill-copy small { overflow: hidden; font-size: .5rem; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.resume-section#stack .resume-stack__skill-progress { gap: 4px; }
+.resume-section#stack .resume-stack__skill-progress > span { font-size: .5rem; }
+.resume-section#stack .resume-stack__skill-progress > div { height: 5px; }
+.resume-section#stack .resume-toolbelt { grid-template-columns: 102px 1fr; gap: 12px; margin-top: 10px; padding: 12px 14px; border-radius: 12px; }
+.resume-section#stack .resume-toolbelt > span { gap: 6px; font-size: .5rem; }
+.resume-section#stack .resume-toolbelt svg { width: 13px; }
+.resume-section#stack .resume-toolbelt > div { gap: 5px; }
+.resume-section#stack .resume-toolbelt small { padding: 4px 6px; border-radius: 5px; font-size: .5rem; }
+@media (max-width: 640px) {
+  .resume-section#stack .resume-stack__items > div { grid-template-columns: 1fr; gap: 6px; }
+  .resume-section#stack .resume-toolbelt { grid-template-columns: 1fr; gap: 9px; }
+}
+
+/* Keep the shared resume type scale; save space by changing the card grid, not the text. */
+.resume-section#stack .resume-stack { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.resume-section#stack .resume-stack__head > span { font-size: .625rem; }
+.resume-section#stack .resume-stack__head h3 { font-size: .9375rem; }
+.resume-section#stack .resume-stack__head small { font-size: .625rem; line-height: 1.4; }
+.resume-section#stack .resume-stack__head b { font-size: .5rem; }
+.resume-section#stack .resume-stack__items strong { font-size: .8125rem; }
+.resume-section#stack .resume-stack__skill-copy small { font-size: .625rem; line-height: 1.4; }
+.resume-section#stack .resume-stack__skill-progress > span { font-size: .625rem; }
+.resume-section#stack .resume-toolbelt > span { font-size: .625rem; }
+.resume-section#stack .resume-toolbelt small { font-size: .625rem; }
+@media (min-width: 1101px) {
+  .resume-section#stack .resume-stack__items > div { grid-template-columns: 1fr; gap: 9px; }
+}
+@media (max-width: 1100px) {
+  .resume-section#stack .resume-stack { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .resume-section#stack .resume-stack { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Refined skill matrix: stable row rhythm takes priority over decorative gauges. */
+.resume-section#stack .resume-stack { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.resume-section#stack .resume-stack article { min-width: 0; overflow: hidden; border-radius: 14px; background: radial-gradient(circle at 100% 0, color-mix(in srgb, var(--stack-accent) 15%, transparent), transparent 39%), linear-gradient(145deg, color-mix(in srgb, var(--stack-soft) 30%, var(--resume-glass)), var(--resume-glass) 58%); box-shadow: 0 14px 30px -27px color-mix(in srgb, var(--stack-accent) 72%, transparent); transition: border-color .22s ease, box-shadow .22s ease, transform .22s ease; }
+.resume-section#stack .resume-stack article::after { display: block; top: auto; right: 14px; bottom: 13px; width: 32px; height: 1px; border: 0; border-radius: 0; background: linear-gradient(90deg, transparent, var(--stack-accent)); box-shadow: none; opacity: .5; }
+.resume-section#stack .resume-stack article:hover { border-color: color-mix(in srgb, var(--stack-accent) 38%, var(--resume-line)); box-shadow: 0 20px 38px -28px color-mix(in srgb, var(--stack-accent) 62%, transparent); transform: translateY(-2px); }
+.resume-section#stack .resume-stack__head { grid-template-columns: 26px minmax(0, 1fr) auto; gap: 9px; padding: 14px; background: transparent; }
+.resume-section#stack .resume-stack__head > span { width: 24px; height: 24px; background: var(--stack-soft); }
+.resume-section#stack .resume-stack__head h3 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.resume-section#stack .resume-stack__head small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.resume-section#stack .resume-stack__items { gap: 0; padding: 2px 14px 10px; }
+.resume-section#stack .resume-stack__items > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; min-height: 40px; padding: 10px 0; border: 0; border-bottom: 1px solid color-mix(in srgb, var(--stack-accent) 10%, var(--resume-line)); border-radius: 0; background: transparent; }
+.resume-section#stack .resume-stack__items > div:last-child { border-bottom: 0; }
+.resume-section#stack .resume-stack__items > div:hover { background: color-mix(in srgb, var(--stack-soft) 16%, transparent); transform: none; }
+.resume-section#stack .resume-stack__skill-copy { min-width: 0; }
+.resume-section#stack .resume-stack__skill-copy p { margin: 0; }
+.resume-section#stack .resume-stack__items strong { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.resume-section#stack .resume-stack__skill-copy small { display: none; }
+.resume-section#stack .resume-stack__skill-progress { display: block; width: auto; align-self: center; }
+.resume-section#stack .resume-stack__skill-progress > span { display: block; color: var(--stack-accent); font-variant-numeric: tabular-nums; }
+.resume-section#stack .resume-stack__skill-progress > div { display: none; }
+.resume-section#stack .resume-toolbelt { margin-top: 12px; border-style: solid; background: var(--resume-glass); }
+@media (min-width: 1101px) and (max-width: 1399px) {
+  .resume-section#stack .resume-stack { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 1100px) {
+  .resume-section#stack .resume-stack { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .resume-section#stack .resume-stack { gap: 8px; }
+  .resume-section#stack .resume-stack__head { padding: 11px; }
+  .resume-section#stack .resume-stack__head > span { display: none; }
+  .resume-section#stack .resume-stack__head { grid-template-columns: minmax(0, 1fr) auto; }
+  .resume-section#stack .resume-stack__items { padding-inline: 11px; }
+  .resume-section#stack .resume-stack__items > div { min-height: 37px; padding-block: 8px; }
+}
 
 /* Education uses the same quiet glass surface as work history. A restrained
    amber tint distinguishes the period without bringing back the large warm
@@ -895,7 +1067,8 @@ html:not(.dark) .resume-shell { --resume-ink: var(--foreground); --resume-paper:
     border-radius: 2rem;
   }
   .resume-shell .resume-hero__main {
-    padding: 3.625rem 1.25rem 3.9rem 3.75rem;
+    align-self: start;
+    padding: 3.9rem 1.25rem 3.9rem 3.75rem;
   }
   .resume-shell .resume-availability { padding: .42rem .7rem; }
   .resume-shell .resume-hero__overline { margin: 1.25rem 0 .55rem; }

@@ -1,5 +1,8 @@
 .carousel-3d {
   --carousel-accent: #b9da63;
+  --carousel-stage-height: clamp(340px, 38vw, 430px);
+  --carousel-slide-height: clamp(270px, 30vw, 320px);
+  --carousel-slide-top: 45%;
   position: relative;
   width: 100%;
   outline: none;
@@ -15,7 +18,7 @@
 
 .carousel-3d__stage {
   position: relative;
-  height: clamp(380px, 43vw, 490px);
+  height: var(--carousel-stage-height);
   overflow: hidden;
   perspective: 1500px;
   perspective-origin: 50% 42%;
@@ -23,11 +26,11 @@
 
 .carousel-3d__slide {
   position: absolute;
-  top: 45%;
+  top: var(--carousel-slide-top);
   left: 50%;
   z-index: 1;
   width: min(72%, 760px);
-  height: clamp(290px, 33vw, 365px);
+  height: var(--carousel-slide-height);
   opacity: 0;
   pointer-events: none;
   transform: translate(-50%, -50%) translateZ(-220px) scale(.62);
@@ -43,8 +46,10 @@
   z-index: 30;
   opacity: 1;
   pointer-events: auto;
-  filter: brightness(1) saturate(1);
-  transform: translate(-50%, -50%) translateZ(100px) scale(1) rotateY(0);
+  /* Keep the reading card in the 2D paint path: a no-op filter and translateZ
+     still create a composited texture layer in Chromium, which softens text. */
+  filter: none;
+  transform: translate(-50%, -50%);
 }
 
 .carousel-3d__slide[data-position="-1"],
@@ -80,7 +85,6 @@
   border-radius: 28px;
   background: #0c1e25;
   box-shadow: 0 30px 70px -28px rgba(1, 12, 17, .9);
-  transform: translateZ(0);
 }
 
 .carousel-3d__slide[data-position="0"] .carousel-3d__frame {
@@ -176,7 +180,6 @@
   display: flex;
   justify-content: center;
   gap: 8px;
-  margin-top: -3px;
 }
 
 .carousel-3d__dots button {
@@ -195,21 +198,19 @@
 }
 
 @media (max-width: 640px) {
+  .carousel-3d { --carousel-stage-height: 331px; --carousel-slide-height: 266px; --carousel-slide-top: 43%; }
   .carousel-3d__stage {
-    height: 348px;
     overflow: hidden;
     perspective: 900px;
   }
 
   .carousel-3d__slide {
-    top: 43%;
     width: 86%;
-    height: 272px;
     transform: translate(-50%, -50%) translateZ(-100px) scale(.72);
   }
 
   .carousel-3d__slide[data-position="0"] {
-    transform: translate(-50%, -50%) translateZ(30px) scale(1);
+    transform: translate(-50%, -50%);
   }
 
   .carousel-3d__slide[data-position="-1"],
@@ -240,7 +241,6 @@
   }
 
   .carousel-3d__floor { display: none; }
-  .carousel-3d__dots { margin-top: 7px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -60,7 +60,7 @@ export default async function BlogRootPage(props: {
             <div className="blog-sidebar__protocol">
               <BookOpen aria-hidden="true" />
               <span>READER&apos;S PROTOCOL</span>
-              <p>不追逐碎片化收藏，只记录经过验证、可以迁移的工作方法。</p>
+              <p>只记录验证过、可迁移的工作方法。</p>
               <div><FolderTree /> <small>CONTENT / GIT / MD</small></div>
             </div>
           </div>

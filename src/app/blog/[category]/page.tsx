@@ -63,7 +63,7 @@ export default async function BlogCategoryPage(props: {
             <div className="blog-sidebar__protocol">
               <BookOpen aria-hidden="true" />
               <span>TOPIC NOTES</span>
-              <p>文章与素材以 Markdown 为源，版本演进都留在可追溯的仓库中。</p>
+              <p>以 Markdown 为源，版本演进可追溯。</p>
               <div><FolderTree /> <small>{activeCategory?.directoryId ?? category}</small></div>
             </div>
           </div>
