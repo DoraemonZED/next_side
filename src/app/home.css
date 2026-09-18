@@ -1334,3 +1334,23 @@ html:not(.dark) .lab-home .lab-manifesto h2 span {
 .portal-about .profile-monogram,.portal-about .profile-label { color:var(--portal-amber); }.portal-about .profile-orbit { border-color:color-mix(in srgb,var(--portal-amber) 43%,transparent); box-shadow:0 0 45px color-mix(in srgb,var(--portal-amber) 18%,transparent); }
 .lab-manifesto { background:radial-gradient(ellipse at 22% 100%,var(--info-soft),transparent 39%),radial-gradient(ellipse at 78% 0%,var(--violet-soft),transparent 36%),radial-gradient(ellipse at 50% 100%,var(--warning-soft),transparent 54%) !important; }.lab-manifesto h2 span { color:var(--portal-violet) !important; }.manifesto-symbol { color:var(--portal-amber) !important; }
 html:not(.dark) .portal-card { background:linear-gradient(155deg,color-mix(in srgb,var(--portal-soft) 72%,var(--surface-raised)),var(--surface-raised) 70%); }
+
+/* Theme geometry contract: surfaces may change colour, never their visual
+   weight. The more specific light-mode rules above previously made portal
+   cards look borderless and flatter than their dark-mode counterparts. */
+.lab-home .portal-card {
+  border-width: 1px;
+  box-shadow: var(--elevation-card);
+}
+.lab-home .portal-card:hover {
+  border-width: 1px;
+  box-shadow: var(--elevation-float);
+}
+html:not(.dark) .lab-home .portal-card {
+  border-color: color-mix(in srgb, var(--portal-accent) 22%, var(--line));
+  box-shadow: var(--elevation-card);
+}
+html:not(.dark) .lab-home .portal-card:hover {
+  border-color: color-mix(in srgb, var(--portal-accent) 58%, var(--line));
+  box-shadow: var(--elevation-float);
+}
