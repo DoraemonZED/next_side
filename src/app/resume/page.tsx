@@ -40,6 +40,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { useUIStore } from "@/store/useUIStore"
 import { resumeData } from "./data"
+import { openResumePdfTemplate } from "./export-resume"
 import "./resume.css"
 
 const iconMap = { ServerCog, Radio, Layers3, CloudCog, ShieldCheck, Cpu, Boxes, Sparkles }
@@ -157,6 +158,14 @@ export default function ResumePage() {
     showToast("留言界面已完成，邮件发送功能即将开放", "success")
   }
 
+  const handleResumeDownload = () => {
+    if (openResumePdfTemplate()) {
+      showToast("已打开 A4 PDF 打印模板，请在系统面板中存储为 PDF", "success")
+      return
+    }
+    showToast("浏览器拦截了打印窗口，请允许弹出窗口后重试", "error")
+  }
+
   return (
     <div className="resume-shell">
       <div className="resume-noise" />
@@ -181,7 +190,7 @@ export default function ResumePage() {
             <p className="resume-hero__summary">{hero.summary.map((paragraph) => <span key={paragraph}>{paragraph}</span>)}</p>
             <div className="resume-hero__actions">
               <a href="#projects">查看代表项目 <ArrowDownRight /></a>
-              <button onClick={() => window.print()} type="button"><Download />下载简历</button>
+              <button onClick={handleResumeDownload} type="button"><Download />导出 PDF 简历</button>
             </div>
           </div>
 
@@ -215,7 +224,7 @@ export default function ResumePage() {
               </div>
               <div className="resume-profile__buttons">
                 <a href={`mailto:${site.contactEmail}`}>联系我 <ArrowUpRight /></a>
-                <button onClick={() => window.print()} aria-label="打印简历"><Download /></button>
+                <button onClick={handleResumeDownload} aria-label="导出 A4 PDF 简历"><Download /></button>
               </div>
             </div>
             <div className="resume-profile__status">
@@ -233,11 +242,10 @@ export default function ResumePage() {
                   const Icon = iconMap[icon as keyof typeof iconMap]
                   return (
                   <article className={no === "01" ? "is-featured" : ""} key={no}>
-                    <div className="resume-capability__icon"><Icon /></div>
+                    <div className="resume-capability__head"><div className="resume-capability__icon"><Icon /></div><h3>{title}</h3></div>
                     <span>{no}</span>
-                    <h3>{title}</h3>
                     <p>{text}</p>
-                    <div>{tags.map((tag) => <small key={tag}>{tag}</small>)}</div>
+                    <div className="resume-capability__tags">{tags.map((tag) => <small key={tag}>{tag}</small>)}</div>
                     <ArrowUpRight className="resume-capability__arrow" />
                   </article>
                 )})}
@@ -269,7 +277,6 @@ export default function ResumePage() {
                       <DialogHeader className="resume-project-detail__head">
                         <div className="resume-project-detail__code">
                           <span><i /> PROJECT ARCHIVE</span>
-                          <small>{selectedProject.code}</small>
                         </div>
                         <DialogTitle>{selectedProject.title}</DialogTitle>
                         <DialogDescription>{selectedProject.intro}</DialogDescription>
@@ -367,7 +374,7 @@ export default function ResumePage() {
                     <div className="resume-timeline__rail"><span>{String(index + 1).padStart(2, "0")}</span><i /></div>
                     <div className="resume-timeline__card">
                       <div className="resume-timeline__meta"><time>{item.date}</time><span><BriefcaseBusiness />工作经历</span></div>
-                      <div className="resume-work-title"><p>{item.eyebrow}</p><h3>{item.title}</h3><span className="resume-work-role">{item.sideInfo.text}</span><div className="resume-work-stack">{item.tags.map((tag) => <span key={tag}>{tag}</span>)}</div></div>
+                      <div className="resume-work-title"><p>{item.eyebrow}</p><h3>{item.title}</h3><span className="resume-work-role">{item.sideInfo.text} {item.sideInfo.badge && <b>{item.sideInfo.badge}</b>}</span><div className="resume-work-stack">{item.tags.map((tag) => <span key={tag}>{tag}</span>)}</div></div>
                       <div className="resume-work-detail">
                         <section><p className="resume-work-label">{item.detail.label}</p><ul>{item.detail.items.map((entry) => <li key={entry}><Check />{entry}</li>)}</ul></section>
                       </div>
