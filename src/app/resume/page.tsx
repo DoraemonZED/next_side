@@ -1,6 +1,8 @@
 "use client"
 
-import { useLayoutEffect, useRef, useState, type CSSProperties, type FormEvent } from "react"
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type FormEvent } from "react"
+import Image from "next/image"
+import Link from "next/link"
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -15,6 +17,7 @@ import {
   Download,
   Eye,
   Fingerprint,
+  FilePenLine,
   GraduationCap,
   Layers3,
   Mail,
@@ -39,8 +42,8 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { useUIStore } from "@/store/useUIStore"
-import { resumeData } from "./data"
-import { openResumePdfTemplate } from "./export-resume"
+import { useAuthStore } from "@/store/useAuthStore"
+import { initialResumeData } from "@/lib/initData"
 import "./resume.css"
 
 const iconMap = { ServerCog, Radio, Layers3, CloudCog, ShieldCheck, Cpu, Boxes, Sparkles }
@@ -68,7 +71,7 @@ function SectionHeader({
   )
 }
 
-type Project = (typeof resumeData.projects)[number]
+type Project = (typeof initialResumeData.projects)[number]
 
 function FittedProjectTitle({ children }: { children: string }) {
   const titleRef = useRef<HTMLHeadingElement>(null)
@@ -128,9 +131,11 @@ function ProjectCard({ project, index, onOpen }: { project: Project; index: numb
 }
 
 export default function ResumePage() {
-  const { site, hero, profile, capabilities, projects, skillGroups, engineering } = resumeData
-  const otherSkills = resumeData.otherSkills
-  const history = resumeData.history
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const [content, setContent] = useState<typeof initialResumeData>(initialResumeData)
+  const { site, hero, profile, capabilities, projects, skillGroups, engineering } = content
+  const otherSkills = content.otherSkills
+  const history = content.history
   const [contactEmail, setContactEmail] = useState("")
   const [contactMessage, setContactMessage] = useState("")
   const [contactTouched, setContactTouched] = useState(false)
@@ -139,6 +144,13 @@ export default function ResumePage() {
 
   const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(contactEmail.trim())
   const messageIsValid = contactMessage.trim().length >= 10
+
+  useEffect(() => {
+    fetch("/api/resume/content")
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => { if (data?.content) setContent(data.content) })
+      .catch(() => undefined)
+  }, [])
 
   const handleContactSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -159,8 +171,8 @@ export default function ResumePage() {
   }
 
   const handleResumeDownload = () => {
-    if (openResumePdfTemplate()) {
-      showToast("已打开 A4 PDF 打印模板，请在系统面板中存储为 PDF", "success")
+    if (window.open("/api/resume/pdf", "_blank")) {
+      showToast("已打开服务端生成的 PDF，可在预览器中下载", "success")
       return
     }
     showToast("浏览器拦截了打印窗口，请允许弹出窗口后重试", "error")
@@ -171,14 +183,18 @@ export default function ResumePage() {
       <div className="resume-noise" />
       <div className="resume-wrap">
         <nav className="resume-nav" aria-label="简历导航">
-          <a className="resume-brand" href="#top"><span>{site.brandInitials}</span><b>{site.brandName}<i>{site.brandSuffix}</i></b></a>
+          <a className="resume-brand" href="#top"><span><Image src="/favicon.svg" alt="AWEI" width={38} height={38} /></span><b>{site.brandName}<i>{site.brandSuffix}</i></b></a>
           <div className="resume-nav__links">
             <a href="#projects">项目</a>
             <a href="#stack">技术栈</a>
             <a href="#experience">经历</a>
             <a href="#contact">联系</a>
+            {isAuthenticated && <Link className="resume-nav__edit" href="/resume/edit"><FilePenLine />编辑</Link>}
           </div>
-          <a className="resume-nav__contact" href={`mailto:${site.contactEmail}`}>LET&apos;S TALK <ArrowUpRight /></a>
+          <div className="resume-nav__actions">
+            <a className="resume-nav__contact" href={`mailto:${site.contactEmail}`}>LET&apos;S TALK <ArrowUpRight /></a>
+            {isAuthenticated && <Link className="resume-nav__edit-mobile" href="/resume/edit" aria-label="编辑简历内容"><FilePenLine /></Link>}
+          </div>
         </nav>
 
         <header className="resume-hero" id="top">
@@ -212,15 +228,15 @@ export default function ResumePage() {
         <div className="resume-content">
           <aside className="resume-profile">
             <div className="resume-profile__card">
-              <div className="resume-avatar"><span>AW</span><i /></div>
+              <div className="resume-avatar"><Image src="/favicon.svg" alt="AWEI 网站图标" width={82} height={82} /><i /></div>
               <p className="resume-profile__role">{profile.role}</p>
-              <h2>{profile.name} <small>{profile.englishName}</small></h2>
+              <h2>{profile.name}</h2>
               <p className="resume-profile__bio">{profile.bio}</p>
+              <div className="resume-profile__contact-head"><span>联系信息 <small>CONTACT</small></span><i>AVAILABLE</i></div>
               <div className="resume-profile__meta">
                 <a href={`tel:${profile.phone}`}><Phone />{profile.displayPhone}</a>
                 <a href={`mailto:${site.contactEmail}`}><Mail />{site.contactEmail}</a>
                 <span><MapPin />{profile.location}</span>
-                <span><BriefcaseBusiness />{profile.experience}</span>
               </div>
               <div className="resume-profile__buttons">
                 <a href={`mailto:${site.contactEmail}`}>联系我 <ArrowUpRight /></a>

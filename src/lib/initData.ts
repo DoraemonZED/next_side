@@ -1,11 +1,16 @@
-// 全页复用的基础信息：修改一次即可同步更新所有引用位置。
+/** First-run administrator values. Secrets remain environment variables, never source code. */
+export const initialAdminUsername = process.env.INITIAL_ADMIN_USERNAME?.trim() || "admin";
+export const initialAdminPassword = process.env.INITIAL_ADMIN_PASSWORD || "123456";
+
+// 首次建库的简历种子数据；保存后的内容以数据库 resume_content 表为准。
 export const contactEmail = "2433255732@qq.com";
 export const experienceYears = "5+";
 export const fullStackEngineerTitle = "NODE.JS / JAVA FULL-STACK ENGINEER";
-export const name = "杨伟";
-export const englishName = "Wayne Yang";
+// 页面以职业身份呈现；真实姓名仅保留在简历页的 SEO 标题中。
+export const name = "全栈开发工程师";
+export const englishName = "FULL-STACK ENGINEER";
 
-export const resumeData = {
+export const initialResumeData = {
   // 顶部导航与首屏：修改姓名、求职状态、个人简介、联系方式及首屏按钮文案。
   site: {
     brandInitials: "AW",
@@ -50,7 +55,7 @@ export const resumeData = {
     role: fullStackEngineerTitle,
     name,
     englishName,
-    bio: `${fullStackEngineerTitle}，擅长复杂业务建模、实时通信、AI 应用服务与跨端产品的全链路交付。`,
+    bio: "擅长复杂业务建模、实时通信、AI 应用服务与跨端产品的全链路交付。",
     phone: "18244230571",
     displayPhone: "182 4423 0571",
     location: "成都 · 可到岗",

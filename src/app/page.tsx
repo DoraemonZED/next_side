@@ -29,7 +29,7 @@ export default function Home() {
         </div>
         <div className="hero-copy">
           <div className="lab-eyebrow">
-            <span className="tiny-cross">+</span> HELLO WORLD, I’M YANG WEI
+            <span className="tiny-cross">+</span> HELLO WORLD, I BUILD FOR THE WEB
           </div>
           <h1 id="hero-title">
             用代码，

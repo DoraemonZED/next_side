@@ -1,5 +1,6 @@
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth';
+import { createSessionToken, getSession, getTokenExpiresIn } from '@/lib/auth';
 
 export async function GET() {
   const session = await getSession();
@@ -7,14 +8,21 @@ export async function GET() {
     return NextResponse.json({ authenticated: false }, { status: 401 });
   }
   
-  // 返回用户信息和 token 过期时间
-  const expiresAt = session.exp ? new Date(session.exp * 1000).toISOString() : null;
-  const expiresIn = session.exp ? Math.max(0, Math.floor((session.exp * 1000 - Date.now()) / 1000)) : null;
+  // Every authenticated activity check extends the expiry window. The token itself
+  // remains HTTP-only and is never exposed to client-side storage.
+  const expires = new Date(Date.now() + getTokenExpiresIn());
+  const refreshedToken = await createSessionToken({ user: session.user });
+  (await cookies()).set('session', refreshedToken, {
+    expires,
+    httpOnly: true,
+    path: '/',
+    sameSite: 'lax',
+  });
   
   return NextResponse.json({ 
     authenticated: true, 
     user: session.user,
-    expiresAt,
-    expiresIn, // 剩余秒数
+    expiresAt: expires.toISOString(),
+    expiresIn: Math.floor(getTokenExpiresIn() / 1000),
   });
 }

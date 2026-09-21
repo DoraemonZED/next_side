@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>{{TITLE}}</title>
+  <style>
+    @page { size: A4; margin: 0; }
+    :root { --ink:#172b43; --muted:#637184; --line:#dce3e9; --accent:#e75d3d; --accent-pale:#fff0eb; --navy:#12243a; }
+    * { box-sizing: border-box; }
+    body { margin:0; color:var(--ink); background:#fff; font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif; font-size:9.25pt; line-height:1.6; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    h1,h2,h3,p { margin:0; }
+    body::before { position:fixed; top:0; left:0; right:0; height:5pt; background:var(--accent); content:""; }
+    .header,h2,.skill-table,.project,.record { margin-left:18mm; margin-right:18mm; }
+    .header { position:relative; min-height:51mm; padding:18mm 0 9mm; border-bottom:1pt solid var(--ink); }
+    .header::after { position:absolute; right:0; bottom:-1pt; width:46mm; height:3pt; background:var(--accent); content:""; }
+    .header-row,.record { width:100%; border-collapse:collapse; }
+    .header-row td { vertical-align:top; }
+    h1 { color:var(--navy); font-family:"Songti SC","STSong","SimSun",serif; font-size:28pt; font-weight:700; letter-spacing:.12em; line-height:1; }
+    .name-role { margin-top:5pt; color:var(--accent); font-size:8pt; font-weight:700; letter-spacing:.13em; text-transform:uppercase; }
+    .contact { min-width:57mm; padding-top:1pt; color:var(--muted); font-size:8.25pt; line-height:1.85; text-align:right; }
+    .summary { max-width:150mm; margin-top:10pt; color:#405167; font-size:9pt; line-height:1.75; }
+    h2 { display:flex; align-items:center; gap:8pt; margin-top:15pt; margin-bottom:7pt; color:var(--navy); font-size:10.5pt; font-weight:700; letter-spacing:.16em; }
+    h2::before { width:5pt; height:5pt; background:var(--accent); content:""; }
+    h2::after { flex:1; height:.5pt; background:var(--line); content:""; }
+    .skill-table { width:calc(100% - 36mm); border-collapse:collapse; table-layout:fixed; }
+    .skill-table td { width:50%; padding:5pt 15pt 5pt 0; vertical-align:top; }
+    .skill-table td + td { padding-left:12pt; border-left:.5pt solid var(--line); }
+    .skill-table b { display:block; margin-bottom:1pt; color:var(--ink); font-size:8.5pt; font-weight:700; letter-spacing:.05em; }
+    .skill-table b::before { margin-right:5pt; color:var(--accent); content:"//"; }
+    .skill-table span { color:var(--muted); font-size:8pt; line-height:1.5; }
+    .project { position:relative; margin-bottom:7pt; padding:7pt 9pt 7pt 13pt; border:.5pt solid var(--line); border-left:3pt solid var(--accent); background:linear-gradient(90deg,var(--accent-pale),#fff 30%); page-break-inside:avoid; }
+    .project::before { position:absolute; top:8pt; left:-11pt; color:var(--accent); font-size:7pt; font-weight:700; content:"CASE"; transform:rotate(-90deg); transform-origin:center; }
+    .project-head { color:var(--navy); font-size:9.5pt; font-weight:700; }
+    .project p:not(.project-head) { margin-top:2pt; color:#46576c; font-size:8.25pt; }
+    .project small { display:block; margin-top:2pt; color:var(--accent); font-size:7.5pt; letter-spacing:.03em; }
+    .page-break { page-break-before:always; }
+    .page-break + h2 { margin-top:18mm; }
+    .record { margin-bottom:7pt; page-break-inside:avoid; }
+    .record td { padding:0 0 7pt; vertical-align:top; }
+    .date { width:28mm; padding-top:1pt !important; padding-right:10pt !important; color:var(--accent); font-size:7.5pt; font-weight:700; letter-spacing:.05em; line-height:1.45; }
+    .record-content { padding-left:11pt !important; border-left:1pt solid var(--line); }
+    .record-head { width:100%; border-collapse:collapse; }
+    .record-head h3 { display:inline; color:var(--navy); font-size:9.5pt; font-weight:700; }
+    .side-info { display:inline; margin-left:7pt; color:var(--accent); font-size:8pt; font-weight:700; }
+    .badge { display:inline-block; margin-left:4pt; padding:0 4pt; border:.5pt solid #efb5a6; color:#b5422c; font-size:7pt; font-weight:700; line-height:1.4; }
+    .record-tags { margin:1pt 0 3pt; color:var(--muted); font-size:7.75pt; }
+    ul { margin:0; padding-left:13pt; }
+    li { margin-bottom:1pt; color:#405167; }
+    li::marker { color:var(--accent); }
+    .record-projects { margin-top:4pt; color:#526278; font-size:7.75pt; }
+    .record-projects b { color:var(--ink); }
+    .credential { margin-top:4pt; padding:3pt 5pt; border-left:2pt solid #d7a444; background:#fff9ed; color:#80601e; font-size:7.5pt; }
+    .credential b { margin-right:5pt; font-size:7pt; letter-spacing:.08em; }
+    @media print { .page-break { break-before:page; } }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <table class="header-row"><tr><td><h1>{{NAME}}</h1><p class="name-role">{{ENGLISH_NAME}} · {{ROLE}}</p></td><td class="contact">{{CONTACT}}</td></tr></table>
+    <p class="summary">{{SUMMARY}}</p>
+  </header>
+  <h2>核心技能</h2>
+  <table class="skill-table">{{SKILL_ROWS}}</table>
+  <h2>代表项目</h2>{{PROJECTS}}
+  <div class="page-break"></div>
+  <h2>工作经历</h2>{{WORK_HISTORY}}
+  <h2>教育经历</h2>{{EDUCATION_HISTORY}}
+</body>
+</html>

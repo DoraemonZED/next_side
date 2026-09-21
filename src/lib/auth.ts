@@ -10,12 +10,26 @@ export interface SessionPayload extends JWTPayload {
   user: { id: number; username: string };
 }
 
+interface LoginChallengePayload extends JWTPayload {
+  user: { id: number; username: string };
+  purpose: 'login-challenge';
+}
+
 /** Creates the signed HTTP-only session value stored in the browser cookie. */
 export async function createSessionToken(payload: SessionPayload): Promise<string> {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(`${JWT_EXPIRES_HOURS}h`)
+    .sign(key);
+}
+
+/** Creates a short-lived signed marker used between password and email-code verification. */
+export async function createLoginChallengeToken(user: SessionPayload['user']): Promise<string> {
+  return new SignJWT({ user, purpose: 'login-challenge' })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('10m')
     .sign(key);
 }
 
@@ -38,6 +52,21 @@ export async function getSession(): Promise<SessionPayload | null> {
   if (!session) return null;
   try {
     return await verifySessionToken(session);
+  } catch {
+    return null;
+  }
+}
+
+/** Returns the pending, short-lived login challenge if it is valid. */
+export async function getLoginChallenge(): Promise<LoginChallengePayload | null> {
+  const challenge = (await cookies()).get('login_challenge')?.value;
+  if (!challenge) return null;
+  try {
+    const { payload } = await jwtVerify(challenge, key, { algorithms: ['HS256'] });
+    if (payload.purpose !== 'login-challenge' || !payload.user || typeof payload.user !== 'object') return null;
+    const user = payload.user as { id?: unknown; username?: unknown };
+    if (typeof user.id !== 'number' || typeof user.username !== 'string') return null;
+    return payload as LoginChallengePayload;
   } catch {
     return null;
   }

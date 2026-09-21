@@ -1,0 +1,5 @@
+CREATE TABLE IF NOT EXISTS resume_content (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  content TEXT NOT NULL,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

@@ -9,6 +9,22 @@ interface DatabaseBackup {
   sizeInBytes: number;
 }
 
+function createMailTransport() {
+  const user = process.env.QQ_EMAIL_USER;
+  const pass = process.env.QQ_EMAIL_PASS;
+  if (!user || !pass) throw new Error('缺少 QQ_EMAIL_USER 或 QQ_EMAIL_PASS 配置');
+  const port = Number(process.env.QQ_SMTP_PORT || '587');
+  return {
+    user,
+    transporter: nodemailer.createTransport({
+      host: process.env.QQ_SMTP_HOST || 'smtp.qq.com',
+      port: Number.isInteger(port) && port > 0 ? port : 587,
+      secure: false,
+      auth: { user, pass },
+    }),
+  };
+}
+
 /** Reads the persistent SQLite file into memory so no temporary backup file is left behind. */
 export async function createDatabaseBackup(): Promise<DatabaseBackup> {
   const filePath = path.join(runtimeDataDirectory('db'), 'db.sqlite3');
@@ -30,17 +46,7 @@ export async function sendDatabaseEmail(
   recipientEmail: string,
   backup: DatabaseBackup,
 ): Promise<void> {
-  const user = process.env.QQ_EMAIL_USER;
-  const pass = process.env.QQ_EMAIL_PASS;
-  if (!user || !pass) throw new Error('缺少 QQ_EMAIL_USER 或 QQ_EMAIL_PASS 配置');
-
-  const port = Number(process.env.QQ_SMTP_PORT || '587');
-  const transporter = nodemailer.createTransport({
-    host: process.env.QQ_SMTP_HOST || 'smtp.qq.com',
-    port: Number.isInteger(port) && port > 0 ? port : 587,
-    secure: false,
-    auth: { user, pass },
-  });
+  const { user, transporter } = createMailTransport();
   const formattedSize = `${(backup.sizeInBytes / 1024 / 1024).toFixed(2)} MB`;
   await transporter.sendMail({
     from: `"数据库备份" <${user}>`,
@@ -49,5 +55,18 @@ export async function sendDatabaseEmail(
     text: '这是您的网站 SQLite 数据库备份文件。',
     html: `<p>这是您的网站 SQLite 数据库备份文件。</p><p>备份时间：${new Date().toLocaleString('zh-CN')}<br>文件大小：${formattedSize}</p>`,
     attachments: [{ filename: backup.filename, content: backup.buffer }],
+  });
+}
+
+/** Sends the sign-in verification code to the configured administrator mailbox. */
+export async function sendLoginVerificationEmail(code: string): Promise<void> {
+  const { user, transporter } = createMailTransport();
+  const recipient = process.env.LOGIN_VERIFICATION_EMAIL?.trim() || user;
+  await transporter.sendMail({
+    from: `"AWEI 登录验证" <${user}>`,
+    to: recipient,
+    subject: 'AWEI 登录验证码',
+    text: `你的登录验证码是 ${code}，10 分钟内有效。请勿将验证码告诉他人。`,
+    html: `<p>你的登录验证码是：</p><p style="font-size:28px;font-weight:700;letter-spacing:6px">${code}</p><p>验证码 10 分钟内有效。请勿将验证码告诉他人。</p>`,
   });
 }

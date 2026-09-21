@@ -51,6 +51,7 @@
    | `QQ_EMAIL_PASS` | QQ 邮箱 SMTP 授权码。 |
    | `QQ_SMTP_HOST` | SMTP 服务器地址，默认 `smtp.qq.com`。 |
    | `QQ_SMTP_PORT` | SMTP 端口，默认 `587`。 |
+   | `LOGIN_VERIFICATION_EMAIL` | 登录验证码收件邮箱；不填时使用 `QQ_EMAIL_USER`。 |
    | `JWT_SECRET` | 登录令牌签名密钥，必须使用随机长字符串。 |
    | `JWT_EXPIRES_HOURS` | 登录令牌有效期（小时），默认 `24`。 |
    | `INITIAL_ADMIN_USERNAME` | 首次创建管理员时的用户名，默认 `admin`。 |

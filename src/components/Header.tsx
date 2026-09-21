@@ -1,9 +1,10 @@
 'use client'
 
 import * as React from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Moon, Sun, Monitor, Menu, Database } from 'lucide-react'
+import { Moon, Sun, Monitor, Menu, Database, KeyRound, UserRoundCog } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 import { Button } from '@/components/ui/button'
@@ -57,6 +58,11 @@ export function Header({ initialAuthState }: HeaderProps) {
   const [isBackupDialogOpen, setIsBackupDialogOpen] = React.useState(false)
   const [recipientEmail, setRecipientEmail] = React.useState('')
   const [isBackingUp, setIsBackingUp] = React.useState(false)
+  const [accountAction, setAccountAction] = React.useState<'username' | 'password' | null>(null)
+  const [accountUsername, setAccountUsername] = React.useState('')
+  const [currentPassword, setCurrentPassword] = React.useState('')
+  const [newPassword, setNewPassword] = React.useState('')
+  const [isUpdatingAccount, setIsUpdatingAccount] = React.useState(false)
   const { user, isAuthenticated, logout, checkAuth, setUser } = useAuthStore()
   const { showConfirm, showToast } = useUIStore()
   const [isMounted, setIsMounted] = React.useState(false)
@@ -84,8 +90,10 @@ export function Header({ initialAuthState }: HeaderProps) {
   }, [initialAuthState, setUser, isMounted])
 
   React.useEffect(() => {
-    // 后台验证登录状态，如果过期会自动更新
-    checkAuth()
+    // Keep an active authenticated session alive with a periodic server-side refresh.
+    void checkAuth()
+    const refreshInterval = window.setInterval(() => void checkAuth(), 30 * 60 * 1000)
+    return () => window.clearInterval(refreshInterval)
   }, [checkAuth])
 
   const handleBackup = async () => {
@@ -138,6 +146,43 @@ export function Header({ initialAuthState }: HeaderProps) {
     })
   }
 
+  const openAccountDialog = (action: 'username' | 'password') => {
+    setAccountAction(action)
+    setAccountUsername(displayUser?.username || '')
+    setCurrentPassword('')
+    setNewPassword('')
+  }
+
+  const updateAccount = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!accountAction) return
+    setIsUpdatingAccount(true)
+    try {
+      const response = await fetch('/api/auth/account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: accountAction,
+          currentPassword,
+          ...(accountAction === 'username' ? { username: accountUsername } : { newPassword }),
+        }),
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        showToast(data.message || '更新失败', 'error')
+        return
+      }
+      if (data.user) setUser(data.user)
+      await checkAuth()
+      showToast(data.message, 'success')
+      setAccountAction(null)
+    } catch {
+      showToast('网络错误，请稍后重试', 'error')
+    } finally {
+      setIsUpdatingAccount(false)
+    }
+  }
+
   return (
     <header className="site-header sticky top-0 z-50 w-full">
       <div className="site-header__inner flex h-16 items-center justify-between">
@@ -173,7 +218,7 @@ export function Header({ initialAuthState }: HeaderProps) {
           </Sheet>
           
           <Link href="/" className="site-header__brand flex items-center space-x-2">
-            <span>AW</span><b>AWEI<i> / DIGITAL LAB</i></b>
+            <span><Image src="/favicon.svg" alt="AWEI" width={29} height={29} /></span><b>AWEI<i> / DIGITAL LAB</i></b>
           </Link>
 
           {/* Desktop Nav */}
@@ -233,6 +278,14 @@ export function Header({ initialAuthState }: HeaderProps) {
                     <p className="text-sm text-muted-foreground">管理员</p>
                   </div>
                 </div>
+                <DropdownMenuItem onSelect={(event) => { event.preventDefault(); openAccountDialog('username') }}>
+                  <UserRoundCog className="mr-2 h-4 w-4" />
+                  <span>修改用户名</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={(event) => { event.preventDefault(); openAccountDialog('password') }}>
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  <span>修改密码</span>
+                </DropdownMenuItem>
                 <Dialog open={isBackupDialogOpen} onOpenChange={setIsBackupDialogOpen}>
                   <DialogTrigger asChild>
                     <DropdownMenuItem onSelect={(e) => {
@@ -281,6 +334,37 @@ export function Header({ initialAuthState }: HeaderProps) {
                         {isBackingUp ? '发送中...' : '发送数据库'}
                       </Button>
                     </div>
+                  </DialogContent>
+                </Dialog>
+                <Dialog open={accountAction !== null} onOpenChange={(open) => !open && setAccountAction(null)}>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>{accountAction === 'username' ? '修改用户名' : '修改密码'}</DialogTitle>
+                      <DialogDescription>为保障账户安全，请先验证当前密码。</DialogDescription>
+                    </DialogHeader>
+                    <form className="grid gap-4 py-2" onSubmit={updateAccount}>
+                      {accountAction === 'username' ? (
+                        <div className="grid gap-2">
+                          <Label htmlFor="account-username">新用户名</Label>
+                          <Input id="account-username" value={accountUsername} onChange={(event) => setAccountUsername(event.target.value)} autoComplete="username" required disabled={isUpdatingAccount} />
+                          <p className="text-xs text-muted-foreground">3–32 位，可使用字母、数字、点、横线和下划线。</p>
+                        </div>
+                      ) : (
+                        <div className="grid gap-2">
+                          <Label htmlFor="new-password">新密码</Label>
+                          <Input id="new-password" type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} autoComplete="new-password" minLength={8} required disabled={isUpdatingAccount} />
+                          <p className="text-xs text-muted-foreground">请设置至少 8 位的新密码。</p>
+                        </div>
+                      )}
+                      <div className="grid gap-2">
+                        <Label htmlFor="current-password">当前密码</Label>
+                        <Input id="current-password" type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} autoComplete="current-password" required disabled={isUpdatingAccount} />
+                      </div>
+                      <div className="flex justify-end gap-2 pt-2">
+                        <Button type="button" variant="outline" onClick={() => setAccountAction(null)} disabled={isUpdatingAccount}>取消</Button>
+                        <Button type="submit" disabled={isUpdatingAccount}>{isUpdatingAccount ? '保存中...' : '保存修改'}</Button>
+                      </div>
+                    </form>
                   </DialogContent>
                 </Dialog>
                 <DropdownMenuItem onClick={() => logout()} className="text-red-500 focus:text-red-500">
