@@ -599,6 +599,25 @@ html body[data-scroll-locked] .site-shell::before {
 .site-footer__links a:hover { color: var(--primary); }
 
 .site-page { min-height: 64vh; }
+/* The resume JSON editor owns the full space below the site header; its textarea
+   is the only scrolling surface, so the document itself never overflows. */
+body:has(.resume-editor) .site-shell { height: 100dvh; }
+body:has(.resume-editor) .site-shell > main { min-height: 0; overflow: hidden; }
+body:has(.resume-editor) .site-footer { display: none; }
+.resume-json-editor {
+  /* One subtle rail per two-space JSON indent; it remains deliberately quiet
+     so values stay easier to scan than the editor chrome. */
+  background-image: repeating-linear-gradient(
+    to right,
+    transparent 0,
+    transparent calc(2ch - 1px),
+    color-mix(in srgb, var(--line) 66%, transparent) calc(2ch - 1px),
+    color-mix(in srgb, var(--line) 66%, transparent) 2ch
+  ) !important;
+  background-position: calc(1.25rem + 2ch) 0;
+  background-size: 2ch 100%;
+  overscroll-behavior: contain;
+}
 .site-page__hero {
   position: relative; padding-bottom: 34px; border-bottom: 1px solid rgba(183, 247, 207, .14);
 }
@@ -1294,7 +1313,7 @@ html:not(.dark) .post-detail__head, html:not(.dark) .post-detail__tags { border-
   .post-detail__title { font-size: clamp(.875rem, 3vw, 1.05rem) !important; }
 }
 
-.resume-shell { --resume-acid: var(--warning); --resume-cyan: var(--info); --resume-soft: var(--info-soft); --resume-subtle: var(--violet-soft); background: radial-gradient(circle at 6% 5%, var(--info-soft), transparent 26%), radial-gradient(circle at 91% 12%, var(--violet-soft), transparent 25%), radial-gradient(circle at 64% 76%, var(--warning-soft), transparent 30%), var(--resume-paper); }
+.resume-shell { --resume-acid: var(--primary); --resume-cyan: var(--info); --resume-soft: var(--info-soft); --resume-subtle: var(--violet-soft); background: radial-gradient(circle at 6% 5%, var(--info-soft), transparent 26%), radial-gradient(circle at 91% 12%, var(--violet-soft), transparent 25%), radial-gradient(circle at 64% 76%, var(--warning-soft), transparent 30%), var(--resume-paper); }
 .resume-hero__console .resume-console__code span { color: var(--violet); }.resume-hero__console .resume-console__code b { color: var(--info); }.resume-hero__console .resume-console__code strong { color: var(--warning); }
 .resume-capabilities article:nth-child(3n + 2) .resume-capability__icon { color: var(--violet); background: var(--violet-soft); }.resume-capabilities article:nth-child(3n + 3) .resume-capability__icon { color: var(--warning); background: var(--warning-soft); }
 .resume-capabilities article:nth-child(3n + 2):hover { border-color: color-mix(in srgb, var(--violet) 58%, var(--line)); }.resume-capabilities article:nth-child(3n + 3):hover { border-color: color-mix(in srgb, var(--warning) 58%, var(--line)); }

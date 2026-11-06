@@ -7,7 +7,6 @@ import {
   ArrowDownRight,
   ArrowUpRight,
   Award,
-  BookOpen,
   Boxes,
   Braces,
   BriefcaseBusiness,
@@ -15,7 +14,6 @@ import {
   CloudCog,
   Cpu,
   Download,
-  Eye,
   Fingerprint,
   FilePenLine,
   GraduationCap,
@@ -32,13 +30,6 @@ import {
   TerminalSquare,
 } from "lucide-react"
 import { Carousel, CarouselItem } from "@/components/ui/carousel"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { useUIStore } from "@/store/useUIStore"
@@ -97,7 +88,7 @@ function FittedProjectTitle({ children }: { children: string }) {
   return <h3 ref={titleRef} title={children}>{children}</h3>
 }
 
-function ProjectCard({ project, index, onOpen }: { project: Project; index: number; onOpen: () => void }) {
+function ProjectCard({ project, index }: { project: Project; index: number }) {
   return (
     <CarouselItem className="resume-project">
       <div className="resume-project__grid" />
@@ -114,16 +105,6 @@ function ProjectCard({ project, index, onOpen }: { project: Project; index: numb
             {project.stack.slice(0, 3).map((tag) => <span key={tag}>{tag}</span>)}
             {project.stack.length > 3 && <span>+{project.stack.length - 3}</span>}
           </div>
-          <button
-            className="resume-project__open"
-            onClick={(event) => {
-              event.stopPropagation()
-              onOpen()
-            }}
-            type="button"
-          >
-            <Eye />查看项目详情<ArrowUpRight />
-          </button>
         </div>
       </div>
     </CarouselItem>
@@ -139,7 +120,6 @@ export default function ResumePage() {
   const [contactEmail, setContactEmail] = useState("")
   const [contactMessage, setContactMessage] = useState("")
   const [contactTouched, setContactTouched] = useState(false)
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const { showToast } = useUIStore()
 
   const emailIsValid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(contactEmail.trim())
@@ -251,8 +231,22 @@ export default function ResumePage() {
           </aside>
 
           <main className="resume-main">
-            <section className="resume-section">
+            <section className="resume-section resume-projects-section" id="projects">
               <SectionHeader index="01" eyebrow="SYSTEM ENGINEERING" title="从服务架构到复杂业务交付" note="CORE EXPERTISE" />
+              <Carousel autoPlay autoPlayInterval={6500} showArrows showDots>
+                {projects.map((project, index) => (
+                  <ProjectCard
+                    key={project.title}
+                    project={project}
+                    index={index}
+                  />
+                ))}
+              </Carousel>
+              <p className="resume-carousel-hint"><span>←</span> 点击两侧卡片或滑动，切换项目 <span>→</span></p>
+            </section>
+
+            <section className="resume-section">
+              <SectionHeader index="02" eyebrow="SELECTED PROJECTS" title="代表项目与核心成果" note="SWIPE / CLICK" />
               <div className="resume-capabilities">
                 {capabilities.map(({ icon, no, title, text, tags }) => {
                   const Icon = iconMap[icon as keyof typeof iconMap]
@@ -266,74 +260,6 @@ export default function ResumePage() {
                   </article>
                 )})}
               </div>
-            </section>
-
-            <section className="resume-section resume-projects-section" id="projects">
-              <SectionHeader index="02" eyebrow="SELECTED PROJECTS" title="代表项目与核心成果" note="SWIPE / CLICK" />
-              <Carousel autoPlay autoPlayInterval={6500} paused={selectedProject !== null} showArrows showDots>
-                {projects.map((project, index) => (
-                  <ProjectCard
-                    key={project.title}
-                    project={project}
-                    index={index}
-                    onOpen={() => setSelectedProject(project)}
-                  />
-                ))}
-              </Carousel>
-              <p className="resume-carousel-hint"><span>←</span> 点击两侧卡片或滑动，切换项目 <span>→</span></p>
-              <Dialog
-                open={selectedProject !== null}
-                onOpenChange={(open) => {
-                  if (!open) setSelectedProject(null)
-                }}
-              >
-                <DialogContent className="resume-project-detail max-w-4xl">
-                  {selectedProject && (
-                    <>
-                      <DialogHeader className="resume-project-detail__head">
-                        <div className="resume-project-detail__code">
-                          <span><i /> PROJECT ARCHIVE</span>
-                        </div>
-                        <DialogTitle>{selectedProject.title}</DialogTitle>
-                        <DialogDescription>{selectedProject.intro}</DialogDescription>
-                      </DialogHeader>
-                      <div className="resume-project-detail__body">
-                        <section>
-                          <p className="resume-project-detail__label">ROLE & DELIVERY</p>
-                          <p className="resume-project-detail__role">{selectedProject.role}</p>
-                          <p className="resume-project-detail__label">CORE IMPLEMENTATION</p>
-                          <div className="resume-project-detail__points">
-                            {selectedProject.points.map((point, index) => (
-                              <article key={point}>
-                                <span>0{index + 1}</span>
-                                <p>{point}</p>
-                              </article>
-                            ))}
-                          </div>
-                        </section>
-                        <aside>
-                          <div className="resume-project-detail__metric">
-                            <small>{selectedProject.metric}</small>
-                            <strong>{selectedProject.value}</strong>
-                            <span>CORE INDICATOR</span>
-                          </div>
-                          <p className="resume-project-detail__label">SYSTEM DESIGN</p>
-                          <div className="resume-project-detail__architecture">
-                            {selectedProject.architecture.map((item, index) => <p key={item}><span>0{index + 1}</span>{item}</p>)}
-                          </div>
-                          <p className="resume-project-detail__label">TECH STACK</p>
-                          <div className="resume-project-detail__tags">
-                            {selectedProject.stack.map((tag) => <span key={tag}>{tag}</span>)}
-                          </div>
-                        </aside>
-                      </div>
-                      <div className="resume-project-detail__footer">
-                        <span><BookOpen />项目详情已展开，点击右上角关闭后轮播将自动继续</span>
-                      </div>
-                    </>
-                  )}
-                </DialogContent>
-              </Dialog>
             </section>
 
             <section className="resume-section" id="stack">
